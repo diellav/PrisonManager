@@ -7,6 +7,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^13.5.0",
+    "bootstrap": "^5.3.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mssql": "^11.0.1",
@@ -17,8 +18,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "node -r dotenv/config src/backend/database.js",
-     "dev": "nodemon -r dotenv/config src/backend/database.js",
+    "start": "node -r dotenv/config backend/database.js",
+    "dev": "nodemon -r dotenv/config backend/database.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
