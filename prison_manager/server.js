@@ -1,20 +1,14 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const { connectDB } = require('./database');
-
+const express = require("express");
+const cors = require("cors");
 const app = express();
-const PORT = process.env.PORT || 5000;
+const port = 5000;
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-connectDB();
+const roleRoutes = require("./backend/routes/roleRoute");
+app.use("/api/roles", roleRoutes);
 
-app.get('/', (req, res) => {
-    res.send('Prison Management System API is running...');
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
