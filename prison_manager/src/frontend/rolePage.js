@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import RoleForm from "./RoleForm";
+import RolesList from "./RolesList";
 
 const RolePage = () => {
   const [roles, setRoles] = useState([]);
   const [form, setForm] = useState({ name: "", description: "", id: null });
   const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchRoles();
@@ -40,6 +43,7 @@ const RolePage = () => {
       }
       setForm({ name: "", description: "", id: null });
       setIsEditing(false);
+      setShowForm(false); // Mbyll modal-in pas submit
       fetchRoles();
     } catch (err) {
       console.error("Error saving role:", err.response ? err.response.data : err.message);
@@ -49,6 +53,7 @@ const RolePage = () => {
   const handleEdit = (role) => {
     setForm({ name: role.name_, description: role.description_, id: role.roleID });
     setIsEditing(true);
+    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -62,53 +67,32 @@ const RolePage = () => {
     }
   };
 
-  return (
-    <div>
-      <h2>{isEditing ? "Edit Role" : "Create Role"}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Role Name"
-          value={form.name}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="text"
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleInputChange}
-          required
-        />
-        <button type="submit">{isEditing ? "Update" : "Create"}</button>
-      </form>
+  const handleGoToCreate = () => {
+    setForm({ name: "", description: "", id: null });
+    setIsEditing(false);
+    setShowForm(true); // Hap modal për create
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-      <h2>Roles List</h2>
-      <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {roles.map((role) => (
-            <tr key={role.roleID}>
-              <td>{role.roleID}</td>
-              <td>{role.name_}</td>
-              <td>{role.description_}</td>
-              <td>
-                <button onClick={() => handleEdit(role)}>Edit</button>
-                <button onClick={() => handleDelete(role.roleID)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  const handleClose = () => setShowForm(false);
+
+  return (
+    <div className="container mt-4">
+      <RoleForm
+        showModal={showForm}
+        handleClose={handleClose}
+        form={form}
+        isEditing={isEditing}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+      />
+
+      <RolesList
+        roles={roles}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        goToCreate={handleGoToCreate}
+      />
     </div>
   );
 };
