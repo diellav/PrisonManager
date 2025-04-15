@@ -41,14 +41,16 @@ const EmergencyContactForm = ({ showModal, handleClose, form, isEditing, handleI
             />
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="gender"
-              placeholder="Gender"
-              value={form.gender}
-              onChange={handleInputChange}
-              required
-            />
+            <Form.Select
+                name="gender"
+                value={form.gender}
+                onChange={handleInputChange}
+                required
+            >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            </Form.Select>
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Control
