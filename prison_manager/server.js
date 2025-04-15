@@ -9,6 +9,9 @@ app.use(express.json());
 const roleRoutes = require("./backend/routes/roleRoute");
 app.use("/api/roles", roleRoutes);
 
+const cellRoutes = require("./backend/routes/cellRoute");
+app.use("/api/cells", cellRoutes);
+
 
 
 const userRoutes = require("./backend/routes/userRoute");
