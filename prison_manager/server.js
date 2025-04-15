@@ -17,6 +17,9 @@ app.use("/api/cells", cellRoutes);
 const userRoutes = require("./backend/routes/userRoute");
 app.use("/api/users", userRoutes);
 
+const emergencyContactRoutes = require('./backend/routes/emergencyContactRoute');
+app.use("/api/emergency_contacts", emergencyContactRoutes);
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

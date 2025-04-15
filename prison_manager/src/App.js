@@ -3,6 +3,7 @@ import RolePage from './frontend/rolePage';
 import CellPage from './frontend/cellPage';
 import './Bootstrap/css/sb-admin-2.css';
 import UserPage from './frontend/userPage';
+import EmergencyContactPage from './frontend/emergencyContact/emergencyContactPage';
 
 function App() {
   return ( 
@@ -10,6 +11,7 @@ function App() {
       <RolePage />
       <CellPage />
       <UserPage />
+      <EmergencyContactPage/>
     </div>
   );
 }

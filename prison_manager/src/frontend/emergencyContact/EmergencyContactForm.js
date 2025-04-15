@@ -54,7 +54,7 @@ const EmergencyContactForm = ({ showModal, handleClose, form, isEditing, handleI
             <Form.Control
               type="text"
               name="phone"
-              placeholder="Phone"
+              placeholder="Phone Number"
               value={form.phone}
               onChange={handleInputChange}
               required
@@ -63,9 +63,9 @@ const EmergencyContactForm = ({ showModal, handleClose, form, isEditing, handleI
           <Form.Group className="mb-3">
             <Form.Control
               type="text"
-              name="address"
+              name="address_"
               placeholder="Address"
-              value={form.address}
+              value={form.address_}
               onChange={handleInputChange}
               required
             />
