@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import CellForm from "./CellForm";
+import CellsList from "./CellsList";
 
 const CellPage = () => {
   const [cells, setCells] = useState([]);
@@ -11,6 +13,7 @@ const CellPage = () => {
     id: null,
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchCells();
@@ -54,6 +57,7 @@ const CellPage = () => {
         id: null,
       });
       setIsEditing(false);
+      setShowForm(false);
       fetchCells();
     } catch (err) {
       console.error("Error saving cell:", err.response ? err.response.data : err.message);
@@ -69,6 +73,7 @@ const CellPage = () => {
       id: cell.cell_block_ID,
     });
     setIsEditing(true);
+    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -82,74 +87,38 @@ const CellPage = () => {
     }
   };
 
-  return (
-    <div>
-      <h2>{isEditing ? "Edit Cell" : "Create Cell"}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="block_name"
-          placeholder="Block Name"
-          value={form.block_name}
-          onChange={handleInputChange}
-          maxLength={1}
-          required
-        />
-        <input
-          type="number"
-          name="capacity"
-          placeholder="Capacity"
-          value={form.capacity}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="number"
-          name="actual_capacity"
-          placeholder="Actual Capacity"
-          value={form.actual_capacity}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="text"
-          name="category"
-          placeholder="Category"
-          value={form.category}
-          onChange={handleInputChange}
-          required
-        />
-        <button type="submit">{isEditing ? "Update" : "Create"}</button>
-      </form>
+  const handleGoToCreate = () => {
+    setForm({
+      block_name: "",
+      capacity: "",
+      actual_capacity: "",
+      category: "",
+      id: null,
+    });
+    setIsEditing(false);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-      <h2>Cells List</h2>
-      <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Block Name</th>
-            <th>Capacity</th>
-            <th>Actual Capacity</th>
-            <th>Category</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cells.map((cell) => (
-            <tr key={cell.cell_block_ID}>
-              <td>{cell.cell_block_ID}</td>
-              <td>{cell.block_name}</td>
-              <td>{cell.capacity}</td>
-              <td>{cell.actual_capacity}</td>
-              <td>{cell.category}</td>
-              <td>
-                <button onClick={() => handleEdit(cell)}>Edit</button>
-                <button onClick={() => handleDelete(cell.cell_block_ID)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  const handleClose = () => setShowForm(false);
+
+  return (
+    <div className="container mt-4">
+      <CellForm
+        showModal={showForm}
+        handleClose={handleClose}
+        form={form}
+        isEditing={isEditing}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+      />
+
+      <CellsList
+        cells={cells}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        goToCreate={handleGoToCreate}
+      />
     </div>
   );
 };
