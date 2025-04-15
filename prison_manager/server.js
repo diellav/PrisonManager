@@ -9,6 +9,11 @@ app.use(express.json());
 const roleRoutes = require("./backend/routes/roleRoute");
 app.use("/api/roles", roleRoutes);
 
+
+
+const userRoutes = require("./backend/routes/userRoute");
+app.use("/api/users", userRoutes);
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
