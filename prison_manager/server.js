@@ -17,10 +17,14 @@ app.use("/api/cells", cellRoutes);
 const userRoutes = require("./backend/routes/userRoute");
 app.use("/api/users", userRoutes);
 
-
 const lawyerRoutes = require("./backend/routes/lawyerRoute");
 app.use("/api/lawyers", lawyerRoutes);
 
+const emergencyContactRoutes = require('./backend/routes/emergencyContactRoute');
+app.use("/api/emergency_contacts", emergencyContactRoutes);
+
+const budgetRoutes = require("./backend/routes/budgetRoute");
+app.use("/api/budgets", budgetRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
