@@ -17,6 +17,11 @@ app.use("/api/cells", cellRoutes);
 const userRoutes = require("./backend/routes/userRoute");
 app.use("/api/users", userRoutes);
 
+
+const lawyerRoutes = require("./backend/routes/lawyerRoute");
+app.use("/api/lawyers", lawyerRoutes);
+
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
