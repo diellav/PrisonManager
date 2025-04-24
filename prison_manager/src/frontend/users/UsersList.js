@@ -1,4 +1,18 @@
 import React from "react";
+const roleMap = {
+  2: "Warden",
+  3: "Prisoner Manager",
+  4: "Visitor Manager",
+  5: "Prison Finance Manager",
+  6: "Prisoner Finance Manager",
+  7: "Legal Matters Manager",
+  8: "Guard Staff",
+  9: "Medical Staff",
+  10: "Kitchen Staff",
+  11: "Maintenance Staff",
+  12: "Transport Staff",
+  13: "Visitor",
+};
 
 const getValidImage = (url) => {
   return url && url !== "" ? url : "/default-avatar.png";
@@ -25,7 +39,7 @@ const UsersList = ({ users, onEdit, onDelete, goToCreate }) => {
             <th>Email</th>
             <th>Username</th>
             <th>Photo</th>
-            <th>Role ID</th>
+            <th>Role</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -48,7 +62,7 @@ const UsersList = ({ users, onEdit, onDelete, goToCreate }) => {
                   style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "50%" }}
                 />
               </td>
-              <td>{user.roleID}</td>
+              <td>{roleMap[user.roleID]}</td>
               <td>
                 <button className="btn btn-sm btn-warning me-2" onClick={() => onEdit(user)}>
                   Edit

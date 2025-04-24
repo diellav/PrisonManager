@@ -123,16 +123,33 @@ const UserForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Select
+          <Form.Select
               name="roleID"
               value={form.roleID}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange({
+                target: {
+                  name: "roleID",
+                  value: parseInt(e.target.value),
+                }
+              })}
               required
             >
+
               <option value="">Select Role</option>
-              <option value="1">Admin</option>
-              <option value="2">Guard</option>
-              <option value="3">Warden</option>
+              <option value="2">Warden</option>
+              <option value="3">Prisoner Manager</option>
+              <option value="4">Visitor Manager</option>
+              <option value="5">Prison Finance Manager</option>
+              <option value="6">Prisoner Finance Manager</option>
+              <option value="7">Legal Matters Manager</option>
+              <option value="8">Guard Staff</option>
+              <option value="9">Medical Staff</option>
+              <option value="10">Kitchen Staff</option>
+              <option value="11">Maintenance Staff</option>
+              <option value="12">Transport Staff</option>
+              <option value="13">Visitor</option>
+
+
             </Form.Select>
           </Form.Group>
 
