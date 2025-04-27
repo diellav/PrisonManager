@@ -136,6 +136,7 @@ const UserForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
             >
 
               <option value="">Select Role</option>
+              <option value="1">SuperAdmin</option>
               <option value="2">Warden</option>
               <option value="3">Prisoner Manager</option>
               <option value="4">Visitor Manager</option>

@@ -1,5 +1,6 @@
 import React from "react";
 const roleMap = {
+  1:"SuperAdmin",
   2: "Warden",
   3: "Prisoner Manager",
   4: "Visitor Manager",
@@ -21,13 +22,17 @@ const getValidImage = (url) => {
 const UsersList = ({ users, onEdit, onDelete, goToCreate }) => {
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Users List</h2>
-        <button className="btn btn-success" onClick={goToCreate}>+ Create New User</button>
-      </div>
-
-      <table className="table table-striped table-bordered">
-        <thead className="table-dark">
+      <div className="card shadow mb-4">
+        <div className="card-header py-3 d-flex justify-content-between align-items-center">
+          <h4 className="m-0 font-weight-bold text-primary">Users List</h4>
+          <button className="btn btn-success" onClick={goToCreate}>
+            + Create New User
+          </button>
+        </div>
+        <div className="card-body">
+          <div className="table-responsive">
+            <table className="table table-bordered" id="dataTable" width="100%" cellSpacing="0">
+              <thead className="table-dark">
           <tr>
             <th>ID</th>
             <th>First Name</th>
@@ -71,13 +76,17 @@ const UsersList = ({ users, onEdit, onDelete, goToCreate }) => {
                   Delete
                 </button>
               </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+
 
 export default UsersList;
 
