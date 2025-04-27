@@ -7,6 +7,7 @@ const CellPage = () => {
   const [cells, setCells] = useState([]);
   const [form, setForm] = useState({
     block_name: "",
+    cell_number: "",
     capacity: "",
     actual_capacity: "",
     category: "",
@@ -38,9 +39,10 @@ const CellPage = () => {
     try {
       const payload = {
         block_name: form.block_name,
+        cell_number: form.cell_number,
         capacity: parseInt(form.capacity),
         actual_capacity: parseInt(form.actual_capacity),
-        category: form.category,
+        category: form.category
       };
 
       if (isEditing) {
@@ -51,6 +53,7 @@ const CellPage = () => {
 
       setForm({
         block_name: "",
+        cell_number: "",
         capacity: "",
         actual_capacity: "",
         category: "",
@@ -67,6 +70,7 @@ const CellPage = () => {
   const handleEdit = (cell) => {
     setForm({
       block_name: cell.block_name,
+      cell_number: cell.cell_number,
       capacity: cell.capacity,
       actual_capacity: cell.actual_capacity,
       category: cell.category,
@@ -90,6 +94,7 @@ const CellPage = () => {
   const handleGoToCreate = () => {
     setForm({
       block_name: "",
+      cell_number: "",
       capacity: "",
       actual_capacity: "",
       category: "",

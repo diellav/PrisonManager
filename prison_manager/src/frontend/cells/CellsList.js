@@ -17,6 +17,7 @@ const CellsList = ({ cells, onEdit, onDelete, goToCreate }) => {
           <tr>
             <th>ID</th>
             <th>Block Name</th>
+            <th>Cell Number</th>
             <th>Capacity</th>
             <th>Actual Capacity</th>
             <th>Category</th>
@@ -28,6 +29,7 @@ const CellsList = ({ cells, onEdit, onDelete, goToCreate }) => {
             <tr key={cell.cell_block_ID}>
               <td>{cell.cell_block_ID}</td>
               <td>{cell.block_name}</td>
+              <td>{cell.cell_number}</td>
               <td>{cell.capacity}</td>
               <td>{cell.actual_capacity}</td>
               <td>{cell.category}</td>

@@ -1,7 +1,40 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
 const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, handleSubmit }) => {
+  const setCategoryByBlockName = (blockName) => {
+    switch (blockName) {
+      case 'A':
+      case 'B':
+        return 'Maximum Security';
+      case 'C':
+      case 'D':
+      case 'E':
+        return 'Medium Security';
+      case 'F':
+        return 'Minimum Security';
+      case 'G':
+        return 'Juvenile Section';
+      case 'H':
+        return 'Isolation';
+      default:
+        return '';
+    }
+  };
+
+  useEffect(() => {
+    if (!form.category && form.block_name) {
+      const category = setCategoryByBlockName(form.block_name);
+      handleInputChange({
+        target: {
+          name: "category",
+          value: category,
+        },
+      });
+    }
+  }, [form.block_name, form.category, handleInputChange]);
+  
+
   return (
     <Modal show={showModal} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -11,13 +44,32 @@ const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
+            <Form.Select
               name="block_name"
-              placeholder="Block Name (e.g., A, B)"
               value={form.block_name}
               onChange={handleInputChange}
-              maxLength={1}
+              required
+            >
+              <option value="">Select Block Name</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+              <option value="E">E</option>
+              <option value="F">F</option>
+              <option value="G">G</option>
+              <option value="H">H</option>
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="text"
+              name="cell_number"
+              placeholder="Cell Number"
+              value={form.cell_number}
+              onChange={handleInputChange}
+              maxLength={10}
               required
             />
           </Form.Group>
@@ -52,6 +104,7 @@ const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
               value={form.category}
               onChange={handleInputChange}
               required
+              readOnly
             />
           </Form.Group>
 
