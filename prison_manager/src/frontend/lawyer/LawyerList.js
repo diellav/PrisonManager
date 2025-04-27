@@ -3,13 +3,17 @@ import React from "react";
 const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Lawyers List</h2>
-        <button className="btn btn-success" onClick={goToCreate}>+ Create New Lawyer</button>
-      </div>
-
-      <table className="table table-striped table-bordered">
-        <thead className="table-dark">
+      <div className="card shadow mb-4">
+        <div className="card-header py-3 d-flex justify-content-between align-items-center">
+          <h4 className="m-0 font-weight-bold text-primary">Lawyer List</h4>
+          <button className="btn btn-success" onClick={goToCreate}>
+            + Create New Lawyer
+          </button>
+        </div>
+        <div className="card-body">
+          <div className="table-responsive">
+            <table className="table table-bordered" id="dataTable" width="100%" cellSpacing="0">
+              <thead className="table-dark">
           <tr>
             <th>ID</th>
             <th>First Name</th>
@@ -33,10 +37,13 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
                 <button className="btn btn-sm btn-warning me-2" onClick={() => onEdit(lawyer)}>Edit</button>
                 <button className="btn btn-sm btn-danger" onClick={() => onDelete(lawyer.lawyer_ID)}>Delete</button>
               </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
