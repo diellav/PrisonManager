@@ -23,7 +23,7 @@ const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
   };
 
   useEffect(() => {
-    if (!form.category && form.block_name) {
+    if (form.block_name) {
       const category = setCategoryByBlockName(form.block_name);
       handleInputChange({
         target: {
@@ -32,7 +32,8 @@ const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
         },
       });
     }
-  }, [form.block_name, form.category, handleInputChange]);
+  }, [form.block_name, handleInputChange]);
+  
   
 
   return (

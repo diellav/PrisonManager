@@ -43,7 +43,7 @@ const RolePage = () => {
       }
       setForm({ name: "", description: "", id: null });
       setIsEditing(false);
-      setShowForm(false); // Mbyll modal-in pas submit
+      setShowForm(false);
       fetchRoles();
     } catch (err) {
       console.error("Error saving role:", err.response ? err.response.data : err.message);
@@ -70,7 +70,7 @@ const RolePage = () => {
   const handleGoToCreate = () => {
     setForm({ name: "", description: "", id: null });
     setIsEditing(false);
-    setShowForm(true); // Hap modal për create
+    setShowForm(true); 
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
