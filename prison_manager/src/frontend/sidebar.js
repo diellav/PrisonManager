@@ -35,6 +35,12 @@ const Sidebar = () => {
         </Link>
       </li>
       <li className="nav-item">
+        <Link className="nav-link" to="/blocks">
+          <i className="fas fa-door-open"></i>
+          <span>Blocks</span>
+        </Link>
+      </li>
+      <li className="nav-item">
         <Link className="nav-link" to="/emergencyContact">
           <i className="fas fa-phone-alt"></i>
           <span>Emergency Contact</span>

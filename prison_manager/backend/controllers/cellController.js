@@ -22,8 +22,8 @@ const getCell = async (req, res) => {
 
 const addCell = async (req, res) => {
   try {
-    const { block_name, capacity, actual_capacity, category, cell_number } = req.body;
-    await cellModel.createCell(block_name, capacity, actual_capacity, category, cell_number);
+    const { block_id, capacity, actual_capacity, category, cell_number } = req.body;
+    await cellModel.createCell(block_id, capacity, actual_capacity, category, cell_number);
     res.status(201).send("Cell created");
   } catch (err) {
     console.error("Error adding cell:", err);
@@ -33,8 +33,8 @@ const addCell = async (req, res) => {
 
 const updateCell = async (req, res) => {
   try {
-    const { block_name, capacity, actual_capacity, category, cell_number } = req.body;
-    await cellModel.updateCell(req.params.id, block_name, capacity, actual_capacity, category, cell_number);
+    const { block_id, capacity, actual_capacity, category, cell_number } = req.body;
+    await cellModel.updateCell(req.params.id, block_id, capacity, actual_capacity, category, cell_number);
     res.send("Cell updated");
   } catch (err) {
     res.status(500).send(err.message);

@@ -9,6 +9,7 @@ import EmergencyContactPage from './frontend/emergencyContact/emergencyContactPa
 import BudgetPage from './frontend/budget/budgetPage';
 
 import './Bootstrap/css/sb-admin-2.css';
+import BlockPage from './frontend/blocks/BlockPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
               <Route path="/" element={<UserPage />} />
               <Route path="/roles" element={<RolePage />} />
               <Route path="/cells" element={<CellPage />} />
+              <Route path="/blocks" element={<BlockPage />} />
               <Route path="/lawyer" element={<LawyerPage />} />
               <Route path="/emergencyContact" element={<EmergencyContactPage />} />
               <Route path="/budget" element={<BudgetPage />} />
