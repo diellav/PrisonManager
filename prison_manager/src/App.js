@@ -20,6 +20,7 @@ import BudgetPage from './frontend/budget/budgetPage';
 import LoginPage from './frontend/LoginPage';
 
 import './Bootstrap/css/sb-admin-2.css';
+import BlockPage from './frontend/blocks/BlockPage';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -138,6 +139,7 @@ function AppContent() {
             <Route
               path="/cells"
               element={isAuthenticated ? <CellPage /> : <Navigate to="/login" replace />}
+              <Route path="/blocks" element={<BlockPage />} />
             />
             <Route
               path="/lawyer"

@@ -29,6 +29,14 @@ app.use("/api/emergency_contacts", verifyToken, emergencyContactRoutes);
 const budgetRoutes = require("./backend/routes/budgetRoute");
 app.use("/api/budgets", verifyToken, budgetRoutes);
 
+const blockRoutes = require("./backend/routes/blockRoute");
+app.use("/api/blocks", blockRoutes);
+
+
+// Start serverin
+const blockRoutes = require("./backend/routes/blockRoute");
+app.use("/api/blocks", blockRoutes);
+
 // Start serverin
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

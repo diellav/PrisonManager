@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import CellForm from "./CellForm";
-import CellsList from "./CellsList";
+import CellList from "./CellsList";
 
 const CellPage = () => {
   const [cells, setCells] = useState([]);
+  const [blocks, setBlocks] = useState([]);
   const [form, setForm] = useState({
-    block_name: "",
     cell_number: "",
     capacity: "",
     actual_capacity: "",
+    block_id: "",
     category: "",
     id: null,
   });
@@ -24,18 +25,28 @@ const CellPage = () => {
     },
   };
 
-  useEffect(() => {
-    fetchCells();
-  }, []);
-
   const fetchCells = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/cells", axiosConfig);
       setCells(res.data);
     } catch (err) {
-      console.error("Error fetching cells:", err.response ? err.response.data : err.message);
+      console.error("Error fetching cells:", err.response?.data || err.message);
     }
   };
+
+  const fetchBlocks = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/blocks");
+      setBlocks(res.data);
+    } catch (err) {
+      console.error("Error fetching blocks:", err.response?.data || err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchCells();
+    fetchBlocks();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,43 +55,48 @@ const CellPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
     try {
+      const category = blocks.find(block => block.block_id === parseInt(form.block_id))?.category || "";
+  
       const payload = {
-        block_name: form.block_name,
         cell_number: form.cell_number,
         capacity: parseInt(form.capacity),
         actual_capacity: parseInt(form.actual_capacity),
-        category: form.category,
+        block_id: parseInt(form.block_id),
+        category: category,,
       };
-
+  
       if (isEditing) {
         await axios.put(`http://localhost:5000/api/cells/${form.id}`, payload, axiosConfig);
       } else {
         await axios.post("http://localhost:5000/api/cells", payload, axiosConfig);
       }
-
+  
       setForm({
-        block_name: "",
         cell_number: "",
         capacity: "",
         actual_capacity: "",
+        block_id: "",
         category: "",
         id: null,
       });
       setIsEditing(false);
       setShowForm(false);
       fetchCells();
-    } catch (err) {
-      console.error("Error saving cell:", err.response ? err.response.data : err.message);
+    } catch (error) {
+      console.error("Error saving cell:", error.response?.data || error.message);
     }
   };
+  
+  
 
   const handleEdit = (cell) => {
     setForm({
-      block_name: cell.block_name,
       cell_number: cell.cell_number,
       capacity: cell.capacity,
       actual_capacity: cell.actual_capacity,
+      block_id: cell.block_id,
       category: cell.category,
       id: cell.cell_block_ID,
     });
@@ -92,19 +108,19 @@ const CellPage = () => {
     if (window.confirm("Are you sure you want to delete this cell?")) {
       try {
         await axios.delete(`http://localhost:5000/api/cells/${id}`, axiosConfig);
-        fetchCells();
+        fetchCells(); 
       } catch (err) {
-        console.error("Error deleting cell:", err.response ? err.response.data : err.message);
+        console.error("Error deleting cell:", err.response?.data || err.message);
       }
     }
   };
 
   const handleGoToCreate = () => {
     setForm({
-      block_name: "",
       cell_number: "",
       capacity: "",
       actual_capacity: "",
+      block_id: "",
       category: "",
       id: null,
     });
@@ -124,10 +140,12 @@ const CellPage = () => {
         isEditing={isEditing}
         handleInputChange={handleInputChange}
         handleSubmit={handleSubmit}
+        blocks={blocks}
       />
 
-      <CellsList
+      <CellList
         cells={cells}
+        blocks={blocks}
         onEdit={handleEdit}
         onDelete={handleDelete}
         goToCreate={handleGoToCreate}
