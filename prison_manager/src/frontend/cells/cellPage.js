@@ -64,7 +64,7 @@ const CellPage = () => {
         capacity: parseInt(form.capacity),
         actual_capacity: parseInt(form.actual_capacity),
         block_id: parseInt(form.block_id),
-        category: category,,
+        category: category,
       };
   
       if (isEditing) {

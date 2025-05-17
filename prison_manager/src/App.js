@@ -139,8 +139,11 @@ function AppContent() {
             <Route
               path="/cells"
               element={isAuthenticated ? <CellPage /> : <Navigate to="/login" replace />}
-              <Route path="/blocks" element={<BlockPage />} />
-            />
+              />
+               <Route
+              path="/blocks"
+              element={isAuthenticated ? <BlockPage /> : <Navigate to="/login" replace />}
+              />
             <Route
               path="/lawyer"
               element={isAuthenticated ? <LawyerPage /> : <Navigate to="/login" replace />}
