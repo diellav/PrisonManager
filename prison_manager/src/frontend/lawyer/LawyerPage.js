@@ -16,13 +16,21 @@ const LawyerPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
     fetchLawyers();
   }, []);
 
   const fetchLawyers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/lawyers");
+      const res = await axios.get("http://localhost:5000/api/lawyers", axiosConfig);
       setLawyers(res.data);
     } catch (err) {
       console.error("Error fetching lawyers:", err.response?.data || err.message);
@@ -46,9 +54,17 @@ const LawyerPage = () => {
       };
 
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/lawyers/${form.id}`, payload);
+        await axios.put(
+          `http://localhost:5000/api/lawyers/${form.id}`,
+          payload,
+          axiosConfig
+        );
       } else {
-        await axios.post("http://localhost:5000/api/lawyers", payload);
+        await axios.post(
+          "http://localhost:5000/api/lawyers",
+          payload,
+          axiosConfig
+        );
       }
 
       setForm({
@@ -83,7 +99,10 @@ const LawyerPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this lawyer?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/lawyers/${id}`);
+        await axios.delete(
+          `http://localhost:5000/api/lawyers/${id}`,
+          axiosConfig
+        );
         fetchLawyers();
       } catch (err) {
         console.error("Error deleting lawyer:", err.response?.data || err.message);

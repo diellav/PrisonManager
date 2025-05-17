@@ -5,9 +5,25 @@ import BudgetList from "./BudgetList";
 
 const BudgetPage = () => {
   const [budgets, setBudgets] = useState([]);
-  const [form, setForm] = useState({ year: "",allocated_funds: "",used_funds: "", remaining_funds: "", last_updated: "",id: null,});
+  const [form, setForm] = useState({
+    year: "",
+    allocated_funds: "",
+    used_funds: "",
+    remaining_funds: "",
+    last_updated: "",
+    id: null,
+  });
+
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
+
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 
   useEffect(() => {
     fetchBudgets();
@@ -15,7 +31,7 @@ const BudgetPage = () => {
 
   const fetchBudgets = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/budgets");
+      const res = await axios.get("http://localhost:5000/api/budgets", axiosConfig);
       setBudgets(res.data);
     } catch (err) {
       console.error("Error fetching budgets:", err.response?.data || err.message);
@@ -41,9 +57,9 @@ const BudgetPage = () => {
       };
 
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/budgets/${form.id}`, bdg);
+        await axios.put(`http://localhost:5000/api/budgets/${form.id}`, bdg, axiosConfig);
       } else {
-        await axios.post("http://localhost:5000/api/budgets", bdg);
+        await axios.post("http://localhost:5000/api/budgets", bdg, axiosConfig);
       }
 
       resetForm();
@@ -54,7 +70,14 @@ const BudgetPage = () => {
   };
 
   const resetForm = () => {
-    setForm({ year: "", allocated_funds: "", used_funds: "",remaining_funds: "", last_updated: "",id: null,  });
+    setForm({
+      year: "",
+      allocated_funds: "",
+      used_funds: "",
+      remaining_funds: "",
+      last_updated: "",
+      id: null,
+    });
     setIsEditing(false);
     setShowForm(false);
   };
@@ -65,8 +88,14 @@ const BudgetPage = () => {
   };
 
   const handleEdit = (budget) => {
-    setForm({  year: budget.year_,allocated_funds: budget.allocated_funds,used_funds: budget.used_funds,
-      remaining_funds: budget.remaining_funds,last_updated: formatDateForInput(budget.last_updated),id: budget.budget_ID, });
+    setForm({
+      year: budget.year_,
+      allocated_funds: budget.allocated_funds,
+      used_funds: budget.used_funds,
+      remaining_funds: budget.remaining_funds,
+      last_updated: formatDateForInput(budget.last_updated),
+      id: budget.budget_ID,
+    });
     setIsEditing(true);
     setShowForm(true);
   };
@@ -74,7 +103,7 @@ const BudgetPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this budget?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/budgets/${id}`);
+        await axios.delete(`http://localhost:5000/api/budgets/${id}`, axiosConfig);
         fetchBudgets();
       } catch (err) {
         console.error("Error deleting budget:", err.response?.data || err.message);

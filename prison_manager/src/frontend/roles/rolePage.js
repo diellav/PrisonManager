@@ -9,13 +9,21 @@ const RolePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
     fetchRoles();
   }, []);
 
   const fetchRoles = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/roles");
+      const res = await axios.get("http://localhost:5000/api/roles", axiosConfig);
       setRoles(res.data);
     } catch (err) {
       console.error("Error fetching roles:", err.response ? err.response.data : err.message);
@@ -31,15 +39,23 @@ const RolePage = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/roles/${form.id}`, {
-          name: form.name,
-          description: form.description,
-        });
+        await axios.put(
+          `http://localhost:5000/api/roles/${form.id}`,
+          {
+            name: form.name,
+            description: form.description,
+          },
+          axiosConfig
+        );
       } else {
-        await axios.post("http://localhost:5000/api/roles", {
-          name: form.name,
-          description: form.description,
-        });
+        await axios.post(
+          "http://localhost:5000/api/roles",
+          {
+            name: form.name,
+            description: form.description,
+          },
+          axiosConfig
+        );
       }
       setForm({ name: "", description: "", id: null });
       setIsEditing(false);
@@ -59,7 +75,7 @@ const RolePage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this role?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/roles/${id}`);
+        await axios.delete(`http://localhost:5000/api/roles/${id}`, axiosConfig);
         fetchRoles();
       } catch (err) {
         console.error("Error deleting role:", err.response ? err.response.data : err.message);

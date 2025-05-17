@@ -19,13 +19,21 @@ const EmergencyContactPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
     fetchContacts();
   }, []);
 
   const fetchContacts = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/emergency_contacts");
+      const res = await axios.get("http://localhost:5000/api/emergency_contacts", axiosConfig);
       setContacts(res.data);
     } catch (err) {
       console.error("Error fetching contacts:", err.response ? err.response.data : err.message);
@@ -51,9 +59,9 @@ const EmergencyContactPage = () => {
       };
 
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/emergency_contacts/${form.id}`, payload);
+        await axios.put(`http://localhost:5000/api/emergency_contacts/${form.id}`, payload, axiosConfig);
       } else {
-        await axios.post("http://localhost:5000/api/emergency_contacts", payload);
+        await axios.post("http://localhost:5000/api/emergency_contacts", payload, axiosConfig);
       }
 
       setForm({
@@ -92,7 +100,7 @@ const EmergencyContactPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this contact?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/emergency_contacts/${id}`);
+        await axios.delete(`http://localhost:5000/api/emergency_contacts/${id}`, axiosConfig);
         fetchContacts();
       } catch (err) {
         console.error("Error deleting contact:", err.response ? err.response.data : err.message);

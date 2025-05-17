@@ -16,13 +16,21 @@ const CellPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
     fetchCells();
   }, []);
 
   const fetchCells = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/cells");
+      const res = await axios.get("http://localhost:5000/api/cells", axiosConfig);
       setCells(res.data);
     } catch (err) {
       console.error("Error fetching cells:", err.response ? err.response.data : err.message);
@@ -42,13 +50,13 @@ const CellPage = () => {
         cell_number: form.cell_number,
         capacity: parseInt(form.capacity),
         actual_capacity: parseInt(form.actual_capacity),
-        category: form.category
+        category: form.category,
       };
 
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/cells/${form.id}`, payload);
+        await axios.put(`http://localhost:5000/api/cells/${form.id}`, payload, axiosConfig);
       } else {
-        await axios.post("http://localhost:5000/api/cells", payload);
+        await axios.post("http://localhost:5000/api/cells", payload, axiosConfig);
       }
 
       setForm({
@@ -83,7 +91,7 @@ const CellPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this cell?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/cells/${id}`);
+        await axios.delete(`http://localhost:5000/api/cells/${id}`, axiosConfig);
         fetchCells();
       } catch (err) {
         console.error("Error deleting cell:", err.response ? err.response.data : err.message);

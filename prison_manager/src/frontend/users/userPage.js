@@ -22,13 +22,24 @@ const UserPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (token) {
+      fetchUsers();
+    }
+  }, [token]);
 
   const fetchUsers = async () => {
+    if (!token) return;
     try {
-      const res = await axios.get("http://localhost:5000/api/users");
+      const res = await axios.get("http://localhost:5000/api/users", axiosConfig);
       setUsers(res.data);
     } catch (err) {
       console.error("Error fetching users:", err.response ? err.response.data : err.message);
@@ -61,11 +72,28 @@ const UserPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!token) {
+      alert("Session expired. Please login again.");
+      return;
+    }
+
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/users/${form.id}`, form);
+        const updatedForm = { ...form };
+        delete updatedForm.password_; 
+
+        await axios.put(
+          `http://localhost:5000/api/users/${form.id}`,
+          updatedForm,
+          axiosConfig
+        );
       } else {
-        await axios.post("http://localhost:5000/api/users", form);
+        await axios.post(
+          "http://localhost:5000/api/users",
+          form,
+          axiosConfig
+        );
       }
       resetForm();
       fetchUsers();
@@ -84,7 +112,7 @@ const UserPage = () => {
       address_: user.address_,
       email: user.email,
       username: user.username,
-      password_: user.password_,
+      password_: "", 
       photo: user.photo,
       roleID: user.roleID,
       id: user.userID,
@@ -96,7 +124,10 @@ const UserPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${id}`);
+        await axios.delete(
+          `http://localhost:5000/api/users/${id}`,
+          axiosConfig
+        );
         fetchUsers();
       } catch (err) {
         console.error("Error deleting user:", err.response ? err.response.data : err.message);
