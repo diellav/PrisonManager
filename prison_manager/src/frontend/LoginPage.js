@@ -19,6 +19,7 @@ function LoginPage({ onLogin }) {
 
       if (response.ok) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('permissions', JSON.stringify(data.permissions || []));
         onLogin();
       } else {
         setErrorMessage(data.message || 'Login failed. Please check your credentials.');
@@ -84,7 +85,7 @@ function LoginPage({ onLogin }) {
             </div>
           </div>
         </div>
-      </div>  
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios"; 
 import UserForm from "./UsersForm";
 import UsersList from "./UsersList";
 
@@ -19,30 +19,20 @@ const UserPage = () => {
     roleID: "",
     id: null,
   });
+
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const token = localStorage.getItem("token");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
   useEffect(() => {
-    if (token) {
-      fetchUsers();
-    }
-  }, [token]);
+    fetchUsers();
+  }, []);
 
   const fetchUsers = async () => {
-    if (!token) return;
     try {
-      const res = await axios.get("http://localhost:5000/api/users", axiosConfig);
+      const res = await axiosInstance.get("/users");
       setUsers(res.data);
     } catch (err) {
-      console.error("Error fetching users:", err.response ? err.response.data : err.message);
+      console.error("Error fetching users:", err.response?.data || err.message);
     }
   };
 
@@ -71,66 +61,54 @@ const UserPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!token) {
-      alert("Session expired. Please login again.");
-      return;
-    }
+  try {
+    const payload = { ...form };
 
-    try {
-      if (isEditing) {
-        const updatedForm = { ...form };
-        delete updatedForm.password_; 
-
-        await axios.put(
-          `http://localhost:5000/api/users/${form.id}`,
-          updatedForm,
-          axiosConfig
-        );
-      } else {
-        await axios.post(
-          "http://localhost:5000/api/users",
-          form,
-          axiosConfig
-        );
+    if (isEditing) {
+      if (!payload.password_) {
+        delete payload.password_;
       }
-      resetForm();
-      fetchUsers();
-    } catch (err) {
-      console.error("Error saving user:", err.response ? err.response.data : err.message);
+      await axiosInstance.put(`/users/${form.id}`, payload);
+    } else {
+      await axiosInstance.post("/users", payload);
     }
-  };
+    resetForm();
+    fetchUsers();
+  } catch (err) {
+    console.error("Error saving user:", err.response?.data || err.message);
+  }
+};
 
-  const handleEdit = (user) => {
-    setForm({
-      first_name: user.first_name,
-      last_name: user.last_name,
-      date_of_birth: user.date_of_birth?.split("T")[0] || "",
-      gender: user.gender,
-      phone: user.phone,
-      address_: user.address_,
-      email: user.email,
-      username: user.username,
-      password_: "", 
-      photo: user.photo,
-      roleID: user.roleID,
-      id: user.userID,
-    });
-    setIsEditing(true);
-    setShowModal(true);
-  };
+
+ const handleEdit = (user) => {
+  setForm({
+    first_name: user.first_name,
+    last_name: user.last_name,
+    date_of_birth: user.date_of_birth?.split("T")[0] || "",
+    gender: user.gender,
+    phone: user.phone,
+    address_: user.address_,
+    email: user.email,
+    username: user.username,
+    password_: "", 
+    photo: user.photo,
+    roleID: user.roleID,
+    id: user.userID,
+  });
+  setIsEditing(true);
+  setShowModal(true);
+};
+
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(
-          `http://localhost:5000/api/users/${id}`,
-          axiosConfig
-        );
+        await axiosInstance.delete(`/users/${id}`);
         fetchUsers();
       } catch (err) {
-        console.error("Error deleting user:", err.response ? err.response.data : err.message);
+        console.error("Error deleting user:", err.response?.data || err.message);
       }
     }
   };

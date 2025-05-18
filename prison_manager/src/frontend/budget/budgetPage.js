@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 import BudgetForm from "./BudgetForm";
 import BudgetList from "./BudgetList";
 
@@ -17,21 +17,13 @@ const BudgetPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  const token = localStorage.getItem("token");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
   useEffect(() => {
     fetchBudgets();
   }, []);
 
   const fetchBudgets = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/budgets", axiosConfig);
+      const res = await axiosInstance.get("/budgets");
       setBudgets(res.data);
     } catch (err) {
       console.error("Error fetching budgets:", err.response?.data || err.message);
@@ -46,7 +38,7 @@ const BudgetPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const remaining = parseFloat(form.allocated_funds) - parseFloat(form.used_funds);
+      const remaining = parseFloat(form.allocated_funds || 0) - parseFloat(form.used_funds || 0);
 
       const bdg = {
         year: parseInt(form.year),
@@ -57,9 +49,9 @@ const BudgetPage = () => {
       };
 
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/budgets/${form.id}`, bdg, axiosConfig);
+        await axiosInstance.put(`/budgets/${form.id}`, bdg);
       } else {
-        await axios.post("http://localhost:5000/api/budgets", bdg, axiosConfig);
+        await axiosInstance.post("/budgets", bdg);
       }
 
       resetForm();
@@ -103,7 +95,7 @@ const BudgetPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this budget?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/budgets/${id}`, axiosConfig);
+        await axiosInstance.delete(`/budgets/${id}`);
         fetchBudgets();
       } catch (err) {
         console.error("Error deleting budget:", err.response?.data || err.message);

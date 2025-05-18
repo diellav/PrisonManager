@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 import BlocksList from "./BlocksList";
 import BlockForm from "./BlockForm";
 
@@ -9,25 +9,16 @@ const BlockPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-
-  const token = localStorage.getItem("token");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
   useEffect(() => {
     fetchBlocks();
   }, []);
 
   const fetchBlocks = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/blocks", axiosConfig);
+      const res = await axiosInstance.get("/blocks");
       setBlocks(res.data);
     } catch (err) {
-      console.error("Error fetching blocks:", err.response ? err.response.data : err.message);
+      console.error("Error fetching blocks:", err.response?.data || err.message);
     }
   };
 
@@ -40,30 +31,22 @@ const BlockPage = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(
-          `http://localhost:5000/api/blocks/${form.block_id}`,
-          {
-            block_name: form.block_name,
-            category: form.category,
-          },
-          axiosConfig
-        );
+        await axiosInstance.put(`/blocks/${form.block_id}`, {
+          block_name: form.block_name,
+          category: form.category,
+        });
       } else {
-        await axios.post(
-          "http://localhost:5000/api/blocks",
-          {
-            block_name: form.block_name,
-            category: form.category,
-          },
-          axiosConfig
-        );
+        await axiosInstance.post("/blocks", {
+          block_name: form.block_name,
+          category: form.category,
+        });
       }
       setForm({ block_name: "", category: "", block_id: null });
       setIsEditing(false);
       setShowForm(false);
       fetchBlocks();
     } catch (err) {
-      console.error("Error saving block:", err.response ? err.response.data : err.message);
+      console.error("Error saving block:", err.response?.data || err.message);
     }
   };
 
@@ -76,10 +59,10 @@ const BlockPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this block?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/blocks/${id}`, axiosConfig);
+        await axiosInstance.delete(`/blocks/${id}`);
         fetchBlocks();
       } catch (err) {
-        console.error("Error deleting block:", err.response ? err.response.data : err.message);
+        console.error("Error deleting block:", err.response?.data || err.message);
       }
     }
   };

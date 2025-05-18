@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const roleController = require("../controllers/roleController");
 
+router.get("/permissions", roleController.getAllPermissions);
 router.get("/", roleController.getRoles);
 router.get("/:id", roleController.getRole);
 router.post("/", roleController.addRole);

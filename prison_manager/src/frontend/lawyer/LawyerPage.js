@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 import LawyerForm from "./LawyerForm";
 import LawyersList from "./LawyerList";
 
@@ -13,16 +13,9 @@ const LawyerPage = () => {
     category: "",
     id: null,
   });
+
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
-
-  const token = localStorage.getItem("token");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
 
   useEffect(() => {
     fetchLawyers();
@@ -30,7 +23,7 @@ const LawyerPage = () => {
 
   const fetchLawyers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/lawyers", axiosConfig);
+      const res = await axiosInstance.get("/lawyers");
       setLawyers(res.data);
     } catch (err) {
       console.error("Error fetching lawyers:", err.response?.data || err.message);
@@ -44,43 +37,40 @@ const LawyerPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        first_name: form.first_name,
-        last_name: form.last_name,
-        phone: form.phone,
-        email: form.email,
-        category: form.category,
-      };
 
+    const payload = {
+      first_name: form.first_name,
+      last_name: form.last_name,
+      phone: form.phone,
+      email: form.email,
+      category: form.category,
+    };
+
+    try {
       if (isEditing) {
-        await axios.put(
-          `http://localhost:5000/api/lawyers/${form.id}`,
-          payload,
-          axiosConfig
-        );
+        await axiosInstance.put(`/lawyers/${form.id}`, payload);
       } else {
-        await axios.post(
-          "http://localhost:5000/api/lawyers",
-          payload,
-          axiosConfig
-        );
+        await axiosInstance.post("/lawyers", payload);
       }
 
-      setForm({
-        first_name: "",
-        last_name: "",
-        phone: "",
-        email: "",
-        category: "",
-        id: null,
-      });
-      setIsEditing(false);
-      setShowForm(false);
+      resetForm();
       fetchLawyers();
     } catch (err) {
       console.error("Error saving lawyer:", err.response?.data || err.message);
     }
+  };
+
+  const resetForm = () => {
+    setForm({
+      first_name: "",
+      last_name: "",
+      phone: "",
+      email: "",
+      category: "",
+      id: null,
+    });
+    setIsEditing(false);
+    setShowForm(false);
   };
 
   const handleEdit = (lawyer) => {
@@ -99,10 +89,7 @@ const LawyerPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this lawyer?")) {
       try {
-        await axios.delete(
-          `http://localhost:5000/api/lawyers/${id}`,
-          axiosConfig
-        );
+        await axiosInstance.delete(`/lawyers/${id}`);
         fetchLawyers();
       } catch (err) {
         console.error("Error deleting lawyer:", err.response?.data || err.message);
@@ -111,15 +98,7 @@ const LawyerPage = () => {
   };
 
   const handleGoToCreate = () => {
-    setForm({
-      first_name: "",
-      last_name: "",
-      phone: "",
-      email: "",
-      category: "",
-      id: null,
-    });
-    setIsEditing(false);
+    resetForm();
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
