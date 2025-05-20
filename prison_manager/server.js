@@ -5,7 +5,12 @@ const port = 5000;
 
 const { verifyToken } = require('./backend/authMiddleware');
 
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 const authRoutes = require('./backend/routes/authRoute');

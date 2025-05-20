@@ -35,13 +35,13 @@ const loginUser = async (req, res) => {
         WHERE rp.roleID = @roleID
       `);
     const permissions = permissionResult.recordset.map(p => p.name.toLowerCase());
-  
+
     const token = jwt.sign(
       {
         userID: user.userID,
         username: user.username,
         roleID: user.roleID,
-        permissions,
+        permissions, 
       },
       JWT_SECRET,
       { expiresIn: '1h' }
