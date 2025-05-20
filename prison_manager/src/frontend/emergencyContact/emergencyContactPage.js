@@ -13,9 +13,9 @@ const EmergencyContactPage = () => {
     phone: "",
     address_: "",
     email: "",
-    id: null
+    id: null,
   });
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
@@ -87,6 +87,7 @@ const EmergencyContactPage = () => {
     });
     setIsEditing(true);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
@@ -120,21 +121,24 @@ const EmergencyContactPage = () => {
 
   return (
     <div className="container mt-4">
-      <EmergencyContactForm
-        showModal={showForm}
-        handleClose={handleClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-      />
+      <h2 className="mb-4">Emergency Contact Management</h2>
 
-      <EmergencyContactsList
-        contacts={contacts}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleGoToCreate}
-      />
+      {showForm ? (
+        <EmergencyContactForm
+          form={form}
+          isEditing={isEditing}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          handleClose={handleClose}
+        />
+      ) : (
+        <EmergencyContactsList
+          contacts={contacts}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          goToCreate={handleGoToCreate}
+        />
+      )}
     </div>
   );
 };

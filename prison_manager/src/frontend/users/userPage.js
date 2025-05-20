@@ -1,137 +1,100 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import UserForm from "./UsersForm";
 import UsersList from "./UsersList";
+import UserForm from "./UsersForm";
 
-const UserPage = () => {
+const UsersPage = () => {
   const [users, setUsers] = useState([]);
-  const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    date_of_birth: "",
-    gender: "",
-    phone: "",
-    address_: "",
-    email: "",
-    username: "",
-    password_: "",
-    photo: "",
-    roleID: "",
-    id: null,
-  });
-  const [isEditing, setIsEditing] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchUsers();
+    fetchRoles();
   }, []);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/users");
-      setUsers(res.data);
+      const response = await axios.get("http://localhost:5000/api/users");
+      setUsers(response.data);
     } catch (err) {
-      console.error("Error fetching users:", err.response ? err.response.data : err.message);
+      console.error("Error fetching users:", err);
+      setError("Error fetching users.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
-
-  const resetForm = () => {
-    setForm({
-      first_name: "",
-      last_name: "",
-      date_of_birth: "",
-      gender: "",
-      phone: "",
-      address_: "",
-      email: "",
-      username: "",
-      password_: "",
-      photo: "",
-      roleID: "",
-      id: null,
-    });
-    setIsEditing(false);
-    setShowModal(false);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchRoles = async () => {
     try {
-      if (isEditing) {
-        await axios.put(`http://localhost:5000/api/users/${form.id}`, form);
-      } else {
-        await axios.post("http://localhost:5000/api/users", form);
-      }
-      resetForm();
-      fetchUsers();
+      const response = await axios.get("http://localhost:5000/api/roles");
+      setRoles(response.data);
     } catch (err) {
-      console.error("Error saving user:", err.response ? err.response.data : err.message);
+      console.error("Error fetching roles:", err);
     }
   };
 
-  const handleEdit = (user) => {
-    setForm({
-      first_name: user.first_name,
-      last_name: user.last_name,
-      date_of_birth: user.date_of_birth?.split("T")[0] || "",
-      gender: user.gender,
-      phone: user.phone,
-      address_: user.address_,
-      email: user.email,
-      username: user.username,
-      password_: user.password_,
-      photo: user.photo,
-      roleID: user.roleID,
-      id: user.userID,
-    });
-    setIsEditing(true);
-    setShowModal(true);
+  const getRoleName = (roleID) => {
+    const role = roles.find((r) => r.roleID === roleID);
+    return role ? role.name_ : "Unknown";
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        await axios.delete(`http://localhost:5000/api/users/${id}`);
-        fetchUsers();
-      } catch (err) {
-        console.error("Error deleting user:", err.response ? err.response.data : err.message);
-      }
+  const goToCreate = () => {
+    setEditingUser(null);
+    setShowForm(true);
+  };
+
+  const onEdit = (user) => {
+    setEditingUser(user);
+    setShowForm(true);
+  };
+
+  const onDelete = async (userID) => {
+  if (window.confirm("Are you sure you want to delete this user?")) {
+    try {
+      await axios.delete(`http://localhost:5000/api/users/${userID}`);
+      setUsers(users.filter((user) => user.userID !== userID));
+    } catch (err) {
+      console.error("Error deleting user:", err.response ? err.response.data : err.message);
+      setError("Failed to delete user.");
     }
+  }
+};
+
+
+  const onSuccess = () => {
+    setShowForm(false);
+    fetchUsers();
   };
 
-  const handleModalOpen = () => {
-    resetForm();
-    setShowModal(true);
-  };
-
-  const handleModalClose = () => {
-    setShowModal(false);
+  const onCancel = () => {
+    setShowForm(false);
   };
 
   return (
-    <div className="container mt-4">
-      <UserForm
-        showModal={showModal}
-        handleClose={handleModalClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-      />
-
-      <UsersList
-        users={users}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleModalOpen}
-      />
+    <div>
+      <h2>Users Management</h2>
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <div className="alert alert-danger">{error}</div>
+      ) : showForm ? (
+        <UserForm editingUser={editingUser} onSuccess={onSuccess} onCancel={onCancel} />
+      ) : (
+        <UsersList
+          users={users}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          goToCreate={goToCreate}
+          getRoleName={getRoleName}
+        />
+      )}
     </div>
   );
 };
 
-export default UserPage;
+export default UsersPage;

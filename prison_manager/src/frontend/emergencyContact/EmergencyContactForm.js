@@ -1,14 +1,13 @@
 import React from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Card, Form, Button } from "react-bootstrap";
 
-const EmergencyContactForm = ({ showModal, handleClose, form, isEditing, handleInputChange, handleSubmit }) => {
+const EmergencyContactForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClose }) => {
   return (
-    <Modal show={showModal} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>{isEditing ? "Edit Emergency Contact" : "Create Emergency Contact"}</Modal.Title>
-      </Modal.Header>
-
-      <Modal.Body>
+    <Card className="mb-4 shadow-sm rounded-4">
+      <Card.Body>
+        <h4 className="mb-4 font-weight-bold text-primary">
+          {isEditing ? "Edit Emergency Contact" : "Create Emergency Contact"}
+        </h4>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Control
@@ -42,14 +41,14 @@ const EmergencyContactForm = ({ showModal, handleClose, form, isEditing, handleI
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Select
-                name="gender"
-                value={form.gender}
-                onChange={handleInputChange}
-                required
+              name="gender"
+              value={form.gender}
+              onChange={handleInputChange}
+              required
             >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
             </Form.Select>
           </Form.Group>
           <Form.Group className="mb-3">
@@ -82,13 +81,21 @@ const EmergencyContactForm = ({ showModal, handleClose, form, isEditing, handleI
               required
             />
           </Form.Group>
-          <Button variant="secondary" onClick={handleClose}>Close</Button>
-          <Button variant={isEditing ? "warning" : "primary"} type="submit" className="ms-2">
-            {isEditing ? "Update" : "Create"}
-          </Button>
+          <div className="d-flex justify-content-end">
+            <Button variant="secondary" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              className="ms-2"
+            >
+              {isEditing ? "Update" : "Create"}
+            </Button>
+          </div>
         </Form>
-      </Modal.Body>
-    </Modal>
+      </Card.Body>
+    </Card>
   );
 };
 

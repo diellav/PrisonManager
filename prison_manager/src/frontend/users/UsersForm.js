@@ -1,168 +1,143 @@
-import React from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import axios from "axios";
 
-const UserForm = ({ showModal, handleClose, form, isEditing, handleInputChange, handleSubmit }) => {
+const UserForm = ({ editingUser, onSuccess, onCancel }) => {
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
+    gender: "",
+    phone: "",
+    address_: "",
+    email: "",
+    username: "",
+    password_: "",
+    photo: "",
+    roleID: "",
+  });
+
+  const [roles, setRoles] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (editingUser) {
+      setForm({
+        first_name: editingUser.first_name || "",
+        last_name: editingUser.last_name || "",
+        date_of_birth: editingUser.date_of_birth?.split("T")[0] || "",
+        gender: editingUser.gender || "",
+        phone: editingUser.phone || "",
+        address_: editingUser.address_ || "",
+        email: editingUser.email || "",
+        username: editingUser.username || "",
+        password_: editingUser.password_ || "",
+        photo: editingUser.photo || "",
+        roleID: editingUser.roleID?.toString() || "",
+      });
+    }
+  }, [editingUser]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/roles");
+        setRoles(response.data);
+      } catch (err) {
+        console.error("Error fetching roles:", err);
+      }
+    };
+    fetchRoles();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingUser) {
+        await axios.put(`http://localhost:5000/api/users/${editingUser.userID}`, form);
+      } else {
+        await axios.post("http://localhost:5000/api/users", form);
+      }
+      onSuccess();
+    } catch (err) {
+      console.error("Error saving user:", err);
+      setError("Failed to save user");
+    }
+  };
+
   return (
-    <Modal show={showModal} onHide={handleClose} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>{isEditing ? "Edit User" : "Create User"}</Modal.Title>
-      </Modal.Header>
+    <div className="card shadow mb-4">
+      <div className="card-header py-3">
+        <h4 className="m-0 font-weight-bold text-primary">
+          {editingUser ? "Edit User" : "Create User"}
+        </h4>
+      </div>
+      <div className="card-body">
+        {error && <div className="alert alert-danger">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="row">
+            {[{ label: "First Name", name: "first_name" },
+              { label: "Last Name", name: "last_name" },
+              { label: "Date of Birth", name: "date_of_birth", type: "date" },
+              { label: "Phone", name: "phone" },
+              { label: "Address", name: "address_" },
+              { label: "Email", name: "email", type: "email" },
+              { label: "Username", name: "username" },
+              { label: "Password", name: "password_", type: "password" },
+              { label: "Photo URL", name: "photo" }]
+              .map(({ label, name, type = "text" }) => (
+                <div key={name} className="col-md-6 mb-3">
+                  <label>{label}</label>
+                  <input
+                    type={type}
+                    className="form-control"
+                    name={name}
+                    value={form[name]}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              ))}
 
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="first_name"
-              placeholder="First Name"
-              value={form.first_name}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="last_name"
-              placeholder="Last Name"
-              value={form.last_name}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="date"
-              name="date_of_birth"
-              placeholder="Date of Birth"
-              value={form.date_of_birth}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Select
-              name="gender"
-              value={form.gender}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="phone"
-              placeholder="Phone"
-              value={form.phone}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="address_"
-              placeholder="Address"
-              value={form.address_}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={form.username}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="password"
-              name="password_"
-              placeholder="Password"
-              value={form.password_}
-              onChange={handleInputChange}
-              required={!isEditing}
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="photo"
-              placeholder="Photo URL"
-              value={form.photo}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-          <Form.Select
-              name="roleID"
-              value={form.roleID}
-              onChange={(e) => handleInputChange({
-                target: {
-                  name: "roleID",
-                  value: parseInt(e.target.value),
-                }
-              })}
-              required
-            >
-
-              <option value="">Select Role</option>
-              <option value="1">SuperAdmin</option>
-              <option value="2">Warden</option>
-              <option value="3">Prisoner Manager</option>
-              <option value="4">Visitor Manager</option>
-              <option value="5">Prison Finance Manager</option>
-              <option value="6">Prisoner Finance Manager</option>
-              <option value="7">Legal Matters Manager</option>
-              <option value="8">Guard Staff</option>
-              <option value="9">Medical Staff</option>
-              <option value="10">Kitchen Staff</option>
-              <option value="11">Maintenance Staff</option>
-              <option value="12">Transport Staff</option>
-              <option value="13">Visitor</option>
+            <div className="col-md-6 mb-3">
+              <label>Gender</label>
+              <select className="form-control" name="gender" value={form.gender} onChange={handleChange} required>
+                <option value="">Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
 
 
-            </Form.Select>
-          </Form.Group>
+            <div className="col-md-6 mb-3">
+              <label>Role</label>
+              <select className="form-control" name="roleID" value={form.roleID} onChange={handleChange} required>
+                <option value="">Select Role</option>
+                {roles.map((role) => (
+                  <option key={role.roleID} value={role.roleID}>
+                    {role.name_}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           <div className="d-flex justify-content-end">
-            <Button variant="secondary" onClick={handleClose}>Close</Button>
-            <Button variant={isEditing ? "warning" : "primary"} type="submit" className="ms-2">
-              {isEditing ? "Update" : "Create"}
-            </Button>
+            <button type="button" className="btn btn-secondary me-2" onClick={onCancel}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {editingUser ? "Update" : "Create"}
+            </button>
           </div>
-        </Form>
-      </Modal.Body>
-    </Modal>
+        </form>
+      </div>
+    </div>
   );
 };
 
