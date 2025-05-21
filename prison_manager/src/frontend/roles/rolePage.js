@@ -1,98 +1,175 @@
-import React,{ useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import axiosInstance from "../axios";
 import RoleForm from "./RoleForm";
 import RolesList from "./RolesList";
 
+const hasPermission = (permName) => {
+  const perms = JSON.parse(localStorage.getItem("permissions") || "[]");
+  return perms.includes(permName.toLowerCase());
+};
+
 const RolePage = () => {
   const [roles, setRoles] = useState([]);
-  const [form, setForm] = useState({ name: "", description: "", id: null });
+  const [permissions, setPermissions] = useState([]);
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    id: null,
+    permissionIDs: [],
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  const [alert, setAlert] = useState({ message: "", type: "" });
+
   useEffect(() => {
-    fetchRoles();
+    if (hasPermission("roles.read")) {
+      fetchRoles();
+    }
+    if (hasPermission("roles.create") || hasPermission("roles.edit")) {
+      fetchPermissions();
+    }
   }, []);
 
-  const fetchRoles = async () => {
+  const fetchPermissions = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/roles");
-      setRoles(res.data);
+      const res = await axiosInstance.get("/roles/permissions");
+      setPermissions(res.data);
     } catch (err) {
-      console.error("Error fetching roles:", err.response ? err.response.data : err.message);
+      console.error("Error fetching permissions:", err.response?.data || err.message);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+  const fetchRoles = async () => {
+    try {
+      const res = await axiosInstance.get("/roles");
+      setRoles(res.data);
+    } catch (err) {
+      console.error("Error fetching roles:", err.response?.data || err.message);
+    }
+  };
+
+  const showAlert = (message, type = "warning") => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert({ message: "", type: "" }), 4000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const dataToSend = {
+      name: form.name,
+      description: form.description,
+      permissionIDs: form.permissionIDs,
+    };
+
     try {
-      if (isEditing) {
-        await axios.put(`http://localhost:5000/api/roles/${form.id}`, {
-          name: form.name,
-          description: form.description,
-        });
+      if (isEditing && hasPermission("roles.edit")) {
+        await axiosInstance.put(`/roles/${form.id}`, dataToSend);
+      } else if (!isEditing && hasPermission("roles.create")) {
+        await axiosInstance.post('/roles', dataToSend);
       } else {
-        await axios.post("http://localhost:5000/api/roles", {
-          name: form.name,
-          description: form.description,
-        });
+        return showAlert("You don't have permission to perform this action.", "danger");
       }
-      setForm({ name: "", description: "", id: null });
-      setIsEditing(false);
-      setShowForm(false); // Mbyll modal-in pas submit
+      setShowForm(false);
       fetchRoles();
-    } catch (err) {
-      console.error("Error saving role:", err.response ? err.response.data : err.message);
+      resetForm();
+    } catch (error) {
+      if (error.response?.status === 403) {
+        showAlert("Access denied: You do not have the required permission.", "danger");
+      } else {
+        showAlert("Failed to save role. Please try again.", "danger");
+      }
+      console.error('Failed to save role:', error.response?.data || error.message);
     }
   };
+const handleEdit = async (role) => {
+  if (!hasPermission("roles.edit")) {
+    alert("No permission to edit roles.");
+    return;
+  }
 
-  const handleEdit = (role) => {
-    setForm({ name: role.name_, description: role.description_, id: role.roleID });
+  try {
+    const res = await axiosInstance.get(`/roles/${role.roleID}`);
+    const roleData = res.data;
+    setForm({
+      name: roleData.name_,
+      description: roleData.description_,
+      id: roleData.roleID,
+      permissionIDs: roleData.permissionIDs || [],
+    });
     setIsEditing(true);
     setShowForm(true);
-  };
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (error) {
+    if (error.response?.status === 403) {
+      alert("Access denied: You do not have permission to edit this role.");
+    } else {
+      alert("Failed to fetch role details.");
+    }
+    console.error("Error fetching role details:", error.response?.data || error.message);
+  }
+};
+
 
   const handleDelete = async (id) => {
+    if (!hasPermission("roles.delete")) return showAlert("No permission to delete roles.", "danger");
     if (window.confirm("Are you sure you want to delete this role?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/roles/${id}`);
+        await axiosInstance.delete(`/roles/${id}`);
         fetchRoles();
       } catch (err) {
-        console.error("Error deleting role:", err.response ? err.response.data : err.message);
+        showAlert("Failed to delete role.", "danger");
+        console.error("Error deleting role:", err.response?.data || err.message);
       }
     }
   };
 
   const handleGoToCreate = () => {
-    setForm({ name: "", description: "", id: null });
-    setIsEditing(false);
-    setShowForm(true); // Hap modal për create
+    if (!hasPermission("roles.create")) return showAlert("No permission to create roles.", "danger");
+    resetForm();
+    setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleClose = () => setShowForm(false);
+  const resetForm = () => {
+    setForm({
+      name: "",
+      description: "",
+      id: null,
+      permissionIDs: [],
+    });
+    setIsEditing(false);
+  };
 
   return (
     <div className="container mt-4">
-      <RoleForm
-        showModal={showForm}
-        handleClose={handleClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-      />
+      {alert.message && (
+        <div className={`alert alert-${alert.type}`} role="alert">
+          {alert.message}
+        </div>
+      )}
 
-      <RolesList
-        roles={roles}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleGoToCreate}
-      />
+      {(hasPermission("roles.create") || hasPermission("roles.edit")) && (
+        <RoleForm
+          showModal={showForm}
+          handleClose={() => setShowForm(false)}
+          form={form}
+          setForm={setForm}
+          isEditing={isEditing}
+          permissions={permissions}
+          handleSubmit={handleSubmit}
+        />
+      )}
+
+      {hasPermission("roles.read") && (
+        <RolesList
+          roles={roles}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          goToCreate={handleGoToCreate}
+        />
+      )}
     </div>
   );
 };

@@ -1,37 +1,173 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Sidebar from './frontend/sidebar'; 
+import React, { useState, useEffect } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+
+import Sidebar from './frontend/sidebar';
+import Topbar from './frontend/Topbar';
 import RolePage from './frontend/roles/rolePage';
 import CellPage from './frontend/cells/cellPage';
 import UserPage from './frontend/users/userPage';
 import LawyerPage from './frontend/lawyer/LawyerPage';
 import EmergencyContactPage from './frontend/emergencyContact/emergencyContactPage';
 import BudgetPage from './frontend/budget/budgetPage';
+import LoginPage from './frontend/LoginPage';
 
 import './Bootstrap/css/sb-admin-2.css';
+import BlockPage from './frontend/blocks/BlockPage';
 
-function App() {
-  return (
-    <Router>
-      <div id="wrapper" className="d-flex">
-        <Sidebar />
+function AppContent() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
+  const location = useLocation();
+  const navigate = useNavigate();
 
-        <div id="content-wrapper" className="d-flex flex-column w-100">
-          <div id="content" className="p-4">
-            <Routes>
-              <Route path="/" element={<UserPage />} />
-              <Route path="/roles" element={<RolePage />} />
-              <Route path="/cells" element={<CellPage />} />
-              <Route path="/lawyer" element={<LawyerPage />} />
-              <Route path="/emergencyContact" element={<EmergencyContactPage />} />
-              <Route path="/budget" element={<BudgetPage />} />
-            </Routes>
-          </div>
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setIsAuthenticated(false);
+    setUsername('');
+    navigate('/login', { replace: true });
+  };
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      const token = localStorage.getItem('token');
+
+      if (token) {
+        try {
+          const response = await fetch('http://localhost:5000/api/auth/validate', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setIsAuthenticated(true);
+            setUsername(data.user.username);
+          } else {
+            throw new Error('Invalid or expired token');
+          }
+        } catch (err) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
+          setIsAuthenticated(false);
+          setUsername('');
+          if (location.pathname !== '/login') {
+            navigate('/login', { replace: true });
+          }
+        }
+      } else {
+        setIsAuthenticated(false);
+        if (location.pathname !== '/login') {
+          navigate('/login', { replace: true });
+        }
+      }
+
+      setIsCheckingAuth(false);
+    };
+
+    verifyToken();
+
+    const interval = setInterval(verifyToken, 30000);
+    return () => clearInterval(interval);
+  }, [location.pathname, navigate]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="sr-only">Loading...</span>
         </div>
       </div>
-    </Router>
+    );
+  }
+
+  const isLoginPage = location.pathname === '/login';
+
+  return (
+    <div id="wrapper" className="d-flex">
+      {isAuthenticated && !isLoginPage && <Sidebar onLogout={handleLogout} />}
+
+      <div id="content-wrapper" className="d-flex flex-column w-100">
+        {isAuthenticated && !isLoginPage && (
+          <Topbar username={username} onLogout={handleLogout} />
+        )}
+
+        <div id="content" className={isAuthenticated && !isLoginPage ? 'p-4' : ''}>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <LoginPage
+                    onLogin={() => {
+                      const token = localStorage.getItem('token');
+                      if (token) {
+                        const decoded = jwtDecode(token);
+                        localStorage.setItem('username', decoded.username);
+                        setUsername(decoded.username);
+                        setIsAuthenticated(true);
+                        navigate('/', { replace: true });
+                      }
+                    }}
+                  />
+                )
+              }
+            />
+            <Route
+              path="/"
+              element={isAuthenticated ? <UserPage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/roles"
+              element={isAuthenticated ? <RolePage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/cells"
+              element={isAuthenticated ? <CellPage /> : <Navigate to="/login" replace />}
+              />
+               <Route
+              path="/blocks"
+              element={isAuthenticated ? <BlockPage /> : <Navigate to="/login" replace />}
+              />
+            <Route
+              path="/lawyer"
+              element={isAuthenticated ? <LawyerPage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/emergencyContact"
+              element={isAuthenticated ? <EmergencyContactPage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/budget"
+              element={isAuthenticated ? <BudgetPage /> : <Navigate to="/login" replace />}
+            />
+            <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
+          </Routes>
+        </div>
+      </div>
+    </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}

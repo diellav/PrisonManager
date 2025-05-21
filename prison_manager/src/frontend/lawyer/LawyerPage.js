@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 import LawyerForm from "./LawyerForm";
 import LawyersList from "./LawyerList";
 
 const LawyerPage = () => {
   const [lawyers, setLawyers] = useState([]);
-  const [editingLawyer, setEditingLawyer] = useState(null);
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    email: "",
+    category: "",
+    id: null,
+  });
+
+  const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,7 +26,7 @@ const LawyerPage = () => {
   const fetchLawyers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/lawyers");
+      const res = await axiosInstance.get("/lawyers");
       setLawyers(res.data);
     } catch (err) {
       console.error("Error fetching lawyers:", err);
@@ -40,7 +49,7 @@ const LawyerPage = () => {
   const onDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this lawyer?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/lawyers/${id}`);
+        await axiosInstance.delete(`/lawyers/${id}`);
         setLawyers(lawyers.filter((l) => l.lawyer_ID !== id));
       } catch (err) {
         console.error("Error deleting lawyer:", err);

@@ -1,39 +1,33 @@
 import React, { useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, handleSubmit }) => {
-  const setCategoryByBlockName = (blockName) => {
-    switch (blockName) {
-      case 'A':
-      case 'B':
-        return 'Maximum Security';
-      case 'C':
-      case 'D':
-      case 'E':
-        return 'Medium Security';
-      case 'F':
-        return 'Minimum Security';
-      case 'G':
-        return 'Juvenile Section';
-      case 'H':
-        return 'Isolation';
-      default:
-        return '';
-    }
+const CellForm = ({
+  showModal,
+  handleClose,
+  form,
+  isEditing,
+  handleInputChange,
+  handleSubmit,
+  blocks,
+}) => {
+  const setCategoryByBlockId = (blockId) => {
+    const selectedBlock = blocks.find((block) => block.block_id === blockId);
+    return selectedBlock ? selectedBlock.category : "";
   };
 
   useEffect(() => {
-    if (!form.category && form.block_name) {
-      const category = setCategoryByBlockName(form.block_name);
-      handleInputChange({
-        target: {
-          name: "category",
-          value: category,
-        },
-      });
+    if (form.block_id) {
+      const category = setCategoryByBlockId(form.block_id);
+      if (form.category !== category) {
+        handleInputChange({
+          target: {
+            name: "category",
+            value: category,
+          },
+        });
+      }
     }
-  }, [form.block_name, form.category, handleInputChange]);
-  
+  }, [form.block_id, form.category, blocks, handleInputChange]);
 
   return (
     <Modal show={showModal} onHide={handleClose}>
@@ -44,41 +38,45 @@ const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
+            <Form.Label>Block</Form.Label>
             <Form.Select
-              name="block_name"
-              value={form.block_name}
-              onChange={handleInputChange}
+              name="block_id"
+              value={form.block_id || ""}
+              onChange={(e) =>
+                handleInputChange({
+                  target: {
+                    name: "block_id",
+                    value: parseInt(e.target.value), 
+                  },
+                })
+              }
               required
             >
-              <option value="">Select Block Name</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="C">C</option>
-              <option value="D">D</option>
-              <option value="E">E</option>
-              <option value="F">F</option>
-              <option value="G">G</option>
-              <option value="H">H</option>
+              <option value="">Select Block</option>
+              {blocks.map((block) => (
+                <option key={block.block_id} value={block.block_id}>
+                  {block.block_name}
+                </option>
+              ))}
             </Form.Select>
           </Form.Group>
 
           <Form.Group className="mb-3">
+            <Form.Label>Cell Number</Form.Label>
             <Form.Control
               type="text"
               name="cell_number"
-              placeholder="Cell Number"
               value={form.cell_number}
               onChange={handleInputChange}
-              maxLength={10}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
+            <Form.Label>Capacity</Form.Label>
             <Form.Control
               type="number"
               name="capacity"
-              placeholder="Capacity"
               value={form.capacity}
               onChange={handleInputChange}
               required
@@ -86,10 +84,10 @@ const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
           </Form.Group>
 
           <Form.Group className="mb-3">
+            <Form.Label>Actual Capacity</Form.Label>
             <Form.Control
               type="number"
               name="actual_capacity"
-              placeholder="Actual Capacity"
               value={form.actual_capacity}
               onChange={handleInputChange}
               required
@@ -97,21 +95,24 @@ const CellForm = ({ showModal, handleClose, form, isEditing, handleInputChange, 
           </Form.Group>
 
           <Form.Group className="mb-3">
+            <Form.Label>Category</Form.Label>
             <Form.Control
               type="text"
               name="category"
-              placeholder="Category"
               value={form.category}
               onChange={handleInputChange}
-              required
-              readOnly
+              disabled
             />
           </Form.Group>
 
-          <Button variant="secondary" onClick={handleClose}>Close</Button>
-          <Button variant={isEditing ? "warning" : "primary"} type="submit" className="ms-2">
-            {isEditing ? "Update" : "Create"}
-          </Button>
+          <div className="d-flex justify-content-end">
+            <Button variant="secondary" onClick={handleClose}>
+              Close
+            </Button>
+            <Button variant={isEditing ? "warning" : "primary"} type="submit" className="ms-2">
+              {isEditing ? "Update" : "Create"}
+            </Button>
+          </div>
         </Form>
       </Modal.Body>
     </Modal>

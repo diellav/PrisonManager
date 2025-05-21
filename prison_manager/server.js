@@ -3,28 +3,39 @@ const cors = require("cors");
 const app = express();
 const port = 5000;
 
-app.use(cors());
+const { verifyToken } = require('./backend/authMiddleware');
+
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
+const authRoutes = require('./backend/routes/authRoute');
+app.use("/api/auth", authRoutes);
+
 const roleRoutes = require("./backend/routes/roleRoute");
-app.use("/api/roles", roleRoutes);
+app.use("/api/roles", verifyToken, roleRoutes);
 
 const cellRoutes = require("./backend/routes/cellRoute");
-app.use("/api/cells", cellRoutes);
-
-
+app.use("/api/cells", verifyToken, cellRoutes);
 
 const userRoutes = require("./backend/routes/userRoute");
-app.use("/api/users", userRoutes);
+app.use("/api/users", verifyToken, userRoutes);
 
 const lawyerRoutes = require("./backend/routes/lawyerRoute");
-app.use("/api/lawyers", lawyerRoutes);
+app.use("/api/lawyers", verifyToken, lawyerRoutes);
 
 const emergencyContactRoutes = require('./backend/routes/emergencyContactRoute');
-app.use("/api/emergency_contacts", emergencyContactRoutes);
+app.use("/api/emergency_contacts", verifyToken, emergencyContactRoutes);
 
 const budgetRoutes = require("./backend/routes/budgetRoute");
-app.use("/api/budgets", budgetRoutes);
+app.use("/api/budgets", verifyToken, budgetRoutes);
+
+const blockRoutes = require("./backend/routes/blockRoute");
+app.use("/api/blocks", blockRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
