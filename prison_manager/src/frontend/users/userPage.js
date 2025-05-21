@@ -2,24 +2,34 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios"; 
 import UserForm from "./UsersForm";
 import UsersList from "./UsersList";
-import UserForm from "./UsersForm";
 
-const UsersPage = () => {
+const UserPage = () => {
   const [users, setUsers] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [editingUser, setEditingUser] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
+    gender: "",
+    phone: "",
+    address_: "",
+    email: "",
+    username: "",
+    password_: "",
+    photo: "",
+    roleID: "",
+    id: null,
+  });
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [roles, setRoles] = useState([]);
 
   useEffect(() => {
     fetchUsers();
-    fetchRoles();
+    fetchRoles(); 
   }, []);
 
   const fetchUsers = async () => {
-    setLoading(true);
     try {
       const res = await axiosInstance.get("/users");
       setUsers(res.data);
@@ -27,6 +37,16 @@ const UsersPage = () => {
       console.error("Error fetching users:", err.response?.data || err.message);
     }
   };
+
+const fetchRoles = async () => {
+  try {
+    const res = await axiosInstance.get("/roles");
+    setRoles(res.data);
+  } catch (err) {
+    console.error("Error fetching roles:", err.response?.data || err.message);
+  }
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,8 +72,8 @@ const UsersPage = () => {
     setShowModal(false);
   };
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async () =>  {
+
 
   try {
     const payload = { ...form };
@@ -74,63 +94,74 @@ const UsersPage = () => {
 };
 
 
-  const getRoleName = (roleID) => {
-    const role = roles.find((r) => r.roleID === roleID);
-    return role ? role.name_ : "Unknown";
-  };
-
-  const goToCreate = () => {
-    setEditingUser(null);
-    setShowForm(true);
-  };
-
-  const onEdit = (user) => {
-    setEditingUser(user);
-    setShowForm(true);
-  };
-
-  const onDelete = async (userID) => {
-  if (window.confirm("Are you sure you want to delete this user?")) {
-    try {
-      await axiosInstance.delete(`/users/${userID}`);
-      setUsers(users.filter((user) => user.userID !== userID));
-    } catch (err) {
-      console.error("Error deleting user:", err.response?.data || err.message);
-      setError("Failed to delete user.");
-    }
-  }
+ const handleEdit = (user) => {
+  setForm({
+    first_name: user.first_name,
+    last_name: user.last_name,
+    date_of_birth: user.date_of_birth?.split("T")[0] || "",
+    gender: user.gender,
+    phone: user.phone,
+    address_: user.address_,
+    email: user.email,
+    username: user.username,
+    password_: "", 
+    photo: user.photo,
+    roleID: user.roleID,
+    id: user.userID,
+  });
+  setIsEditing(true);
+  setShowModal(true);
 };
 
 
-  const onSuccess = () => {
-    setShowForm(false);
-    fetchUsers();
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await axiosInstance.delete(`/users/${id}`);
+        fetchUsers();
+      } catch (err) {
+        console.error("Error deleting user:", err.response?.data || err.message);
+      }
+    }
   };
 
-  const onCancel = () => {
-    setShowForm(false);
+  const handleModalOpen = () => {
+    resetForm();
+    setShowModal(true);
   };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+  };
+
+
+const getRoleName = (roleID) => {
+  const role = roles.find((r) => r.roleID === roleID);
+  return role ? role.name_ : 'Unknown';
+};
 
   return (
-    <div>
-      <h2>Users Management</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <div className="alert alert-danger">{error}</div>
-      ) : showForm ? (
-        <UserForm editingUser={editingUser} onSuccess={onSuccess} onCancel={onCancel} />
-      ) : (
-        <UsersList
-          users={users}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          goToCreate={goToCreate}
-          getRoleName={getRoleName}
-        />
-      )}
+    <div className="container mt-4">
+      {showModal ? (
+  <UserForm
+    form={form}
+    isEditing={isEditing}
+    handleInputChange={handleInputChange}
+    handleSubmit={handleSubmit}
+    handleClose={handleModalClose}
+  />
+) : (
+  <UsersList
+    users={users}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+    goToCreate={handleModalOpen}
+    getRoleName={getRoleName}
+  />
+)}
+
     </div>
   );
 };
 
-export default UsersPage;
+export default UserPage;

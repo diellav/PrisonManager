@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axiosInstance from "../axios";
 
 const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
   const [form, setForm] = useState({
@@ -16,7 +17,9 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
         year: editingBudget.year || "",
         allocated_funds: editingBudget.allocated_funds || "",
         used_funds: editingBudget.used_funds || "",
-        last_updated: editingBudget.last_updated || "",
+        last_updated: editingBudget.last_updated
+          ? editingBudget.last_updated.substring(0, 10)
+          : "",
       });
     }
   }, [editingBudget]);
@@ -28,8 +31,8 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const remaining_funds = parseFloat(form.allocated_funds) - parseFloat(form.used_funds);
+    const remaining_funds =
+      parseFloat(form.allocated_funds) - parseFloat(form.used_funds);
 
     const budgetData = {
       year: parseInt(form.year),
@@ -40,21 +43,15 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
     };
 
     try {
-      if (editingBudget) {
-        await fetch(`http://localhost:5000/api/budgets/${editingBudget.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(budgetData),
-        });
-      } else {
-        await fetch("http://localhost:5000/api/budgets", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(budgetData),
-        });
-      }
+     if (editingBudget && editingBudget.id) {
+  await axiosInstance.put(`/budgets/${editingBudget.id}`, budgetData);
+} else {
+  await axiosInstance.post("/budgets", budgetData);
+}
+
       onSuccess();
     } catch (err) {
+      console.error("Error saving budget:", err);
       setError("Failed to save budget.");
     }
   };
@@ -62,7 +59,9 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
   return (
     <div className="card shadow mb-4">
       <div className="card-header py-3">
-        <h4 className="m-0 font-weight-bold text-primary">{editingBudget ? "Edit Budget" : "Create Budget"}</h4>
+        <h4 className="m-0 font-weight-bold text-primary">
+          {editingBudget ? "Edit Budget" : "Create Budget"}
+        </h4>
       </div>
       <div className="card-body">
         {error && <div className="alert alert-danger">{error}</div>}
@@ -118,7 +117,11 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
           </div>
 
           <div className="d-flex justify-content-end">
-            <button type="button" className="btn btn-secondary me-2" onClick={onCancel}>
+            <button
+              type="button"
+              className="btn btn-secondary me-2"
+              onClick={onCancel}
+            >
               Cancel
             </button>
             <button type="submit" className="btn btn-primary">

@@ -56,10 +56,16 @@ const UsersList = ({ users, onEdit, onDelete, goToCreate, getRoleName }) => {
                   </td>
                   <td>{getRoleName(user.roleID)}</td>
                   <td>
-                    <button className="btn btn-sm btn-warning me-2" onClick={() => onEdit(user)}>
+                    <button
+                      className="btn btn-sm btn-warning me-2"
+                      onClick={() => onEdit(user)}
+                    >
                       Edit
                     </button>
-                    <button className="btn btn-sm btn-danger" onClick={() => onDelete(user.userID)}>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => onDelete(user.userID)}
+                    >
                       Delete
                     </button>
                   </td>

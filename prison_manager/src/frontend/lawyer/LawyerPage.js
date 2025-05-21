@@ -15,6 +15,7 @@ const LawyerPage = () => {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [editingLawyer, setEditingLawyer] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,7 +76,11 @@ const LawyerPage = () => {
       ) : error ? (
         <div className="alert alert-danger">{error}</div>
       ) : showForm ? (
-        <LawyerForm editingLawyer={editingLawyer} onSuccess={onSuccess} onCancel={onCancel} />
+        <LawyerForm
+          editingLawyer={editingLawyer}
+          onSuccess={onSuccess}
+          onCancel={onCancel}
+        />
       ) : (
         <LawyersList
           lawyers={lawyers}

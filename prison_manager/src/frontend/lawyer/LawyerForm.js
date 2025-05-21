@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 
 const LawyerForm = ({ editingLawyer, onSuccess, onCancel }) => {
   const [form, setForm] = useState({
@@ -9,6 +9,7 @@ const LawyerForm = ({ editingLawyer, onSuccess, onCancel }) => {
     email: "",
     category: "",
   });
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -32,14 +33,14 @@ const LawyerForm = ({ editingLawyer, onSuccess, onCancel }) => {
     e.preventDefault();
     try {
       if (editingLawyer) {
-        await axios.put(`http://localhost:5000/api/lawyers/${editingLawyer.lawyer_ID}`, form);
+        await axiosInstance.put(`/lawyers/${editingLawyer.lawyer_ID}`, form);
       } else {
-        await axios.post("http://localhost:5000/api/lawyers", form);
+        await axiosInstance.post("/lawyers", form);
       }
       onSuccess();
     } catch (err) {
       console.error("Error saving lawyer:", err);
-      setError("Failed to save lawyer");
+      setError("Failed to save lawyer.");
     }
   };
 
@@ -54,23 +55,32 @@ const LawyerForm = ({ editingLawyer, onSuccess, onCancel }) => {
         {error && <div className="alert alert-danger">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="row">
-            {["first_name", "last_name", "phone", "email", "category"].map((field) => (
-              <div className="col-md-6 mb-3" key={field}>
-                <label>{field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name={field}
-                  value={form[field]}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            ))}
+            {["first_name", "last_name", "phone", "email", "category"].map(
+              (field) => (
+                <div className="col-md-6 mb-3" key={field}>
+                  <label className="form-label">
+                    {field
+                      .replace("_", " ")
+                      .replace(/\b\w/g, (l) => l.toUpperCase())}
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name={field}
+                    value={form[field]}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              )
+            )}
           </div>
-
           <div className="d-flex justify-content-end">
-            <button type="button" className="btn btn-secondary me-2" onClick={onCancel}>
+            <button
+              type="button"
+              className="btn btn-secondary me-2"
+              onClick={onCancel}
+            >
               Cancel
             </button>
             <button type="submit" className="btn btn-primary">
