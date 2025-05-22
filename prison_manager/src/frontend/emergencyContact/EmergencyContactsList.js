@@ -5,9 +5,9 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
   const [sortField, setSortField] = useState("emergency_contact_ID");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const itemsPerPage = 10;
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -71,7 +71,15 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
             <div className="col-md-6 d-flex align-items-center">
               <label className="d-flex align-items-center" style={{ gap: "10px" }}>
                 Show
-                <select className="form-select form-select-sm" style={{ width: "80px" }}>
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: "80px" }}
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
                   <option value="10">10</option>
                   <option value="25">25</option>
                   <option value="50">50</option>

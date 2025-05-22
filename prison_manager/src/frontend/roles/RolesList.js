@@ -1,67 +1,293 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const RolesList = ({ roles, onEdit, onDelete, goToCreate }) => {
   const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
-
   const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState("roleID");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    setCurrentPage(1);
+  };
+
+  const renderSortIcons = (field) => {
+    const active = sortField === field;
+    const activeAsc = active && sortDirection === "asc";
+    const activeDesc = active && sortDirection === "desc";
+    const color = active ? "white" : "#343a40";
+
+    return (
+      <span
+        className="ms-1 d-inline-flex flex-column"
+        style={{
+          fontSize: "0.7rem",
+          lineHeight: "0.7rem",
+          transform: "translateY(-7px)",
+        }}
+      >
+        <span style={{ color, opacity: activeAsc ? 1 : 0.3 }}>▲</span>
+        <span style={{ color, opacity: activeDesc ? 1 : 0.3 }}>▼</span>
+      </span>
+    );
+  };
+
+  // Filter and sort roles
+  const filteredRoles = [...roles]
+    .filter((role) =>
+      [role.roleID, role.name_, role.description_]
+        .some((val) =>
+          String(val).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    )
+    .sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentRoles = filteredRoles.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredRoles.length / itemsPerPage);
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
     <div>
-      <div className="card shadow mb-4">
-        <div className="card-header py-3 d-flex justify-content-between align-items-center">
-          <h4 className="m-0 font-weight-bold text-primary">Roles List</h4>
+      <div className="card shadow-sm mb-4 border-0">
+        <div
+          className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom"
+          style={{ backgroundColor: "#4E73DF" }}
+        >
+          <h4 className="m-0 text-primary fw-bold">Roles List</h4>
           {hasPermission("roles.create") && (
-            <button className="btn btn-success" onClick={goToCreate}>
-              + Create New Role
+            <button className="btn btn-primary" onClick={goToCreate}>
+              + Add Role
             </button>
           )}
         </div>
+
         <div className="card-body">
+          <div className="row mb-3 align-items-center">
+            <div className="col-md-6 d-flex align-items-center">
+              <label
+                className="d-flex align-items-center"
+                style={{ gap: "10px" }}
+              >
+                Show
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: "80px" }}
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                >
+                  {[10, 25, 50, 100].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
+                entries
+              </label>
+            </div>
+            <div className="col-md-6 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0">
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+                style={{ maxWidth: "300px" }}
+              />
+            </div>
+          </div>
+
           <div className="table-responsive">
-            <table className="table table-bordered" id="dataTable" width="100%" cellSpacing="0">
-              <thead className="table-dark">
+            <table className="table align-middle">
+              <thead className="table-light">
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Description</th>
+                  {[
+                    { field: "roleID", label: "ID" },
+                    { field: "name_", label: "Name" },
+                    { field: "description_", label: "Description" },
+                  ].map(({ field, label }) => (
+                    <th
+                      key={field}
+                      style={{
+                        cursor: "pointer",
+                        color: "white",
+                        backgroundColor: "#4E73DF",
+                      }}
+                      onClick={() => handleSort(field)}
+                    >
+                      {label} {renderSortIcons(field)}
+                    </th>
+                  ))}
                   {(hasPermission("roles.edit") || hasPermission("roles.delete")) && (
-                    <th>Actions</th>
+                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>
+                      Actions
+                    </th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {roles.map((role) => (
-                  <tr key={role.roleID}>
-                    <td>{role.roleID}</td>
-                    <td>{role.name_}</td>
-                    <td>{role.description_}</td>
-                    {(hasPermission("roles.edit") || hasPermission("roles.delete")) && (
-                      <td>
-                        {hasPermission("roles.edit") && (
-                          <button
-                            className="btn btn-sm btn-warning me-2"
-                            onClick={() => onEdit(role)}
-                          >
-                            Edit
-                          </button>
-                        )}
-                        {hasPermission("roles.delete") && (
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => onDelete(role.roleID)}
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </td>
-                    )}
+                {currentRoles.length > 0 ? (
+                  currentRoles.map((role) => (
+                    <tr key={role.roleID}>
+                      <td>{role.roleID}</td>
+                      <td>{role.name_}</td>
+                      <td>{role.description_}</td>
+                      {(hasPermission("roles.edit") || hasPermission("roles.delete")) && (
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {hasPermission("roles.edit") && (
+                              <button
+                                className="btn btn-sm btn-outline-info"
+                                onClick={() => onEdit(role)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {hasPermission("roles.delete") && (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setDeleteId(role.roleID);
+                                  setShowConfirm(true);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="text-center text-muted py-3"
+                    >
+                      No roles found.
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
+
+          <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+            <div className="small text-muted mb-2 mb-md-0">
+              Showing {indexOfFirst + 1} to{" "}
+              {Math.min(indexOfLast, filteredRoles.length)} of{" "}
+              {filteredRoles.length} entries
+            </div>
+            <ul className="pagination mb-0 mt-2 mt-md-0">
+              <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                <button
+                  className="page-link"
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                >
+                  Prev
+                </button>
+              </li>
+              {pageNumbers.map((number) => (
+                <li
+                  key={number}
+                  className={`page-item ${currentPage === number ? "active" : ""}`}
+                >
+                  <button className="page-link" onClick={() => setCurrentPage(number)}>
+                    {number}
+                  </button>
+                </li>
+              ))}
+              <li
+                className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
+              >
+                <button
+                  className="page-link"
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                >
+                  Next
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
+
+      {/* Confirm delete modal */}
+      {showConfirm && (
+        <>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+          <div
+            className="modal show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Confirm Deletion</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowConfirm(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Are you sure you want to delete this role?</p>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => {
+                      onDelete(deleteId);
+                      setShowConfirm(false);
+                    }}
+                  >
+                    Yes, I'm sure
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

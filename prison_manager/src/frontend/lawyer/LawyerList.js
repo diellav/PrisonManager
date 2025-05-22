@@ -5,9 +5,9 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
   const [sortField, setSortField] = useState("lawyer_ID");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const itemsPerPage = 10;
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -21,6 +21,11 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
       setSortField(field);
       setSortDirection("asc");
     }
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    setCurrentPage(1);
   };
 
   const sortedLawyers = [...lawyers]
@@ -79,7 +84,12 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
             <div className="col-md-6 d-flex align-items-center">
               <label className="d-flex align-items-center" style={{ gap: "10px" }}>
                 Show
-                <select className="form-select form-select-sm" style={{ width: "80px" }}>
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: "80px" }}
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                >
                   <option value="10">10</option>
                   <option value="25">25</option>
                   <option value="50">50</option>
@@ -104,7 +114,7 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
             <table className="table align-middle">
               <thead className="table-light">
                 <tr>
-                  {[
+                  {[ 
                     { field: "lawyer_ID", label: "ID" },
                     { field: "first_name", label: "First Name" },
                     { field: "last_name", label: "Last Name" },
