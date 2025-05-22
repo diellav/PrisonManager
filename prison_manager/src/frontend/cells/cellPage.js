@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 import CellForm from "./CellForm";
 import CellList from "./CellsList";
 
@@ -17,17 +17,14 @@ const CellPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  const token = localStorage.getItem("token");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
+  useEffect(() => {
+    fetchCells();
+    fetchBlocks();
+  }, []);
 
   const fetchCells = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/cells", axiosConfig);
+      const res = await axiosInstance.get("/cells");
       setCells(res.data);
     } catch (err) {
       console.error("Error fetching cells:", err.response?.data || err.message);
@@ -36,17 +33,12 @@ const CellPage = () => {
 
   const fetchBlocks = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/blocks");
+      const res = await axiosInstance.get("/blocks");
       setBlocks(res.data);
     } catch (err) {
       console.error("Error fetching blocks:", err.response?.data || err.message);
     }
   };
-
-  useEffect(() => {
-    fetchCells();
-    fetchBlocks();
-  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -55,41 +47,45 @@ const CellPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
-      const category = blocks.find(block => block.block_id === parseInt(form.block_id))?.category || "";
-  
+      const category = blocks.find(
+        (block) => block.block_id === parseInt(form.block_id)
+      )?.category || "";
+
       const payload = {
         cell_number: form.cell_number,
         capacity: parseInt(form.capacity),
         actual_capacity: parseInt(form.actual_capacity),
         block_id: parseInt(form.block_id),
-        category: category,
+        category,
       };
-  
+
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/cells/${form.id}`, payload, axiosConfig);
+        await axiosInstance.put(`/cells/${form.id}`, payload);
       } else {
-        await axios.post("http://localhost:5000/api/cells", payload, axiosConfig);
+        await axiosInstance.post("/cells", payload);
       }
-  
-      setForm({
-        cell_number: "",
-        capacity: "",
-        actual_capacity: "",
-        block_id: "",
-        category: "",
-        id: null,
-      });
-      setIsEditing(false);
-      setShowForm(false);
+
+      resetForm();
       fetchCells();
-    } catch (error) {
-      console.error("Error saving cell:", error.response?.data || error.message);
+    } catch (err) {
+      console.error("Error saving cell:", err.response?.data || err.message);
     }
   };
-  
-  
+
+  const resetForm = () => {
+    setForm({
+      cell_number: "",
+      capacity: "",
+      actual_capacity: "",
+      block_id: "",
+      category: "",
+      id: null,
+    });
+    setIsEditing(false);
+    setShowForm(false);
+  };
 
   const handleEdit = (cell) => {
     setForm({
@@ -107,8 +103,8 @@ const CellPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this cell?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/cells/${id}`, axiosConfig);
-        fetchCells(); 
+        await axiosInstance.delete(`/cells/${id}`);
+        fetchCells();
       } catch (err) {
         console.error("Error deleting cell:", err.response?.data || err.message);
       }
@@ -116,15 +112,7 @@ const CellPage = () => {
   };
 
   const handleGoToCreate = () => {
-    setForm({
-      cell_number: "",
-      capacity: "",
-      actual_capacity: "",
-      block_id: "",
-      category: "",
-      id: null,
-    });
-    setIsEditing(false);
+    resetForm();
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

@@ -1,140 +1,85 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 import BudgetForm from "./BudgetForm";
 import BudgetList from "./BudgetList";
 
 const BudgetPage = () => {
   const [budgets, setBudgets] = useState([]);
-  const [form, setForm] = useState({
-    year: "",
-    allocated_funds: "",
-    used_funds: "",
-    remaining_funds: "",
-    last_updated: "",
-    id: null,
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingBudget, setEditingBudget] = useState(null);
   const [showForm, setShowForm] = useState(false);
-
-  const token = localStorage.getItem("token");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchBudgets();
   }, []);
 
   const fetchBudgets = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/budgets", axiosConfig);
+      const res = await axiosInstance.get("/budgets");
       setBudgets(res.data);
+      setError(null);
     } catch (err) {
       console.error("Error fetching budgets:", err.response?.data || err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const remaining = parseFloat(form.allocated_funds) - parseFloat(form.used_funds);
-
-      const bdg = {
-        year: parseInt(form.year),
-        allocated_funds: parseFloat(form.allocated_funds),
-        used_funds: parseFloat(form.used_funds),
-        remaining_funds: remaining,
-        last_updated: form.last_updated,
-      };
-
-      if (isEditing) {
-        await axios.put(`http://localhost:5000/api/budgets/${form.id}`, bdg, axiosConfig);
-      } else {
-        await axios.post("http://localhost:5000/api/budgets", bdg, axiosConfig);
-      }
-
-      resetForm();
-      fetchBudgets();
-    } catch (err) {
-      console.error("Error saving budget:", err.response?.data || err.message);
-    }
-  };
-
-  const resetForm = () => {
-    setForm({
-      year: "",
-      allocated_funds: "",
-      used_funds: "",
-      remaining_funds: "",
-      last_updated: "",
-      id: null,
-    });
-    setIsEditing(false);
-    setShowForm(false);
-  };
-
-  const formatDateForInput = (isoString) => {
-    const date = new Date(isoString);
-    return date.toISOString().slice(0, 16);
-  };
-
-  const handleEdit = (budget) => {
-    setForm({
-      year: budget.year_,
-      allocated_funds: budget.allocated_funds,
-      used_funds: budget.used_funds,
-      remaining_funds: budget.remaining_funds,
-      last_updated: formatDateForInput(budget.last_updated),
-      id: budget.budget_ID,
-    });
-    setIsEditing(true);
+  const onEdit = (budget) => {
+    setEditingBudget(budget);
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
+  const goToCreate = () => {
+    setEditingBudget(null);
+    setShowForm(true);
+  };
+
+  const onDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this budget?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/budgets/${id}`, axiosConfig);
+        await axiosInstance.delete(`/budgets/${id}`);
         fetchBudgets();
       } catch (err) {
-        console.error("Error deleting budget:", err.response?.data || err.message);
+        setError("Failed to delete budget.");
       }
     }
   };
 
-  const handleGoToCreate = () => {
-    resetForm();
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const onSuccess = () => {
+    setShowForm(false);
+    setEditingBudget(null);
+    fetchBudgets();
   };
 
-  const handleClose = () => setShowForm(false);
+  const onCancel = () => {
+    setShowForm(false);
+    setEditingBudget(null);
+  };
 
   return (
     <div className="container mt-4">
-      <BudgetForm
-        showModal={showForm}
-        handleClose={handleClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-      />
-      <BudgetList
-        budgets={budgets}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleGoToCreate}
-      />
+      <h2>Budget Management</h2>
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <div className="alert alert-danger">{error}</div>
+      ) : showForm ? (
+        <BudgetForm
+          editingBudget={editingBudget}
+          onSuccess={onSuccess}
+          onCancel={onCancel}
+        />
+      ) : (
+        <BudgetList
+          budgets={budgets}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          goToCreate={goToCreate}
+        />
+      )}
     </div>
   );
 };

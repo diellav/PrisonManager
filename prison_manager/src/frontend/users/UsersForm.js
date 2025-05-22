@@ -1,168 +1,112 @@
-import React from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import axiosInstance from "../axios";
 
-const UserForm = ({ showModal, handleClose, form, isEditing, handleInputChange, handleSubmit }) => {
+const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClose }) => {
+  const [roles, setRoles] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await axiosInstance.get("/roles");
+        setRoles(response.data);
+      } catch (err) {
+        console.error("Error fetching roles:", err);
+        setError("Failed to load roles");
+      }
+    };
+    fetchRoles();
+  }, []);
+
   return (
-    <Modal show={showModal} onHide={handleClose} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>{isEditing ? "Edit User" : "Create User"}</Modal.Title>
-      </Modal.Header>
+    <div className="card shadow mb-4">
+      <div className="card-header py-3">
+        <h4 className="m-0 font-weight-bold text-primary">
+          {isEditing ? "Edit User" : "Create User"}
+        </h4>
+      </div>
+      <div className="card-body">
+        {error && <div className="alert alert-danger">{error}</div>}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
+          <div className="row">
+            {[{ label: "First Name", name: "first_name" },
+              { label: "Last Name", name: "last_name" },
+              { label: "Date of Birth", name: "date_of_birth", type: "date" },
+              { label: "Phone", name: "phone" },
+              { label: "Address", name: "address_" },
+              { label: "Email", name: "email", type: "email" },
+              { label: "Username", name: "username" },
+              { label: "Password", name: "password_", type: "password" },
+              { label: "Photo URL", name: "photo" }]
+              .map(({ label, name, type = "text" }) => (
+                <div key={name} className="col-md-6 mb-3">
+                  <label>{label}</label>
+                  <input
+                    type={type}
+                    className="form-control"
+                    name={name}
+                    value={form[name] || ""}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              ))
+            }
 
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="first_name"
-              placeholder="First Name"
-              value={form.first_name}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
+            <div className="col-md-6 mb-3">
+              <label>Gender</label>
+              <select
+                className="form-control"
+                name="gender"
+                value={form.gender || ""}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
 
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="last_name"
-              placeholder="Last Name"
-              value={form.last_name}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="date"
-              name="date_of_birth"
-              placeholder="Date of Birth"
-              value={form.date_of_birth}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Select
-              name="gender"
-              value={form.gender}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="phone"
-              placeholder="Phone"
-              value={form.phone}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="address_"
-              placeholder="Address"
-              value={form.address_}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={form.username}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="password"
-              name="password_"
-              placeholder="Password"
-              value={form.password_}
-              onChange={handleInputChange}
-              required={!isEditing}
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="photo"
-              placeholder="Photo URL"
-              value={form.photo}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-          <Form.Select
-              name="roleID"
-              value={form.roleID}
-              onChange={(e) => handleInputChange({
-                target: {
-                  name: "roleID",
-                  value: parseInt(e.target.value),
-                }
-              })}
-              required
-            >
-
-              <option value="">Select Role</option>
-              <option value="1">SuperAdmin</option>
-              <option value="2">Warden</option>
-              <option value="3">Prisoner Manager</option>
-              <option value="4">Visitor Manager</option>
-              <option value="5">Prison Finance Manager</option>
-              <option value="6">Prisoner Finance Manager</option>
-              <option value="7">Legal Matters Manager</option>
-              <option value="8">Guard Staff</option>
-              <option value="9">Medical Staff</option>
-              <option value="10">Kitchen Staff</option>
-              <option value="11">Maintenance Staff</option>
-              <option value="12">Transport Staff</option>
-              <option value="13">Visitor</option>
-
-
-            </Form.Select>
-          </Form.Group>
+            <div className="col-md-6 mb-3">
+              <label>Role</label>
+              <select
+                className="form-control"
+                name="roleID"
+                value={form.roleID || ""}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select Role</option>
+                {roles.map((role) => (
+                  <option key={role.roleID} value={role.roleID}>
+                    {role.name_}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           <div className="d-flex justify-content-end">
-            <Button variant="secondary" onClick={handleClose}>Close</Button>
-            <Button variant={isEditing ? "warning" : "primary"} type="submit" className="ms-2">
+            <button
+              type="button"
+              className="btn btn-secondary me-2"
+              onClick={handleClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
               {isEditing ? "Update" : "Create"}
-            </Button>
+            </button>
           </div>
-        </Form>
-      </Modal.Body>
-    </Modal>
+        </form>
+      </div>
+    </div>
   );
 };
 

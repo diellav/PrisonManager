@@ -1,31 +1,31 @@
 const roleModel = require("../models/roleModel");
 
 const getRoles = async (req, res) => {
-    try {
-      const roles = await roleModel.getAllRoles();
-      console.log("Roles retrieved from database:", roles);
-      res.json(roles);
-    } catch (err) {
-      console.error("Error fetching roles:", err); 
-      res.status(500).send(err.message);
-    }
-  };
-
+  try {
+    const roles = await roleModel.getAllRoles();
+    res.json(roles);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
 const getRole = async (req, res) => {
   try {
     const role = await roleModel.getRoleById(req.params.id);
     if (!role) return res.status(404).send("Role not found");
+    const permissions = await roleModel.getPermissionsByRoleId(req.params.id);
+    role.permissionIDs = permissions.map(p => p.permissionID);
     res.json(role);
   } catch (err) {
     res.status(500).send(err.message);
   }
 };
 
+
 const addRole = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    await roleModel.createRole(name, description);
-    res.status(201).send("Role created");
+    const { name, description, permissionIDs } = req.body;
+    const result = await roleModel.createRoleWithPermissions(name, description, permissionIDs);
+    res.status(201).json({ message: "Role created", roleID: result.roleID });
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -33,13 +33,14 @@ const addRole = async (req, res) => {
 
 const updateRole = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    await roleModel.updateRole(req.params.id, name, description);
-    res.send("Role updated");
+    const { name, description, permissionIDs } = req.body;
+    await roleModel.updateRole(req.params.id, name, description, permissionIDs);
+    res.send("Role updated successfully");
   } catch (err) {
     res.status(500).send(err.message);
   }
 };
+
 
 const deleteRole = async (req, res) => {
   try {
@@ -50,10 +51,21 @@ const deleteRole = async (req, res) => {
   }
 };
 
+const getAllPermissions = async (req, res) => {
+  try {
+    const permissions = await roleModel.getAllPermissions();
+    res.json(permissions);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+
 module.exports = {
   getRoles,
   getRole,
   addRole,
   updateRole,
-  deleteRole
+  deleteRole,
+  getAllPermissions,
 };

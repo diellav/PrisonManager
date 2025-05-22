@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../axios";
 import EmergencyContactForm from "./EmergencyContactForm";
 import EmergencyContactsList from "./EmergencyContactsList";
 
@@ -13,19 +13,11 @@ const EmergencyContactPage = () => {
     phone: "",
     address_: "",
     email: "",
-    id: null
+    id: null,
   });
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
-
-  const token = localStorage.getItem("token");
-
-  const axiosConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
 
   useEffect(() => {
     fetchContacts();
@@ -33,10 +25,10 @@ const EmergencyContactPage = () => {
 
   const fetchContacts = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/emergency_contacts", axiosConfig);
+      const res = await axiosInstance.get("/emergency_contacts");
       setContacts(res.data);
     } catch (err) {
-      console.error("Error fetching contacts:", err.response ? err.response.data : err.message);
+      console.error("Error fetching contacts:", err.response?.data || err.message);
     }
   };
 
@@ -59,27 +51,31 @@ const EmergencyContactPage = () => {
       };
 
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/emergency_contacts/${form.id}`, payload, axiosConfig);
+        await axiosInstance.put(`/emergency_contacts/${form.id}`, payload);
       } else {
-        await axios.post("http://localhost:5000/api/emergency_contacts", payload, axiosConfig);
+        await axiosInstance.post("/emergency_contacts", payload);
       }
 
-      setForm({
-        first_name: "",
-        last_name: "",
-        date_of_birth: "",
-        gender: "",
-        phone: "",
-        address_: "",
-        email: "",
-        id: null,
-      });
-      setIsEditing(false);
-      setShowForm(false);
+      resetForm();
       fetchContacts();
     } catch (err) {
-      console.error("Error saving contact:", err.response ? err.response.data : err.message);
+      console.error("Error saving contact:", err.response?.data || err.message);
     }
+  };
+
+  const resetForm = () => {
+    setForm({
+      first_name: "",
+      last_name: "",
+      date_of_birth: "",
+      gender: "",
+      phone: "",
+      address_: "",
+      email: "",
+      id: null,
+    });
+    setIsEditing(false);
+    setShowForm(false);
   };
 
   const handleEdit = (contact) => {
@@ -95,31 +91,22 @@ const EmergencyContactPage = () => {
     });
     setIsEditing(true);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this contact?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/emergency_contacts/${id}`, axiosConfig);
+        await axiosInstance.delete(`/emergency_contacts/${id}`);
         fetchContacts();
       } catch (err) {
-        console.error("Error deleting contact:", err.response ? err.response.data : err.message);
+        console.error("Error deleting contact:", err.response?.data || err.message);
       }
     }
   };
 
   const handleGoToCreate = () => {
-    setForm({
-      first_name: "",
-      last_name: "",
-      date_of_birth: "",
-      gender: "",
-      phone: "",
-      address_: "",
-      email: "",
-      id: null,
-    });
-    setIsEditing(false);
+    resetForm();
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -128,21 +115,24 @@ const EmergencyContactPage = () => {
 
   return (
     <div className="container mt-4">
-      <EmergencyContactForm
-        showModal={showForm}
-        handleClose={handleClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-      />
+      <h2 className="mb-4">Emergency Contact Management</h2>
 
-      <EmergencyContactsList
-        contacts={contacts}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleGoToCreate}
-      />
+      {showForm ? (
+        <EmergencyContactForm
+          form={form}
+          isEditing={isEditing}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          handleClose={handleClose}
+        />
+      ) : (
+        <EmergencyContactsList
+          contacts={contacts}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          goToCreate={handleGoToCreate}
+        />
+      )}
     </div>
   );
 };

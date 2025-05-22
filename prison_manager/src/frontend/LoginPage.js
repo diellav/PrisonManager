@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import axiosInstance from './axios';
+
 
 function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -9,25 +11,22 @@ function LoginPage({ onLogin }) {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+      const response = await axiosInstance.post('/auth/login', {
+        username,
+        password
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        onLogin();
-      } else {
-        setErrorMessage(data.message || 'Login failed. Please check your credentials.');
-      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('permissions', JSON.stringify(data.permissions || []));
+      console.log('Token stored:', localStorage.getItem('token'));
+      onLogin();
     } catch (error) {
-      setErrorMessage('An error occurred during login. Please try again later.');
+      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      setErrorMessage(message);
     }
   };
-
   return (
     <div className="bg-gradient-primary" style={{ minHeight: '100vh' }}>
       <div className="container">
@@ -84,7 +83,7 @@ function LoginPage({ onLogin }) {
             </div>
           </div>
         </div>
-      </div>  
+      </div>
     </div>
   );
 }

@@ -1,64 +1,136 @@
-import React from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import axiosInstance from "../axios";
 
-const BudgetForm = ({ showModal, handleClose, form, isEditing, handleInputChange, handleSubmit }) => {
+const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
+  const [form, setForm] = useState({
+    year: "",
+    allocated_funds: "",
+    used_funds: "",
+    last_updated: "",
+  });
+
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (editingBudget) {
+      setForm({
+        year: editingBudget.year || "",
+        allocated_funds: editingBudget.allocated_funds || "",
+        used_funds: editingBudget.used_funds || "",
+        last_updated: editingBudget.last_updated
+          ? editingBudget.last_updated.substring(0, 10)
+          : "",
+      });
+    }
+  }, [editingBudget]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const remaining_funds =
+      parseFloat(form.allocated_funds) - parseFloat(form.used_funds);
+
+    const budgetData = {
+      year: parseInt(form.year),
+      allocated_funds: parseFloat(form.allocated_funds),
+      used_funds: parseFloat(form.used_funds),
+      remaining_funds,
+      last_updated: form.last_updated,
+    };
+
+    try {
+     if (editingBudget && editingBudget.id) {
+  await axiosInstance.put(`/budgets/${editingBudget.id}`, budgetData);
+} else {
+  await axiosInstance.post("/budgets", budgetData);
+}
+
+      onSuccess();
+    } catch (err) {
+      console.error("Error saving budget:", err);
+      setError("Failed to save budget.");
+    }
+  };
+
   return (
-    <Modal show={showModal} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>{isEditing ? "Edit Budget" : "Create Budget"}</Modal.Title>
-      </Modal.Header>
+    <div className="card shadow mb-4">
+      <div className="card-header py-3">
+        <h4 className="m-0 font-weight-bold text-primary">
+          {editingBudget ? "Edit Budget" : "Create Budget"}
+        </h4>
+      </div>
+      <div className="card-body">
+        {error && <div className="alert alert-danger">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <label>Year</label>
+              <input
+                type="number"
+                name="year"
+                className="form-control"
+                value={form.year}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="number"
-              name="year"
-              placeholder="Year"
-              value={form.year}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="number"
-              name="allocated_funds"
-              placeholder="Allocated funds"
-              value={form.allocated_funds}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="number"
-              name="used_funds"
-              placeholder="Used funds"
-              value={form.used_funds}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="datetime-local"
-              name="last_updated"
-              placeholder="Last updated"
-              value={form.last_updated}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-          <div className="d-flex justify-content-end">
-            <Button variant="secondary" onClick={handleClose}>Close</Button>
-            <Button variant={isEditing ? "warning" : "primary"} type="submit" className="ms-2">
-              {isEditing ? "Update" : "Add"}
-            </Button>
+            <div className="col-md-6 mb-3">
+              <label>Allocated Funds</label>
+              <input
+                type="number"
+                name="allocated_funds"
+                className="form-control"
+                value={form.allocated_funds}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <label>Used Funds</label>
+              <input
+                type="number"
+                name="used_funds"
+                className="form-control"
+                value={form.used_funds}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <label>Last Updated</label>
+              <input
+                type="date"
+                name="last_updated"
+                className="form-control"
+                value={form.last_updated}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
-        </Form>
-      </Modal.Body>
-    </Modal>
+
+          <div className="d-flex justify-content-end">
+            <button
+              type="button"
+              className="btn btn-secondary me-2"
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {editingBudget ? "Update" : "Create"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 
