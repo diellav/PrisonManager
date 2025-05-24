@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 
 const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("lawyer_ID");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -45,7 +48,6 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentLawyers = sortedLawyers.slice(indexOfFirst, indexOfLast);
-
   const totalPages = Math.ceil(sortedLawyers.length / itemsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -75,10 +77,13 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
       <div className="card shadow-sm mb-4 border-0">
         <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
           <h4 className="m-0 text-primary fw-bold">Lawyer List</h4>
-          <button className="btn btn-primary" onClick={goToCreate}>
-            + Add Lawyer
-          </button>
+          {hasPermission("lawyers.create") && (
+            <button className="btn btn-primary" onClick={goToCreate}>
+              + Add Lawyer
+            </button>
+          )}
         </div>
+
         <div className="card-body">
           <div className="row mb-3 align-items-center">
             <div className="col-md-6 d-flex align-items-center">
@@ -90,10 +95,11 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
                 >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
+                  {[10, 25, 50, 100].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
                 </select>
                 entries
               </label>
@@ -114,7 +120,7 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
             <table className="table align-middle">
               <thead className="table-light">
                 <tr>
-                  {[ 
+                  {[
                     { field: "lawyer_ID", label: "ID" },
                     { field: "first_name", label: "First Name" },
                     { field: "last_name", label: "Last Name" },
@@ -135,7 +141,9 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
                       {label} {renderSortIcons(field)}
                     </th>
                   ))}
-                  <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
+                  {(hasPermission("lawyers.edit") || hasPermission("lawyers.delete")) && (
+                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -148,25 +156,31 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
                       <td>{lawyer.phone}</td>
                       <td>{lawyer.email}</td>
                       <td>{lawyer.category}</td>
-                      <td>
-                        <div style={{ display: "flex", gap: "6px" }}>
-                          <button
-                            className="btn btn-sm btn-outline-info"
-                            onClick={() => onEdit(lawyer)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => {
-                              setDeleteId(lawyer.lawyer_ID);
-                              setShowConfirm(true);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      {(hasPermission("lawyers.edit") || hasPermission("lawyers.delete")) && (
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {hasPermission("lawyers.edit") && (
+                              <button
+                                className="btn btn-sm btn-outline-info"
+                                onClick={() => onEdit(lawyer)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {hasPermission("lawyers.delete") && (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setDeleteId(lawyer.lawyer_ID);
+                                  setShowConfirm(true);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (
@@ -182,8 +196,7 @@ const LawyersList = ({ lawyers, onEdit, onDelete, goToCreate }) => {
 
           <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
             <div className="small text-muted mb-2 mb-md-0">
-              Showing {indexOfFirst + 1} to{" "}
-              {Math.min(indexOfLast, sortedLawyers.length)} of{" "}
+              Showing {indexOfFirst + 1} to {Math.min(indexOfLast, sortedLawyers.length)} of{" "}
               {sortedLawyers.length} entries
             </div>
             <ul className="pagination mb-0 mt-2 mt-md-0">

@@ -52,7 +52,7 @@ const RolesList = ({ roles, onEdit, onDelete, goToCreate }) => {
     );
   };
 
-  // Filter and sort roles
+
   const filteredRoles = [...roles]
     .filter((role) =>
       [role.roleID, role.name_, role.description_]
@@ -244,7 +244,6 @@ const RolesList = ({ roles, onEdit, onDelete, goToCreate }) => {
         </div>
       </div>
 
-      {/* Confirm delete modal */}
       {showConfirm && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>

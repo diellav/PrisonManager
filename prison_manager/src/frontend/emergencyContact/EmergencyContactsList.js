@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 
 const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("emergency_contact_ID");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -23,6 +26,11 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
     }
   };
 
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    setCurrentPage(1);
+  };
+
   const sortedContacts = [...contacts]
     .filter((contact) =>
       Object.values(contact).some((value) =>
@@ -30,10 +38,14 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
       )
     )
     .sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -49,7 +61,11 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
     return (
       <span
         className="ms-1 d-inline-flex flex-column"
-        style={{ fontSize: "0.7rem", lineHeight: "0.7rem", transform: "translateY(-7px)" }}
+        style={{
+          fontSize: "0.7rem",
+          lineHeight: "0.7rem",
+          transform: "translateY(-7px)",
+        }}
       >
         <span style={{ color, opacity: active && sortDirection === "asc" ? 1 : 0.3 }}>▲</span>
         <span style={{ color, opacity: active && sortDirection === "desc" ? 1 : 0.3 }}>▼</span>
@@ -60,11 +76,13 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
   return (
     <div>
       <div className="card shadow-sm mb-4 border-0">
-        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom" style={{ backgroundColor: "#4E73DF" }}>
           <h4 className="m-0 text-primary fw-bold">Emergency Contact List</h4>
-          <button className="btn btn-primary" onClick={goToCreate}>
-            + Add Emergency Contact
-          </button>
+          {hasPermission("emergency_contact.create") && (
+            <button className="btn btn-primary" onClick={goToCreate}>
+              + Add Emergency Contact
+            </button>
+          )}
         </div>
         <div className="card-body">
           <div className="row mb-3 align-items-center">
@@ -75,15 +93,13 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
                   className="form-select form-select-sm"
                   style={{ width: "80px" }}
                   value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
+                  onChange={handleItemsPerPageChange}
                 >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
+                  {[10, 25, 50, 100].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
                 </select>
                 entries
               </label>
@@ -126,7 +142,9 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
                       {label} {renderSortIcons(field)}
                     </th>
                   ))}
-                  <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
+                  {(hasPermission("emergency_contact.edit") || hasPermission("emergency_contact.delete")) && (
+                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -136,27 +154,33 @@ const EmergencyContactsList = ({ contacts, onEdit, onDelete, goToCreate }) => {
                       <td>{contact.emergency_contact_ID}</td>
                       <td>{contact.first_name}</td>
                       <td>{contact.last_name}</td>
-                      <td>{contact.date_of_birth}</td>
+                      <td>{contact.date_of_birth ? contact.date_of_birth.split("T")[0] : ""}</td>
                       <td>{contact.gender}</td>
                       <td>{contact.phone}</td>
                       <td>{contact.address_}</td>
                       <td>{contact.email}</td>
-                      <td>
-                        <div style={{ display: "flex", gap: "6px" }}>
-                          <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(contact)}>
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => {
-                              setDeleteId(contact.emergency_contact_ID);
-                              setShowConfirm(true);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      {(hasPermission("emergency_contact.edit") || hasPermission("emergency_contact.delete")) && (
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {hasPermission("emergency_contact.edit") && (
+                              <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(contact)}>
+                                Edit
+                              </button>
+                            )}
+                            {hasPermission("emergency_contact.delete") && (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setDeleteId(contact.emergency_contact_ID);
+                                  setShowConfirm(true);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (

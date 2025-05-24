@@ -3,82 +3,116 @@ import axiosInstance from "../axios";
 import BudgetForm from "./BudgetForm";
 import BudgetList from "./BudgetList";
 
+const hasPermission = (permName) => {
+  const perms = JSON.parse(localStorage.getItem("permissions") || "[]");
+  return perms.includes(permName.toLowerCase());
+};
+
 const BudgetPage = () => {
   const [budgets, setBudgets] = useState([]);
-  const [editingBudget, setEditingBudget] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(null); 
+  const [isEditing, setIsEditing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    fetchBudgets();
+    if (hasPermission("budget.read")) {
+      fetchBudgets();
+    } else {
+      showAlert("You don't have permission to view budgets.", "danger");
+      setLoading(false);
+    }
   }, []);
+
+  const showAlert = (message, type = "warning") => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert({ message: "", type: "" }), 4000);
+  };
 
   const fetchBudgets = async () => {
     setLoading(true);
     try {
       const res = await axiosInstance.get("/budgets");
       setBudgets(res.data);
-      setError(null);
+      setAlert({ message: "", type: "" });
     } catch (err) {
       console.error("Error fetching budgets:", err.response?.data || err.message);
+      showAlert("Failed to fetch budgets.", "danger");
     } finally {
       setLoading(false);
     }
   };
 
-  const onEdit = (budget) => {
-    setEditingBudget(budget);
-    setShowForm(true);
+  const handleEdit = (budget) => {
+    if (!hasPermission("budget.edit")) {
+      return showAlert("You don't have permission to edit budgets.", "danger");
+    }
+    setForm(budget);
+    setIsEditing(true);
+    setShowModal(true);
   };
 
-  const goToCreate = () => {
-    setEditingBudget(null);
-    setShowForm(true);
-  };
-
-  const onDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this budget?")) {
-      try {
-        await axiosInstance.delete(`/budgets/${id}`);
-        fetchBudgets();
-      } catch (err) {
-        setError("Failed to delete budget.");
-      }
+  const handleDelete = async (id) => {
+    if (!hasPermission("budget.delete")) {
+      return showAlert("You don't have permission to delete budgets.", "danger");
+    }
+    try {
+      await axiosInstance.delete(`/budgets/${id}`);
+      fetchBudgets();
+    } catch (err) {
+      console.error("Error deleting budget:", err.response?.data || err.message);
+      showAlert("Failed to delete budget.", "danger");
     }
   };
 
-  const onSuccess = () => {
-    setShowForm(false);
-    setEditingBudget(null);
-    fetchBudgets();
+  const handleModalOpen = () => {
+    if (!hasPermission("budget.create")) {
+      return showAlert("You don't have permission to create budgets.", "danger");
+    }
+    setForm(null);
+    setIsEditing(false);
+    setShowModal(true);
   };
 
-  const onCancel = () => {
-    setShowForm(false);
-    setEditingBudget(null);
+  const handleModalClose = () => {
+    setShowModal(false);
+    setForm(null);
+    setIsEditing(false);
   };
 
   return (
     <div className="container mt-4">
       <h2>Budget Management</h2>
+
+      {alert.message && (
+        <div className={`alert alert-${alert.type}`} role="alert">
+          {alert.message}
+        </div>
+      )}
+
       {loading ? (
         <p>Loading...</p>
-      ) : error ? (
-        <div className="alert alert-danger">{error}</div>
-      ) : showForm ? (
+      ) : showModal ? (
         <BudgetForm
-          editingBudget={editingBudget}
-          onSuccess={onSuccess}
-          onCancel={onCancel}
+          editingBudget={isEditing ? form : null}
+          onSuccess={() => {
+            setShowModal(false);
+            fetchBudgets();
+            setIsEditing(false);
+            setForm(null);
+          }}
+          onCancel={handleModalClose}
         />
-      ) : (
+      ) : hasPermission("budget.read") ? (
         <BudgetList
           budgets={budgets}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          goToCreate={goToCreate}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          goToCreate={handleModalOpen}
         />
+      ) : (
+        <p>You do not have permission to view budgets.</p>
       )}
     </div>
   );

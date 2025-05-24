@@ -3,25 +3,25 @@ import axiosInstance from "../axios";
 import LawyerForm from "./LawyerForm";
 import LawyersList from "./LawyerList";
 
+const hasPermission = (permName) => {
+  const perms = JSON.parse(localStorage.getItem("permissions") || "[]");
+  return perms.includes(permName.toLowerCase());
+};
+
 const LawyerPage = () => {
   const [lawyers, setLawyers] = useState([]);
-  const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    phone: "",
-    email: "",
-    category: "",
-    id: null,
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
   const [editingLawyer, setEditingLawyer] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchLawyers();
+    if (hasPermission("lawyers.read")) {
+      fetchLawyers();
+    } else {
+      setLoading(false);
+      setError("You do not have permission to view lawyers.");
+    }
   }, []);
 
   const fetchLawyers = async () => {
@@ -38,24 +38,26 @@ const LawyerPage = () => {
   };
 
   const goToCreate = () => {
+    if (!hasPermission("lawyers.create")) return;
     setEditingLawyer(null);
     setShowForm(true);
   };
 
   const onEdit = (lawyer) => {
+    if (!hasPermission("lawyers.edit")) return;
     setEditingLawyer(lawyer);
     setShowForm(true);
   };
 
   const onDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this lawyer?")) {
-      try {
-        await axiosInstance.delete(`/lawyers/${id}`);
-        setLawyers(lawyers.filter((l) => l.lawyer_ID !== id));
-      } catch (err) {
-        console.error("Error deleting lawyer:", err);
-        setError("Failed to delete lawyer.");
-      }
+    if (!hasPermission("lawyers.delete")) return;
+
+    try {
+      await axiosInstance.delete(`/lawyers/${id}`);
+      setLawyers(lawyers.filter((l) => l.lawyer_ID !== id));
+    } catch (err) {
+      console.error("Error deleting lawyer:", err);
+      setError("Failed to delete lawyer.");
     }
   };
 
@@ -69,25 +71,28 @@ const LawyerPage = () => {
   };
 
   return (
-    <div>
+    <div className="container mt-4">
       <h2>Lawyers Management</h2>
+
       {loading ? (
         <p>Loading...</p>
       ) : error ? (
         <div className="alert alert-danger">{error}</div>
-      ) : showForm ? (
+      ) : showForm && (hasPermission("lawyers.create") || hasPermission("lawyers.edit")) ? (
         <LawyerForm
           editingLawyer={editingLawyer}
           onSuccess={onSuccess}
           onCancel={onCancel}
         />
       ) : (
-        <LawyersList
-          lawyers={lawyers}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          goToCreate={goToCreate}
-        />
+        hasPermission("lawyers.read") && (
+          <LawyersList
+            lawyers={lawyers}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            goToCreate={goToCreate}
+          />
+        )
       )}
     </div>
   );

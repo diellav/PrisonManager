@@ -50,7 +50,7 @@ const UsersList = ({ users, onEdit, onDelete, goToCreate, getRoleName }) => {
     );
   };
 
-  // Filter users on all relevant fields (stringify dates)
+
   const filteredUsers = [...users]
     .filter((user) => {
       const dob = user.date_of_birth ? user.date_of_birth.split("T")[0] : "";
@@ -72,13 +72,13 @@ const UsersList = ({ users, onEdit, onDelete, goToCreate, getRoleName }) => {
       let aVal = a[sortField];
       let bVal = b[sortField];
 
-      // For date_of_birth we want to compare strings (yyyy-mm-dd)
+
       if (sortField === "date_of_birth") {
         aVal = aVal ? aVal.split("T")[0] : "";
         bVal = bVal ? bVal.split("T")[0] : "";
       }
 
-      // For role, sort by roleName instead of roleID
+
       if (sortField === "roleName") {
         aVal = getRoleName(a.roleID) || "";
         bVal = getRoleName(b.roleID) || "";
@@ -319,7 +319,7 @@ const UsersList = ({ users, onEdit, onDelete, goToCreate, getRoleName }) => {
         </div>
       </div>
 
-      {/* Confirm delete modal */}
+
       {showConfirm && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>

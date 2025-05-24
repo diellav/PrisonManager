@@ -3,6 +3,11 @@ import axiosInstance from "../axios";
 import CellForm from "./CellForm";
 import CellList from "./CellsList";
 
+const hasPermission = (permName) => {
+  const perms = JSON.parse(localStorage.getItem("permissions") || "[]");
+  return perms.includes(permName.toLowerCase());
+};
+
 const CellPage = () => {
   const [cells, setCells] = useState([]);
   const [blocks, setBlocks] = useState([]);
@@ -16,11 +21,17 @@ const CellPage = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    fetchCells();
-    fetchBlocks();
+    if (hasPermission("cells.read")) fetchCells();
+    if (hasPermission("cells.create") || hasPermission("cells.edit")) fetchBlocks();
   }, []);
+
+  const showAlert = (message, type = "warning") => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert({ message: "", type: "" }), 4000);
+  };
 
   const fetchCells = async () => {
     try {
@@ -48,28 +59,31 @@ const CellPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const category = blocks.find(
+      (block) => block.block_id === parseInt(form.block_id)
+    )?.category || "";
+
+    const payload = {
+      cell_number: form.cell_number,
+      capacity: parseInt(form.capacity),
+      actual_capacity: parseInt(form.actual_capacity),
+      block_id: parseInt(form.block_id),
+      category,
+    };
+
     try {
-      const category = blocks.find(
-        (block) => block.block_id === parseInt(form.block_id)
-      )?.category || "";
-
-      const payload = {
-        cell_number: form.cell_number,
-        capacity: parseInt(form.capacity),
-        actual_capacity: parseInt(form.actual_capacity),
-        block_id: parseInt(form.block_id),
-        category,
-      };
-
-      if (isEditing) {
+      if (isEditing && hasPermission("cells.edit")) {
         await axiosInstance.put(`/cells/${form.id}`, payload);
-      } else {
+      } else if (!isEditing && hasPermission("cells.create")) {
         await axiosInstance.post("/cells", payload);
+      } else {
+        return showAlert("You don't have permission to perform this action.", "danger");
       }
 
       resetForm();
       fetchCells();
     } catch (err) {
+      showAlert("Failed to save cell. Please try again.", "danger");
       console.error("Error saving cell:", err.response?.data || err.message);
     }
   };
@@ -88,6 +102,10 @@ const CellPage = () => {
   };
 
   const handleEdit = (cell) => {
+    if (!hasPermission("cells.edit")) {
+      return showAlert("You don't have permission to edit cells.", "danger");
+    }
+
     setForm({
       cell_number: cell.cell_number,
       capacity: cell.capacity,
@@ -98,20 +116,28 @@ const CellPage = () => {
     });
     setIsEditing(true);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this cell?")) {
-      try {
-        await axiosInstance.delete(`/cells/${id}`);
-        fetchCells();
-      } catch (err) {
-        console.error("Error deleting cell:", err.response?.data || err.message);
-      }
+    if (!hasPermission("cells.delete")) {
+      return showAlert("You don't have permission to delete cells.", "danger");
+    }
+
+    try {
+      await axiosInstance.delete(`/cells/${id}`);
+      fetchCells();
+    } catch (err) {
+      showAlert("Failed to delete cell.", "danger");
+      console.error("Error deleting cell:", err.response?.data || err.message);
     }
   };
 
   const handleGoToCreate = () => {
+    if (!hasPermission("cells.create")) {
+      return showAlert("You don't have permission to create cells.", "danger");
+    }
+
     resetForm();
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -121,23 +147,34 @@ const CellPage = () => {
 
   return (
     <div className="container mt-4">
-      <CellForm
-        showModal={showForm}
-        handleClose={handleClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-        blocks={blocks}
-      />
+      <h2 className="mb-4">Cell Management</h2>
+      {alert.message && (
+        <div className={`alert alert-${alert.type}`} role="alert">
+          {alert.message}
+        </div>
+      )}
 
-      <CellList
-        cells={cells}
-        blocks={blocks}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleGoToCreate}
-      />
+      {(hasPermission("cells.create") || hasPermission("cells.edit")) && (
+        <CellForm
+          showModal={showForm}
+          handleClose={handleClose}
+          form={form}
+          isEditing={isEditing}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          blocks={blocks}
+        />
+      )}
+
+      {hasPermission("cells.read") && (
+        <CellList
+          cells={cells}
+          blocks={blocks}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          goToCreate={handleGoToCreate}
+        />
+      )}
     </div>
   );
 };
