@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axiosInstance from './axios';
-
+import { jwtDecode } from 'jwt-decode';
 
 function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -20,8 +20,8 @@ function LoginPage({ onLogin }) {
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('permissions', JSON.stringify(data.permissions || []));
-      console.log('Token stored:', localStorage.getItem('token'));
-      onLogin();
+      const decoded = jwtDecode(data.token);
+      onLogin(decoded);
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
       setErrorMessage(message);

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
-const Topbar = ({ username, onLogout }) => {
+const Topbar = ({ username, photo, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef();
 
@@ -35,7 +36,7 @@ const Topbar = ({ username, onLogout }) => {
             <span className="mr-2 d-none d-lg-inline text-gray-600 small">{username}</span>
             <img
               className="img-profile rounded-circle"
-              src="/img/undraw_profile.svg"
+              src={photo}
               alt="profile"
               style={{ width: '32px', height: '32px' }}
             />
@@ -43,6 +44,13 @@ const Topbar = ({ username, onLogout }) => {
 
           {isOpen && (
             <div className="dropdown-menu dropdown-menu-right shadow animated--grow-in show">
+              <Link to="/profile" className="dropdown-item" onClick={() => setIsOpen(false)}>
+                <i className="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                View Profile
+              </Link>
+
+              <div className="dropdown-divider"></div>
+
               <button className="dropdown-item" onClick={onLogout}>
                 <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                 Logout
