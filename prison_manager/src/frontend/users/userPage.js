@@ -142,6 +142,7 @@ const getRoleName = (roleID) => {
 
   return (
     <div className="container mt-4">
+      <h2 className="mb-4">Users Management</h2>
       {showModal ? (
   <UserForm
     form={form}

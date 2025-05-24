@@ -21,6 +21,7 @@ const CellPage = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState("");
   const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
@@ -38,7 +39,8 @@ const CellPage = () => {
       const res = await axiosInstance.get("/cells");
       setCells(res.data);
     } catch (err) {
-      console.error("Error fetching cells:", err.response?.data || err.message);
+      console.error("Error fetching cells:", err);
+      setError("Error fetching cells.");
     }
   };
 
@@ -47,13 +49,18 @@ const CellPage = () => {
       const res = await axiosInstance.get("/blocks");
       setBlocks(res.data);
     } catch (err) {
-      console.error("Error fetching blocks:", err.response?.data || err.message);
+      console.error("Error fetching blocks:", err);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
+
+    if (name === "block_id") {
+      const block = blocks.find((b) => b.block_id === parseInt(value));
+      setForm((prev) => ({ ...prev, category: block?.category || "" }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -80,25 +87,12 @@ const CellPage = () => {
         return showAlert("You don't have permission to perform this action.", "danger");
       }
 
-      resetForm();
-      fetchCells();
+      onSuccess();
     } catch (err) {
       showAlert("Failed to save cell. Please try again.", "danger");
-      console.error("Error saving cell:", err.response?.data || err.message);
+      console.error("Error saving cell:", err);
+      setError("Failed to save cell.");
     }
-  };
-
-  const resetForm = () => {
-    setForm({
-      cell_number: "",
-      capacity: "",
-      actual_capacity: "",
-      block_id: "",
-      category: "",
-      id: null,
-    });
-    setIsEditing(false);
-    setShowForm(false);
   };
 
   const handleEdit = (cell) => {
@@ -133,17 +127,32 @@ const CellPage = () => {
     }
   };
 
-  const handleGoToCreate = () => {
+  const goToCreate = () => {
     if (!hasPermission("cells.create")) {
       return showAlert("You don't have permission to create cells.", "danger");
     }
 
-    resetForm();
+    setForm({
+      cell_number: "",
+      capacity: "",
+      actual_capacity: "",
+      block_id: "",
+      category: "",
+      id: null,
+    });
+    setIsEditing(false);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleClose = () => setShowForm(false);
+  const onSuccess = () => {
+    setShowForm(false);
+    fetchCells();
+  };
+
+  const onCancel = () => {
+    setShowForm(false);
+  };
 
   return (
     <div className="container mt-4">

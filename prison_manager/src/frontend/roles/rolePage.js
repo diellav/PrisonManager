@@ -146,33 +146,34 @@ const RolePage = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Role Management</h2>
+      <h2 className="mb-4">Roles Management</h2>
       {alert.message && (
         <div className={`alert alert-${alert.type}`} role="alert">
           {alert.message}
         </div>
       )}
 
-      {(hasPermission("roles.create") || hasPermission("roles.edit")) && (
-        <RoleForm
-          showModal={showForm}
-          handleClose={() => setShowForm(false)}
-          form={form}
-          setForm={setForm}
-          isEditing={isEditing}
-          permissions={permissions}
-          handleSubmit={handleSubmit}
-        />
-      )}
+       {showForm && (hasPermission("roles.create") || hasPermission("roles.edit")) && (
+  <RoleForm
+    showModal={true}
+     handleClose={() => setShowForm(false)}
+    form={form}
+    setForm={setForm}
+    isEditing={isEditing}
+    permissions={permissions}
+    handleSubmit={handleSubmit}
+    showAlert={showAlert}  
+  />
+)}
 
-      {hasPermission("roles.read") && (
-        <RolesList
-          roles={roles}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          goToCreate={handleGoToCreate}
-        />
-      )}
+{!showForm && hasPermission("roles.read") && (
+  <RolesList
+    roles={roles}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+    goToCreate={handleGoToCreate}
+  />
+)}
     </div>
   );
 };

@@ -1,42 +1,61 @@
 import React from "react";
-import { Modal, Button, Form } from "react-bootstrap";
 
-const BlockForm = ({ showModal, handleClose, form, isEditing, handleInputChange, handleSubmit }) => {
+const BlockForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClose }) => {
   return (
-    <Modal show={showModal} onHide={handleClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>{isEditing ? "Edit Block" : "Create Block"}</Modal.Title>
-      </Modal.Header>
+    <div className="card shadow mb-4">
+      <div className="card-header py-3">
+        <h4 className="m-0 font-weight-bold text-primary">
+          {isEditing ? "Edit Block" : "Create Block"}
+        </h4>
+      </div>
+      <div className="card-body">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <label>Block Name</label>
+              <input
+                type="text"
+                className="form-control"
+                name="block_name"
+                value={form.block_name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="block_name"
-              placeholder="Block Name"
-              value={form.block_name}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              name="category"
-              placeholder="Category"
-              value={form.category}
-              onChange={handleInputChange}
-              required
-            />
-          </Form.Group>
-          <Button variant="secondary" onClick={handleClose}>Close</Button>
-          <Button variant={isEditing ? "warning" : "primary"} type="submit" className="ms-2">
-            {isEditing ? "Update" : "Create"}
-          </Button>
-        </Form>
-      </Modal.Body>
-    </Modal>
+            <div className="col-md-6 mb-3">
+              <label>Category</label>
+              <input
+                type="text"
+                className="form-control"
+                name="category"
+                value={form.category}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="d-flex justify-content-end">
+            <button
+              type="button"
+              className="btn btn-secondary me-2"
+              onClick={handleClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {isEditing ? "Update" : "Create"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 
