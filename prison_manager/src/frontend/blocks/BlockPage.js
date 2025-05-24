@@ -27,8 +27,7 @@ const BlockPage = () => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
       if (isEditing) {
         await axiosInstance.put(`/blocks/${form.block_id}`, {
@@ -54,6 +53,7 @@ const BlockPage = () => {
     setForm({ block_name: block.block_name, category: block.category, block_id: block.block_id });
     setIsEditing(true);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
@@ -78,21 +78,24 @@ const BlockPage = () => {
 
   return (
     <div className="container mt-4">
-      <BlockForm
-        showModal={showForm}
-        handleClose={handleClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-      />
+      <h2 className="mb-4">Block Management</h2>
+     {showForm ? (
+  <BlockForm
+    form={form}
+    isEditing={isEditing}
+    handleInputChange={handleInputChange}
+    handleSubmit={handleSubmit}
+    handleClose={handleClose}
+  />
+) : (
+  <BlocksList
+    blocks={blocks}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+    goToCreate={handleGoToCreate}
+  />
+)}
 
-      <BlocksList
-        blocks={blocks}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleGoToCreate}
-      />
     </div>
   );
 };

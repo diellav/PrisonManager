@@ -16,6 +16,7 @@ const CellPage = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchCells();
@@ -27,7 +28,8 @@ const CellPage = () => {
       const res = await axiosInstance.get("/cells");
       setCells(res.data);
     } catch (err) {
-      console.error("Error fetching cells:", err.response?.data || err.message);
+      console.error("Error fetching cells:", err);
+      setError("Error fetching cells.");
     }
   };
 
@@ -36,29 +38,29 @@ const CellPage = () => {
       const res = await axiosInstance.get("/blocks");
       setBlocks(res.data);
     } catch (err) {
-      console.error("Error fetching blocks:", err.response?.data || err.message);
+      console.error("Error fetching blocks:", err);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
+
+    if (name === "block_id") {
+      const block = blocks.find((b) => b.block_id === parseInt(value));
+      setForm((prev) => ({ ...prev, category: block?.category || "" }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const category = blocks.find(
-        (block) => block.block_id === parseInt(form.block_id)
-      )?.category || "";
-
       const payload = {
         cell_number: form.cell_number,
         capacity: parseInt(form.capacity),
         actual_capacity: parseInt(form.actual_capacity),
         block_id: parseInt(form.block_id),
-        category,
+        category: form.category,
       };
 
       if (isEditing) {
@@ -67,24 +69,11 @@ const CellPage = () => {
         await axiosInstance.post("/cells", payload);
       }
 
-      resetForm();
-      fetchCells();
+      onSuccess();
     } catch (err) {
-      console.error("Error saving cell:", err.response?.data || err.message);
+      console.error("Error saving cell:", err);
+      setError("Failed to save cell.");
     }
-  };
-
-  const resetForm = () => {
-    setForm({
-      cell_number: "",
-      capacity: "",
-      actual_capacity: "",
-      block_id: "",
-      category: "",
-      id: null,
-    });
-    setIsEditing(false);
-    setShowForm(false);
   };
 
   const handleEdit = (cell) => {
@@ -106,38 +95,57 @@ const CellPage = () => {
         await axiosInstance.delete(`/cells/${id}`);
         fetchCells();
       } catch (err) {
-        console.error("Error deleting cell:", err.response?.data || err.message);
+        console.error("Error deleting cell:", err);
+        setError("Failed to delete cell.");
       }
     }
   };
 
-  const handleGoToCreate = () => {
-    resetForm();
+  const goToCreate = () => {
+    setForm({
+      cell_number: "",
+      capacity: "",
+      actual_capacity: "",
+      block_id: "",
+      category: "",
+      id: null,
+    });
+    setIsEditing(false);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleClose = () => setShowForm(false);
+  const onSuccess = () => {
+    setShowForm(false);
+    fetchCells();
+  };
+
+  const onCancel = () => {
+    setShowForm(false);
+  };
 
   return (
     <div className="container mt-4">
-      <CellForm
-        showModal={showForm}
-        handleClose={handleClose}
-        form={form}
-        isEditing={isEditing}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-        blocks={blocks}
-      />
-
-      <CellList
-        cells={cells}
-        blocks={blocks}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        goToCreate={handleGoToCreate}
-      />
+      <h2 className="mb-4">Cells Management</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+      {showForm ? (
+        <CellForm
+          form={form}
+          blocks={blocks}
+          isEditing={isEditing}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          onCancel={onCancel}
+        />
+      ) : (
+        <CellList
+          cells={cells}
+          blocks={blocks}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          goToCreate={goToCreate}
+        />
+      )}
     </div>
   );
 };
