@@ -11,22 +11,23 @@ const hasPermission = (permName) => {
 const CellPage = () => {
   const [cells, setCells] = useState([]);
   const [blocks, setBlocks] = useState([]);
-  const [form, setForm] = useState({
-    cell_number: "",
-    capacity: "",
-    actual_capacity: "",
-    block_id: "",
-    category: "",
-    id: null,
-  });
+  const [form, setForm] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    if (hasPermission("cells.read")) fetchCells();
-    if (hasPermission("cells.create") || hasPermission("cells.edit")) fetchBlocks();
+    if (hasPermission("cells.read")) {
+      fetchCells();
+    } else {
+      showAlert("You don't have permission to view cells.", "danger");
+      setLoading(false);
+    }
+
+    if (hasPermission("cells.create") || hasPermission("cells.edit")) {
+      fetchBlocks();
+    }
   }, []);
 
   const showAlert = (message, type = "warning") => {
@@ -35,12 +36,15 @@ const CellPage = () => {
   };
 
   const fetchCells = async () => {
+    setLoading(true);
     try {
       const res = await axiosInstance.get("/cells");
       setCells(res.data);
     } catch (err) {
       console.error("Error fetching cells:", err);
-      setError("Error fetching cells.");
+      showAlert("Failed to fetch cells.", "danger");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,64 +57,14 @@ const CellPage = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-
-    if (name === "block_id") {
-      const block = blocks.find((b) => b.block_id === parseInt(value));
-      setForm((prev) => ({ ...prev, category: block?.category || "" }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const category = blocks.find(
-      (block) => block.block_id === parseInt(form.block_id)
-    )?.category || "";
-
-    const payload = {
-      cell_number: form.cell_number,
-      capacity: parseInt(form.capacity),
-      actual_capacity: parseInt(form.actual_capacity),
-      block_id: parseInt(form.block_id),
-      category,
-    };
-
-    try {
-      if (isEditing && hasPermission("cells.edit")) {
-        await axiosInstance.put(`/cells/${form.id}`, payload);
-      } else if (!isEditing && hasPermission("cells.create")) {
-        await axiosInstance.post("/cells", payload);
-      } else {
-        return showAlert("You don't have permission to perform this action.", "danger");
-      }
-
-      onSuccess();
-    } catch (err) {
-      showAlert("Failed to save cell. Please try again.", "danger");
-      console.error("Error saving cell:", err);
-      setError("Failed to save cell.");
-    }
-  };
-
   const handleEdit = (cell) => {
     if (!hasPermission("cells.edit")) {
       return showAlert("You don't have permission to edit cells.", "danger");
     }
 
-    setForm({
-      cell_number: cell.cell_number,
-      capacity: cell.capacity,
-      actual_capacity: cell.actual_capacity,
-      block_id: cell.block_id,
-      category: cell.category,
-      id: cell.cell_block_ID,
-    });
+    setForm(cell);
     setIsEditing(true);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowModal(true);
   };
 
   const handleDelete = async (id) => {
@@ -122,67 +76,61 @@ const CellPage = () => {
       await axiosInstance.delete(`/cells/${id}`);
       fetchCells();
     } catch (err) {
-      showAlert("Failed to delete cell.", "danger");
       console.error("Error deleting cell:", err.response?.data || err.message);
+      showAlert("Failed to delete cell.", "danger");
     }
   };
 
-  const goToCreate = () => {
+  const handleModalOpen = () => {
     if (!hasPermission("cells.create")) {
       return showAlert("You don't have permission to create cells.", "danger");
     }
 
-    setForm({
-      cell_number: "",
-      capacity: "",
-      actual_capacity: "",
-      block_id: "",
-      category: "",
-      id: null,
-    });
+    setForm(null);
     setIsEditing(false);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowModal(true);
   };
 
-  const onSuccess = () => {
-    setShowForm(false);
-    fetchCells();
-  };
-
-  const onCancel = () => {
-    setShowForm(false);
+  const handleModalClose = () => {
+    setShowModal(false);
+    setForm(null);
+    setIsEditing(false);
   };
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Cell Management</h2>
+      <h2>Cell Management</h2>
+
       {alert.message && (
         <div className={`alert alert-${alert.type}`} role="alert">
           {alert.message}
         </div>
       )}
 
-      {(hasPermission("cells.create") || hasPermission("cells.edit")) && (
+      {loading ? (
+        <p>Loading...</p>
+      ) : showModal ? (
         <CellForm
-          showModal={showForm}
-          handleClose={handleClose}
-          form={form}
-          isEditing={isEditing}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
+          editingCell={isEditing ? form : null}
           blocks={blocks}
+          onSuccess={() => {
+            setShowModal(false);
+            fetchCells();
+            setIsEditing(false);
+            setForm(null);
+          }}
+          onCancel={handleModalClose}
         />
-      )}
-
-      {hasPermission("cells.read") && (
+      ) : hasPermission("cells.read") ? (
         <CellList
           cells={cells}
           blocks={blocks}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          goToCreate={handleGoToCreate}
+          goToCreate={handleModalOpen}
         />
+      ) : (
+        <p>You do not have permission to view cells.</p>
       )}
     </div>
   );
