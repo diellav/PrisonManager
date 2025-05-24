@@ -16,6 +16,9 @@ app.use(express.json());
 const authRoutes = require('./backend/routes/authRoute');
 app.use("/api/auth", authRoutes);
 
+const profileRoute = require('./backend/routes/profileRoute');
+app.use("/api/profile",verifyToken, profileRoute);
+
 const roleRoutes = require("./backend/routes/roleRoute");
 app.use("/api/roles", verifyToken, roleRoutes);
 

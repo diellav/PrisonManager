@@ -42,6 +42,7 @@ const loginUser = async (req, res) => {
         username: user.username,
         roleID: user.roleID,
         permissions, 
+        photo: user.photo,
       },
       JWT_SECRET,
       { expiresIn: '1h' }

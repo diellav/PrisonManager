@@ -2,7 +2,9 @@ const express = require("express");
 const router = express.Router();
 const roleController = require("../controllers/roleController");
 const checkPermission = require("../checkPermission");
+const { verifyToken } = require('../authMiddleware');
 
+router.get("/my-role", verifyToken, roleController.getRole);
 router.get("/permissions", checkPermission("roles.read"), roleController.getAllPermissions);
 router.get("/", checkPermission("roles.read"), roleController.getRoles);
 router.get("/:id", checkPermission("roles.read"), roleController.getRole);
