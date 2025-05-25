@@ -42,9 +42,11 @@ app.use("/api/blocks",verifyToken, blockRoutes);
 const assetsRoutes = require("./backend/routes/assetsRoute");
 app.use("/api/assets", verifyToken, assetsRoutes);
 
-// ✅ Kjo është shtesa për gjyqtarët
 const judgeRoutes = require("./backend/routes/judgeRoute");
 app.use("/api/judges", verifyToken, judgeRoutes);
+
+const operationalExpenses = require("./backend/routes/operational_expenseRoute");
+app.use("/api/operational_expenses", verifyToken, operationalExpenses);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

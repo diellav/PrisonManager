@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
+const OperationalExpensesList = ({
+  expenses,
+  onEdit,
+  onDelete,
+  goToCreate,
+  budgets = [],
+  assets = [],
+  users = [],
+}) => {
   const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
   const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState("budget_ID");
+  const [sortField, setSortField] = useState("operational_expense_ID");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -31,6 +39,26 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
     setCurrentPage(1);
   };
 
+  const sortedExpenses = [...expenses]
+    .filter((expense) =>
+      Object.values(expense).some((value) =>
+        String(value ?? "").toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    )
+    .sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentExpenses = sortedExpenses.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(sortedExpenses.length / itemsPerPage);
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   const renderSortIcons = (field) => {
     const active = sortField === field;
     const activeAsc = active && sortDirection === "asc";
@@ -52,47 +80,14 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
     );
   };
 
-  const filteredBudgets = [...budgets]
-    .filter((budget) =>
-      [
-        budget.budget_ID,
-        budget.year_,
-        budget.allocated_funds,
-        budget.used_funds,
-        budget.remaining_funds,
-        budget.last_updated,
-        budget.description_,
-      ].some((val) =>
-        String(val).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-    .sort((a, b) => {
-      let aVal = a[sortField];
-      let bVal = b[sortField];
-      if (typeof aVal === "string") aVal = aVal.toLowerCase();
-      if (typeof bVal === "string") bVal = bVal.toLowerCase();
-      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentBudgets = filteredBudgets.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredBudgets.length / itemsPerPage);
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
-
   return (
     <div>
       <div className="card shadow-sm mb-4 border-0">
-        <div
-          className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom"
-          style={{ backgroundColor: "#4E73DF" }}
-        >
-          <h4 className="m-0 text-primary fw-bold">Budget List</h4>
-          {hasPermission("budget.create") && (
+        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+          <h4 className="m-0 text-primary fw-bold">Operational Expenses</h4>
+          {hasPermission("operational_expenses.create") && (
             <button className="btn btn-primary" onClick={goToCreate}>
-              + Add Budget
+              + Add Expense
             </button>
           )}
         </div>
@@ -134,87 +129,98 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
               <thead className="table-light">
                 <tr>
                   {[
-                    { field: "budget_ID", label: "ID" },
+                    { field: "operational_expense_ID", label: "ID" },
                     { field: "description_", label: "Description" },
-                    { field: "year_", label: "Year" },
-                    { field: "allocated_funds", label: "Allocated" },
-                    { field: "used_funds", label: "Used" },
-                    { field: "remaining_funds", label: "Remaining" },
-                    { field: "last_updated", label: "Last Updated" },
+                    { field: "amount", label: "Amount" },
+                    { field: "date_", label: "Date" },
+                    { field: "category", label: "Category" },
+                    { field: "budget_ID", label: "Budget" },
+                    { field: "approved_by", label: "Approved By" },
+                    { field: "asset_ID", label: "Asset" },
                   ].map(({ field, label }) => (
                     <th
                       key={field}
-                      style={{
-                        cursor: "pointer",
-                        color: "white",
-                        backgroundColor: "#4E73DF",
-                      }}
+                      className="sortable"
+                      style={{ cursor: "pointer", color: "white", backgroundColor: "#4E73DF" }}
                       onClick={() => handleSort(field)}
                     >
                       {label} {renderSortIcons(field)}
                     </th>
                   ))}
-                  {(hasPermission("budget.edit") || hasPermission("budget.delete")) && (
-                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>
-                      Actions
-                    </th>
+                  {(hasPermission("operational_expenses.edit") ||
+                    hasPermission("operational_expenses.delete")) && (
+                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {currentBudgets.length > 0 ? (
-                  currentBudgets.map((budget) => (
-                    <tr key={budget.budget_ID}>
-                      <td>{budget.budget_ID}</td>
-                      <td>{budget.description_}</td>
-                      <td>{budget.year_}</td>
-                      <td>{budget.allocated_funds}</td>
-                      <td>{budget.used_funds}</td>
-                      <td>{budget.remaining_funds}</td>
-                      <td>{budget.last_updated?.split("T")[0]}</td>
-                      {(hasPermission("budget.edit") || hasPermission("budget.delete")) && (
-                        <td>
-                          <div style={{ display: "flex", gap: "6px" }}>
-                            {hasPermission("budget.edit") && (
-                              <button
-                                className="btn btn-sm btn-outline-info"
-                                onClick={() => onEdit(budget)}
-                              >
-                                Edit
-                              </button>
-                            )}
-                            {hasPermission("budget.delete") && (
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => {
-                                  setDeleteId(budget.budget_ID);
-                                  setShowConfirm(true);
-                                }}
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="text-center text-muted py-3">
-                      No budgets found.
-                    </td>
-                  </tr>
+  {currentExpenses.length > 0 ? (
+    currentExpenses.map((expense) => {
+      const budget = budgets.find((b) => parseInt(b.budget_ID) === parseInt(expense.budget_ID));
+      const user = users.find((u) => u.userID === expense.approved_by);
+      const asset = assets.find((a) => a.asset_ID === expense.asset_ID);
+
+      return (
+        <tr key={expense.operational_expense_ID}>
+          <td>{expense.operational_expense_ID}</td>
+          <td>{expense.description_}</td>
+          <td>{Number(expense.amount).toFixed(2)}</td>
+          <td>{expense.date_?.slice(0, 10)}</td>
+          <td>{expense.category}</td>
+          <td>
+            {budget
+              ? `${budget.year_} - ${budget.description_}`
+              : expense.budget_ID}
+          </td>
+          <td>
+            {user ? `${user.first_name} ${user.last_name}` : expense.approved_by}
+          </td>
+          <td>{asset ? asset.name : expense.asset_ID ?? "-"}</td>
+          {(hasPermission("operational_expenses.edit") ||
+            hasPermission("operational_expenses.delete")) && (
+            <td>
+              <div style={{ display: "flex", gap: "6px" }}>
+                {hasPermission("operational_expenses.edit") && (
+                  <button
+                    className="btn btn-sm btn-outline-info"
+                    onClick={() => onEdit(expense)}
+                  >
+                    Edit
+                  </button>
                 )}
-              </tbody>
+                {hasPermission("operational_expenses.delete") && (
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => {
+                      setDeleteId(expense.operational_expense_ID);
+                      setShowConfirm(true);
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </td>
+          )}
+        </tr>
+      );
+    })
+  ) : (
+    <tr>
+      <td colSpan="9" className="text-center text-muted py-3">
+        No operational expenses found.
+      </td>
+    </tr>
+  )}
+</tbody>
+
             </table>
           </div>
 
           <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
             <div className="small text-muted mb-2 mb-md-0">
-              Showing {indexOfFirst + 1} to{" "}
-              {Math.min(indexOfLast, filteredBudgets.length)} of{" "}
-              {filteredBudgets.length} entries
+              Showing {indexOfFirst + 1} to {Math.min(indexOfLast, sortedExpenses.length)} of{" "}
+              {sortedExpenses.length} entries
             </div>
             <ul className="pagination mb-0 mt-2 mt-md-0">
               <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
@@ -267,7 +273,7 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Are you sure you want to delete this budget entry?</p>
+                  <p>Are you sure you want to delete this operational expense?</p>
                 </div>
                 <div className="modal-footer">
                   <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
@@ -292,4 +298,4 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
   );
 };
 
-export default BudgetList;
+export default OperationalExpensesList;

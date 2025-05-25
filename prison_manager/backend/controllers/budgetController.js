@@ -21,9 +21,9 @@ const getBudget = async (req, res) => {
 
 const addBudget = async (req, res) => {
   try {
-    const { year, allocated_funds, used_funds, last_updated } = req.body;
+    const { year_, allocated_funds, used_funds, last_updated ,description_} = req.body;
     const remaining_funds = allocated_funds - used_funds;
-    await budgetModel.createBudget(year, allocated_funds, used_funds, remaining_funds, last_updated);
+    await budgetModel.createBudget(year_, allocated_funds, used_funds, remaining_funds, last_updated,description_);
     res.status(201).send("Budget created");
   } catch (err) {
     res.status(500).send(err.message);
@@ -32,9 +32,9 @@ const addBudget = async (req, res) => {
 
 const updateBudget = async (req, res) => {
   try {
-    const { year, allocated_funds, used_funds, last_updated } = req.body;
+    const { year_, allocated_funds, used_funds, last_updated, description_ } = req.body;
     const remaining_funds = allocated_funds - used_funds;
-    await budgetModel.updateBudget(req.params.id, year, allocated_funds, used_funds, remaining_funds, last_updated);
+    await budgetModel.updateBudget(req.params.id, year_, allocated_funds, used_funds, remaining_funds, last_updated,description_);
     res.send("Budget updated");
   } catch (err) {
     res.status(500).send(err.message);

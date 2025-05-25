@@ -20,6 +20,7 @@ import LoginPage from './frontend/LoginPage';
 import ProfilePage from './frontend/ProfilePage';
 import BlockPage from './frontend/blocks/BlockPage';
 import JudgePage from './frontend/judges/judgePage'; 
+import OperationalExpensesPage from './frontend/operational_expenses/OperationalExpensePage';
 
 import './Bootstrap/css/sb-admin-2.css';
 import AssetPage from './frontend/assets/AssetsPage';
@@ -146,6 +147,7 @@ function AppContent() {
             <Route path="/budget" element={isAuthenticated ? <BudgetPage /> : <Navigate to="/login" replace />} />
             <Route path="/judges" element={isAuthenticated ? <JudgePage /> : <Navigate to="/login" replace />} /> 
             <Route path="/assets" element={isAuthenticated ? <AssetPage /> : <Navigate to="/login" replace />} />
+            <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>
