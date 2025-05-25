@@ -18,8 +18,10 @@ import EmergencyContactPage from './frontend/emergencyContact/emergencyContactPa
 import BudgetPage from './frontend/budget/budgetPage';
 import LoginPage from './frontend/LoginPage';
 import ProfilePage from './frontend/ProfilePage';
-import './Bootstrap/css/sb-admin-2.css';
 import BlockPage from './frontend/blocks/BlockPage';
+import JudgePage from './frontend/judges/judgePage'; 
+
+import './Bootstrap/css/sb-admin-2.css';
 import AssetPage from './frontend/assets/AssetsPage';
 
 function AppContent() {
@@ -142,6 +144,7 @@ function AppContent() {
             <Route path="/lawyer" element={isAuthenticated ? <LawyerPage /> : <Navigate to="/login" replace />} />
             <Route path="/emergencyContact" element={isAuthenticated ? <EmergencyContactPage /> : <Navigate to="/login" replace />} />
             <Route path="/budget" element={isAuthenticated ? <BudgetPage /> : <Navigate to="/login" replace />} />
+            <Route path="/judges" element={isAuthenticated ? <JudgePage /> : <Navigate to="/login" replace />} /> 
             <Route path="/assets" element={isAuthenticated ? <AssetPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>

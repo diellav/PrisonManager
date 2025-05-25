@@ -5,7 +5,6 @@ const port = 5000;
 
 const { verifyToken } = require('./backend/authMiddleware');
 
-
 app.use(cors({
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -17,7 +16,7 @@ const authRoutes = require('./backend/routes/authRoute');
 app.use("/api/auth", authRoutes);
 
 const profileRoute = require('./backend/routes/profileRoute');
-app.use("/api/profile",verifyToken, profileRoute);
+app.use("/api/profile", verifyToken, profileRoute);
 
 const roleRoutes = require("./backend/routes/roleRoute");
 app.use("/api/roles", verifyToken, roleRoutes);
@@ -42,6 +41,10 @@ app.use("/api/blocks",verifyToken, blockRoutes);
 
 const assetsRoutes = require("./backend/routes/assetsRoute");
 app.use("/api/assets", verifyToken, assetsRoutes);
+
+// ✅ Kjo është shtesa për gjyqtarët
+const judgeRoutes = require("./backend/routes/judgeRoute");
+app.use("/api/judges", verifyToken, judgeRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
