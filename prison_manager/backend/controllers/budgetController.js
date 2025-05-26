@@ -22,6 +22,9 @@ const getBudget = async (req, res) => {
 const addBudget = async (req, res) => {
   try {
     const { year_, allocated_funds, used_funds, last_updated ,description_} = req.body;
+     if (used_funds > allocated_funds) {
+      return res.status(400).send("Used funds cannot be greater than allocated funds.");
+    }
     const remaining_funds = allocated_funds - used_funds;
     await budgetModel.createBudget(year_, allocated_funds, used_funds, remaining_funds, last_updated,description_);
     res.status(201).send("Budget created");
@@ -33,6 +36,9 @@ const addBudget = async (req, res) => {
 const updateBudget = async (req, res) => {
   try {
     const { year_, allocated_funds, used_funds, last_updated, description_ } = req.body;
+    if (used_funds > allocated_funds) {
+      return res.status(400).send("Used funds cannot be greater than allocated funds.");
+    }
     const remaining_funds = allocated_funds - used_funds;
     await budgetModel.updateBudget(req.params.id, year_, allocated_funds, used_funds, remaining_funds, last_updated,description_);
     res.send("Budget updated");

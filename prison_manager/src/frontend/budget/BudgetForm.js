@@ -37,6 +37,11 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+      if (parseFloat(form.used_funds) > parseFloat(form.allocated_funds)) {
+        setError("Used funds cannot be greater than allocated funds.");
+        return;
+      }
+
     const remaining_funds =
       parseFloat(form.allocated_funds) - parseFloat(form.used_funds);
 
