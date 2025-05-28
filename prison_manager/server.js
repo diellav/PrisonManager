@@ -51,6 +51,9 @@ app.use("/api/operational_expenses", verifyToken, operationalExpenses);
 const staffSalary = require("./backend/routes/staffSalaryRoute");
 app.use("/api/staff_salaries", verifyToken, staffSalary);
 
+const prisonersRoutes = require("./backend/routes/prisonersRoute");
+app.use("/api/prisoners", verifyToken, prisonersRoutes);
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

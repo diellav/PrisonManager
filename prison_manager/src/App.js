@@ -25,6 +25,7 @@ import SalaryPage from './frontend/staff_salary/StaffSalaryPage';
 
 import './Bootstrap/css/sb-admin-2.css';
 import AssetPage from './frontend/assets/AssetsPage';
+import PrisonersPage from './frontend/prisoners/prisonersPage';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -150,6 +151,7 @@ function AppContent() {
             <Route path="/assets" element={isAuthenticated ? <AssetPage /> : <Navigate to="/login" replace />} />
             <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
+            <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>
