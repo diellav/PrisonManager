@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axiosInstance from './axios';
 import { jwtDecode } from 'jwt-decode';
+import { Link } from 'react-router-dom';
 
 function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -71,7 +72,7 @@ function LoginPage({ onLogin }) {
                       </form>
                       <hr />
                       <div className="text-center">
-                        <a className="small" href="#">Forgot Password?</a>
+                        <Link className="small" to="/forgot-password">Forgot Password?</Link>
                       </div>
                       <div className="text-center">
                         <a className="small" href="#">Create an Account!</a>

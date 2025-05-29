@@ -10,7 +10,12 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("Hello from backend");
+});
 
 const authRoutes = require('./backend/routes/authRoute');
 app.use("/api/auth", authRoutes);
@@ -37,7 +42,7 @@ const budgetRoutes = require("./backend/routes/budgetRoute");
 app.use("/api/budgets", verifyToken, budgetRoutes);
 
 const blockRoutes = require("./backend/routes/blockRoute");
-app.use("/api/blocks",verifyToken, blockRoutes);
+app.use("/api/blocks", verifyToken, blockRoutes);
 
 const assetsRoutes = require("./backend/routes/assetsRoute");
 app.use("/api/assets", verifyToken, assetsRoutes);

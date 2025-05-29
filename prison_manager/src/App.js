@@ -22,10 +22,12 @@ import BlockPage from './frontend/blocks/BlockPage';
 import JudgePage from './frontend/judges/judgePage'; 
 import OperationalExpensesPage from './frontend/operational_expenses/OperationalExpensePage';
 import SalaryPage from './frontend/staff_salary/StaffSalaryPage';
-
-import './Bootstrap/css/sb-admin-2.css';
 import AssetPage from './frontend/assets/AssetsPage';
 import PrisonersPage from './frontend/prisoners/prisonersPage';
+import ResetPasswordPage from './frontend/ResetPasswordPage';
+import ForgotPasswordPage from './frontend/ForgotPasswordPage';
+
+import './Bootstrap/css/sb-admin-2.css';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -46,6 +48,7 @@ function AppContent() {
   useEffect(() => {
     const verifyToken = async () => {
       const token = localStorage.getItem('token');
+      const publicPaths = ['/login', '/forgot-password'];
 
       if (token) {
         try {
@@ -69,14 +72,14 @@ function AppContent() {
           localStorage.removeItem('permissions');
           setIsAuthenticated(false);
           setUser(null);
-          if (location.pathname !== '/login') {
+          if (!publicPaths.includes(location.pathname) && !location.pathname.startsWith('/reset-password')) {
             navigate('/login', { replace: true });
           }
         }
       } else {
         setIsAuthenticated(false);
         setUser(null);
-        if (location.pathname !== '/login') {
+        if (!publicPaths.includes(location.pathname) && !location.pathname.startsWith('/reset-password')) {
           navigate('/login', { replace: true });
         }
       }
@@ -152,6 +155,10 @@ function AppContent() {
             <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
+
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>

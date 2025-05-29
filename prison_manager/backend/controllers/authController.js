@@ -3,6 +3,10 @@ const jwt = require('jsonwebtoken');
 const { pool, poolConnect } = require('../database');
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
+const { v4: uuidv4 } = require('uuid');
+const sql = require('mssql');
+const sendResetEmail = require('../utils/emailSender');
+
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
@@ -41,7 +45,7 @@ const loginUser = async (req, res) => {
         userID: user.userID,
         username: user.username,
         roleID: user.roleID,
-        permissions, 
+        permissions,
         photo: user.photo,
       },
       JWT_SECRET,
@@ -53,11 +57,9 @@ const loginUser = async (req, res) => {
       permissions,
     });
   } catch (error) {
-    console.error('Login error:', error);
     return res.status(500).json({ message: 'Internal server error.' });
   }
 };
-
 
 const validateToken = (req, res) => {
   const authHeader = req.headers['authorization'];
@@ -99,7 +101,7 @@ const getSidebarMenu = async (req, res) => {
 
     const menuMap = {};
     result.recordset.forEach((perm) => {
-      const group = perm.group_ || 'Other'; 
+      const group = perm.group_ || 'Other';
       if (!menuMap[group]) {
         menuMap[group] = [];
       }
@@ -114,12 +116,78 @@ const getSidebarMenu = async (req, res) => {
     }));
     return res.json(menuSections);
   } catch (err) {
-    console.error('Sidebar error:', err);
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
+
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('email', sql.VarChar, email)
+      .query('SELECT userID FROM users WHERE email = @email');
+
+    const user = result.recordset[0];
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const token = uuidv4();
+    const expires = new Date(Date.now() + 3600000);
+
+    await pool.request()
+      .input('userID', sql.Int, user.userID)
+      .input('token', sql.VarChar, token)
+      .input('expires', sql.DateTime, expires)
+      .query('INSERT INTO PasswordResetTokens (userID, token, expires) VALUES (@userID, @token, @expires)');
+
+    const resetLink = `http://localhost:3000/reset-password/${token}`;
+
+    await sendResetEmail(email, resetLink);
+
+    res.json({ message: 'Reset link sent' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    await poolConnect;
+
+    const tokenResult = await pool.request()
+      .input('token', sql.VarChar, token)
+      .query('SELECT * FROM PasswordResetTokens WHERE token = @token');
+
+    const tokenRecord = tokenResult.recordset[0];
+    if (!tokenRecord || new Date(tokenRecord.expires) < new Date()) {
+      return res.status(400).json({ message: 'Token invalid or expired' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.request()
+      .input('password_', sql.VarChar, hashedPassword)
+      .input('userID', sql.Int, tokenRecord.userID)
+      .query('UPDATE users SET password_ = @password_ WHERE userID = @userID');
+
+    await pool.request()
+      .input('token', sql.VarChar, token)
+      .query('DELETE FROM PasswordResetTokens WHERE token = @token');
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   loginUser,
   validateToken,
   getSidebarMenu,
+  forgotPassword,
+  resetPassword
 };
