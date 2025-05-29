@@ -50,13 +50,14 @@ const fetchRoles = async () => {
             <div className="card">
               <div className="card-body">
                 <div className="d-flex flex-column align-items-center text-center">
-                  <img
-                    src={user.photo}
+                <img
+                    src={user.photo ? `http://localhost:5000/uploads/${user.photo}` : "/default-avatar.png"}
                     alt="Profile"
                     className="rounded-circle"
                     width="100"
                     height="100"
                   />
+
                   <div className="mt-3">
                     <h4>{user.first_name} {user.last_name}</h4>
                     <p className="text-secondary mb-1">{roleName}</p>
