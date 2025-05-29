@@ -79,6 +79,10 @@ async function updatePrisoner(id, data) {
     updates.push(`${key} = @${key}`);
   }
 
+  if (updates.length === 0) {
+    throw new Error("No fields to update");
+  }
+
   const query = `UPDATE prisoners SET ${updates.join(", ")} WHERE prisonerID = @id`;
   await request.query(query);
 }

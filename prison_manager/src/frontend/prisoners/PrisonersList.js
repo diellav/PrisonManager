@@ -205,10 +205,11 @@ const PrisonersList = ({ prisoners, onEdit, onDelete, goToCreate }) => {
                       <td>
                         {p.photo ? (
                           <img
-                            src={p.photo}
-                            alt={`${p.first_name} ${p.last_name}`}
-                            style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
-                          />
+                          src={`http://localhost:5000/uploads/${p.photo}`}
+                          alt="Prisoner"
+                          style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
+                        />
+                        
                         ) : (
                           "-"
                         )}
@@ -258,7 +259,6 @@ const PrisonersList = ({ prisoners, onEdit, onDelete, goToCreate }) => {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="d-flex justify-content-between align-items-center mt-3">
           <div>
             Showing {indexOfFirst + 1} to{" "}
@@ -310,8 +310,14 @@ const PrisonersList = ({ prisoners, onEdit, onDelete, goToCreate }) => {
 
         
         {showConfirm && (
-          <div className="modal show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-            <div className="modal-dialog modal-dialog-centered" role="document">
+        <>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
+          <div
+            className="modal show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}
+          >
+            <div className="modal-dialog">
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Confirm Deletion</h5>
@@ -319,34 +325,29 @@ const PrisonersList = ({ prisoners, onEdit, onDelete, goToCreate }) => {
                     type="button"
                     className="btn-close"
                     onClick={() => setShowConfirm(false)}
-                    aria-label="Close"
-                  />
+                  ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Are you sure you want to delete prisoner ID {deleteId}?</p>
+                <p>Are you sure you want to delete prisoner ID {deleteId}?</p>
                 </div>
                 <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowConfirm(false)}
-                  >
+                  <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
                     Cancel
                   </button>
                   <button
-                    type="button"
                     className="btn btn-danger"
                     onClick={() => {
                       onDelete(deleteId);
                       setShowConfirm(false);
                     }}
                   >
-                    Delete
+                    Yes, I'm sure
                   </button>
                 </div>
               </div>
             </div>
           </div>
+        </>
         )}
       </div>
     </div>
