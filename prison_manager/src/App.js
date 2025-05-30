@@ -29,12 +29,8 @@ import ResetPasswordPage from './frontend/ResetPasswordPage';
 import ForgotPasswordPage from './frontend/ForgotPasswordPage';
 import StaffSchedulePage from './frontend/schedule/SchedulePage';
 import UserScheduleList from './frontend/UserScheduleList';
-<<<<<<< HEAD
-import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
-=======
 import CasesPage from './frontend/cases/casePage'; 
-
->>>>>>> 27a85e249f757adf6ecf3ae89c6f2653c2529a48
+import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
 import './Bootstrap/css/sb-admin-2.css';
 
 function AppContent() {
@@ -158,12 +154,9 @@ function AppContent() {
             <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_schedule" element={isAuthenticated ? <StaffSchedulePage /> : <Navigate to="/login" replace />} />
-<<<<<<< HEAD
             <Route path="/transport_staff" element={isAuthenticated ? <TransportStaffPage /> : <Navigate to="/login" replace />} />
-=======
             <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} />
             <Route path="/cases" element={isAuthenticated ? <CasesPage /> : <Navigate to="/login" replace />} />
->>>>>>> 27a85e249f757adf6ecf3ae89c6f2653c2529a48
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
