@@ -32,7 +32,8 @@ const addUser = async (req, res) => {
       email,
       username,
       password_,
-      roleID
+      roleID,
+       transport_role 
     } = req.body;
 
     const photo = req.file ? req.file.filename : null;
@@ -48,7 +49,8 @@ const addUser = async (req, res) => {
       username,
       password_,
       photo,
-      roleID
+      roleID,
+       transport_role 
     });
 
     res.status(201).json({ message: "User created", userID: result.userID });
@@ -56,11 +58,35 @@ const addUser = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
-
 const updateUser = async (req, res) => {
   try {
     const userID = req.params.id;
-    const updateData = { ...req.body };
+    const {
+      first_name,
+      last_name,
+      date_of_birth,
+      gender,
+      phone,
+      address_,
+      email,
+      username,
+      photo,
+      roleID,
+      transport_role
+    } = req.body;
+
+    const updateData = {
+      first_name,
+      last_name,
+      date_of_birth,
+      gender,
+      phone,
+      address_,
+      email,
+      username,
+      roleID,
+      transport_role
+    };
 
     if (req.file) {
       updateData.photo = req.file.filename;
@@ -72,6 +98,7 @@ const updateUser = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {

@@ -11,6 +11,8 @@ const UserForm = ({
 }) => {
   const [roles, setRoles] = useState([]);
   const [error, setError] = useState("");
+  const [selectedRoleName, setSelectedRoleName] = useState("");
+  const [isTransportStaff, setIsTransportStaff] = useState(false);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -24,6 +26,13 @@ const UserForm = ({
     };
     fetchRoles();
   }, []);
+
+  useEffect(() => {
+    const selectedRole = roles.find((r) => r.roleID === Number(form.roleID));
+    const name_ = selectedRole?.name_?.toLowerCase() || "";
+    setSelectedRoleName(name_);
+    setIsTransportStaff(name_.includes("transport"));
+  }, [form.roleID, roles]);
 
   const onFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -55,7 +64,6 @@ const UserForm = ({
               { label: "Address", name: "address_" },
               { label: "Email", name: "email", type: "email" },
               { label: "Username", name: "username" },
-              { label: "Password", name: "password_", type: "password" },
             ].map(({ label, name, type = "text" }) => (
               <div key={name} className="col-md-6 mb-3">
                 <label>{label}</label>
@@ -65,10 +73,24 @@ const UserForm = ({
                   name={name}
                   value={form[name] || ""}
                   onChange={handleInputChange}
-                  required={name !== "password_" || !isEditing}
+                  required
                 />
               </div>
             ))}
+
+            {!isEditing && (
+              <div className="col-md-6 mb-3">
+                <label>Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="password_"
+                  value={form.password_ || ""}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
 
             <div className="col-md-6 mb-3">
               <label>Photo</label>
@@ -113,6 +135,20 @@ const UserForm = ({
                 ))}
               </select>
             </div>
+
+            {isTransportStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Transport Role</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="transport_role"
+                  value={form.transport_role}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
           </div>
 
           <div className="d-flex justify-content-end">

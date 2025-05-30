@@ -75,6 +75,13 @@ const courtHearingRoute = require("./backend/routes/court_hearingRoute");
 app.use("/api/court_hearings",verifyToken, courtHearingRoute);
 
 
+const transportStaffRoute = require("./backend/routes/transport_staffRoute");
+app.use("/api/transport_staff", verifyToken, transportStaffRoute);
+
+
+const prisonerMovementsRoutes = require("./backend/routes/prisonerMovementsRoute");
+app.use("/api/prisoner_movements", verifyToken, prisonerMovementsRoutes);
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
