@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
 
-const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClose }) => {
+const UserForm = ({
+  form,
+  isEditing,
+  handleInputChange,
+  handleSubmit,
+  handleClose,
+  setFile,
+}) => {
   const [roles, setRoles] = useState([]);
   const [error, setError] = useState("");
 
@@ -12,11 +19,15 @@ const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClos
         setRoles(response.data);
       } catch (err) {
         console.error("Error fetching roles:", err);
-        setError("Failed to load roles");
+        setError("Failed to load roles.");
       }
     };
     fetchRoles();
   }, []);
+
+  const onFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
   return (
     <div className="card shadow mb-4">
@@ -27,14 +38,17 @@ const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClos
       </div>
       <div className="card-body">
         {error && <div className="alert alert-danger">{error}</div>}
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit();
           }}
+          encType="multipart/form-data"
         >
           <div className="row">
-            {[{ label: "First Name", name: "first_name" },
+            {[
+              { label: "First Name", name: "first_name" },
               { label: "Last Name", name: "last_name" },
               { label: "Date of Birth", name: "date_of_birth", type: "date" },
               { label: "Phone", name: "phone" },
@@ -42,21 +56,30 @@ const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClos
               { label: "Email", name: "email", type: "email" },
               { label: "Username", name: "username" },
               { label: "Password", name: "password_", type: "password" },
-              { label: "Photo URL", name: "photo" }]
-              .map(({ label, name, type = "text" }) => (
-                <div key={name} className="col-md-6 mb-3">
-                  <label>{label}</label>
-                  <input
-                    type={type}
-                    className="form-control"
-                    name={name}
-                    value={form[name] || ""}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              ))
-            }
+            ].map(({ label, name, type = "text" }) => (
+              <div key={name} className="col-md-6 mb-3">
+                <label>{label}</label>
+                <input
+                  type={type}
+                  className="form-control"
+                  name={name}
+                  value={form[name] || ""}
+                  onChange={handleInputChange}
+                  required={name !== "password_" || !isEditing}
+                />
+              </div>
+            ))}
+
+            <div className="col-md-6 mb-3">
+              <label>Photo</label>
+              <input
+                type="file"
+                className="form-control"
+                name="photo"
+                onChange={onFileChange}
+                accept="image/*"
+              />
+            </div>
 
             <div className="col-md-6 mb-3">
               <label>Gender</label>

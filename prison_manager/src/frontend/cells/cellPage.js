@@ -8,10 +8,19 @@ const hasPermission = (permName) => {
   return perms.includes(permName.toLowerCase());
 };
 
+const initialFormState = {
+  id: null,
+  block_id: "",
+  cell_number: "",
+  capacity: "",
+  actual_capacity: "",
+  category: ""
+};
+
 const CellPage = () => {
   const [cells, setCells] = useState([]);
   const [blocks, setBlocks] = useState([]);
-  const [form, setForm] = useState(null);
+  const [form, setForm] = useState(initialFormState);
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -62,7 +71,19 @@ const CellPage = () => {
       return showAlert("You don't have permission to edit cells.", "danger");
     }
 
-    setForm(cell);
+    const selectedBlock = blocks.find(
+      (block) => block.block_id === cell.block_id
+    );
+
+    setForm({
+      id: cell.cell_block_ID,
+      block_id: cell.block_id,
+      cell_number: cell.cell_number,
+      capacity: cell.capacity,
+      actual_capacity: cell.actual_capacity,
+      category: selectedBlock ? selectedBlock.category : ""
+    });
+
     setIsEditing(true);
     setShowModal(true);
   };
@@ -86,16 +107,70 @@ const CellPage = () => {
       return showAlert("You don't have permission to create cells.", "danger");
     }
 
-    setForm(null);
+    setForm(initialFormState);
     setIsEditing(false);
     setShowModal(true);
   };
 
   const handleModalClose = () => {
-    setShowModal(false);
-    setForm(null);
+    setForm(initialFormState);
     setIsEditing(false);
+    setShowModal(false);
   };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "block_id") {
+      const selectedBlock = blocks.find(
+        (block) => block.block_id === parseInt(value)
+      );
+      setForm((prevForm) => ({
+        ...prevForm,
+        block_id: value,
+        category: selectedBlock ? selectedBlock.category : ""
+      }));
+    } else {
+      setForm((prevForm) => ({
+        ...prevForm,
+        [name]: value
+      }));
+    }
+  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (isEditing && !hasPermission("cells.edit")) {
+    return showAlert("You don't have permission to edit cells.", "danger");
+  }
+  if (!isEditing && !hasPermission("cells.create")) {
+    return showAlert("You don't have permission to create cells.", "danger");
+  }
+
+  try {
+    if (isEditing) {
+      const updatedForm = {
+        ...form,
+        block_id: parseInt(form.block_id),
+        capacity: parseInt(form.capacity),
+        actual_capacity: parseInt(form.actual_capacity),
+      };
+
+      await axiosInstance.put(`/cells/${parseInt(form.id)}`, updatedForm);
+    } else {
+      await axiosInstance.post("/cells", form);
+    }
+
+    setForm(initialFormState);
+    setIsEditing(false);
+    setShowModal(false);
+    fetchCells();
+  } catch (err) {
+    showAlert("Failed to save cell. Please try again.", "danger");
+    console.error("Error saving cell:", err.response?.data || err.message);
+  }
+};
+
 
   return (
     <div className="container mt-4">
@@ -111,14 +186,11 @@ const CellPage = () => {
         <p>Loading...</p>
       ) : showModal ? (
         <CellForm
-          editingCell={isEditing ? form : null}
+          form={form}
           blocks={blocks}
-          onSuccess={() => {
-            setShowModal(false);
-            fetchCells();
-            setIsEditing(false);
-            setForm(null);
-          }}
+          isEditing={isEditing}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
           onCancel={handleModalClose}
         />
       ) : hasPermission("cells.read") ? (

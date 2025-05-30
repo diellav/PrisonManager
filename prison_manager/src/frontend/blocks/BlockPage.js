@@ -41,8 +41,8 @@ const BlockPage = () => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+ 
 
     if (isEditing && !hasPermission("blocks.edit")) {
       return showAlert("You don't have permission to edit blocks.", "danger");
@@ -130,25 +130,27 @@ const BlockPage = () => {
         </div>
       )}
 
-      {(hasPermission("blocks.create") || hasPermission("blocks.edit")) && (
-        <BlockForm
-          showModal={showForm}
-          handleClose={() => setShowForm(false)}
-          form={form}
-          handleInputChange={handleInputChange}
-          isEditing={isEditing}
-          handleSubmit={handleSubmit}
-        />
-      )}
-
-      {hasPermission("blocks.read") && (
-        <BlocksList
-          blocks={blocks}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          goToCreate={handleGoToCreate}
-        />
-      )}
+   {showForm ? (
+  (hasPermission("blocks.create") || hasPermission("blocks.edit")) && (
+    <BlockForm
+      showModal={showForm}
+      handleClose={() => setShowForm(false)}
+      form={form}
+      handleInputChange={handleInputChange}
+      isEditing={isEditing}
+      handleSubmit={handleSubmit}
+    />
+  )
+) : hasPermission("blocks.read") ? (
+  <BlocksList
+    blocks={blocks}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+    goToCreate={handleGoToCreate}
+  />
+) : (
+  <p>You do not have permission to view blocks.</p>
+)}
     </div>
   );
 };

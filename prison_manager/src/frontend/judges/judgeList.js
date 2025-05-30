@@ -183,7 +183,7 @@ const JudgesList = ({ judges, onEdit, onDelete, goToCreate }) => {
         </div>
       </div>
 
-      {/* Confirm delete modal */}
+     
       {showConfirm && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>

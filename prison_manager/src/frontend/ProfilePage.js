@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from './axios';
-
+import UserScheduleList from "./UserScheduleList";
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [roles, setRoles] = useState([]);
@@ -37,6 +37,7 @@ const fetchRoles = async () => {
   if (!user) return <div>Loading...</div>;
 
   const roleName = getRoleName(user.roleID);
+  const userID = user.userID; 
 
   return (
     <div className="container">
@@ -50,13 +51,14 @@ const fetchRoles = async () => {
             <div className="card">
               <div className="card-body">
                 <div className="d-flex flex-column align-items-center text-center">
-                  <img
-                    src={user.photo}
+                <img
+                    src={user.photo ? `http://localhost:5000/uploads/${user.photo}` : "/default-avatar.png"}
                     alt="Profile"
                     className="rounded-circle"
                     width="100"
                     height="100"
                   />
+
                   <div className="mt-3">
                     <h4>{user.first_name} {user.last_name}</h4>
                     <p className="text-secondary mb-1">{roleName}</p>
@@ -133,8 +135,11 @@ const fetchRoles = async () => {
           </div>
         </div>
       </div>
-      <br></br>
-          <p> If you notice any incorrect data, please contact support.</p>
+      <br></br><br/>
+    <UserScheduleList userID={userID} />
+
+    <br/><br/>
+     <p> If you notice any incorrect data, please contact support.</p>
             <p>Email: prisonmanager@support.com</p>
             <p>Message at: +1 (123) 6725748</p>
     </div>
