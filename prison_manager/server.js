@@ -67,6 +67,9 @@ app.use("/api/staff_schedule", verifyToken, scheduleRoute);
 const paroleRoutes = require("./backend/routes/paroleRoute");
 app.use("/api/paroles", verifyToken, paroleRoutes);
 
+const prisonerMovementsRoutes = require("./backend/routes/prisonerMovementsRoute");
+app.use("/api/prisoner_movements", verifyToken, prisonerMovementsRoutes);
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
