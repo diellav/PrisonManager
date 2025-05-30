@@ -67,6 +67,11 @@ app.use("/api/staff_schedule", verifyToken, scheduleRoute);
 const paroleRoutes = require("./backend/routes/paroleRoute");
 app.use("/api/paroles", verifyToken, paroleRoutes);
 
+
+const casesRoutes = require("./backend/routes/casesRoute"); 
+app.use("/api/cases", verifyToken, casesRoutes); 
+
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
