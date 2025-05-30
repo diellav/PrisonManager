@@ -24,6 +24,7 @@ import OperationalExpensesPage from './frontend/operational_expenses/Operational
 import SalaryPage from './frontend/staff_salary/StaffSalaryPage';
 import AssetPage from './frontend/assets/AssetsPage';
 import PrisonersPage from './frontend/prisoners/prisonersPage';
+import ParolePage from './frontend/parole/parolePage'; 
 import ResetPasswordPage from './frontend/ResetPasswordPage';
 import ForgotPasswordPage from './frontend/ForgotPasswordPage';
 
@@ -88,7 +89,6 @@ function AppContent() {
     };
 
     verifyToken();
-
     const interval = setInterval(verifyToken, 30000);
     return () => clearInterval(interval);
   }, [location.pathname, navigate]);
@@ -150,15 +150,14 @@ function AppContent() {
             <Route path="/lawyer" element={isAuthenticated ? <LawyerPage /> : <Navigate to="/login" replace />} />
             <Route path="/emergencyContact" element={isAuthenticated ? <EmergencyContactPage /> : <Navigate to="/login" replace />} />
             <Route path="/budget" element={isAuthenticated ? <BudgetPage /> : <Navigate to="/login" replace />} />
-            <Route path="/judges" element={isAuthenticated ? <JudgePage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/judges" element={isAuthenticated ? <JudgePage /> : <Navigate to="/login" replace />} />
             <Route path="/assets" element={isAuthenticated ? <AssetPage /> : <Navigate to="/login" replace />} />
             <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
-
+            <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} /> 
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>

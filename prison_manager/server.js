@@ -15,7 +15,6 @@ app.use(cors({
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "./backend/uploads")));
 
-
 app.get("/", (req, res) => {
   res.send("Hello from backend");
 });
@@ -61,6 +60,9 @@ app.use("/api/staff_salaries", verifyToken, staffSalary);
 
 const prisonersRoutes = require("./backend/routes/prisonersRoute");
 app.use("/api/prisoners", verifyToken, prisonersRoutes);
+
+const paroleRoutes = require("./backend/routes/paroleRoute");
+app.use("/api/paroles", verifyToken, paroleRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
