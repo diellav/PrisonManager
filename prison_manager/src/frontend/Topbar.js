@@ -35,11 +35,12 @@ const Topbar = ({ username, photo, onLogout }) => {
           >
             <span className="mr-2 d-none d-lg-inline text-gray-600 small">{username}</span>
             <img
-              className="img-profile rounded-circle"
-              src={photo}
-              alt="profile"
-              style={{ width: '32px', height: '32px' }}
-            />
+                className="img-profile rounded-circle"
+                src={photo ? `http://localhost:5000/uploads/${photo}` : "/default-avatar.png"}
+                alt="profile"
+                style={{ width: '32px', height: '32px' }}
+              />
+
           </div>
 
           {isOpen && (

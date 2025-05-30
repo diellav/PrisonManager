@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const app = express();
 const port = 5000;
 
@@ -12,6 +13,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "./backend/uploads")));
+
 
 app.get("/", (req, res) => {
   res.send("Hello from backend");
