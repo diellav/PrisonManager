@@ -29,6 +29,8 @@ import ResetPasswordPage from './frontend/ResetPasswordPage';
 import ForgotPasswordPage from './frontend/ForgotPasswordPage';
 import StaffSchedulePage from './frontend/schedule/SchedulePage';
 import UserScheduleList from './frontend/UserScheduleList';
+import CasesPage from './frontend/cases/casePage'; 
+import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
 import './Bootstrap/css/sb-admin-2.css';
 import PrisonerMovementsPage from './frontend/prisonerMovements/prisonerMovementsPage';
 
@@ -138,12 +140,7 @@ function AppContent() {
                 )
               }
             />
-            <Route
-              path="/"
-              element={
-                isAuthenticated ? <Navigate to="/profile" replace /> : <Navigate to="/login" replace />
-              }
-            />
+            <Route path="/" element={isAuthenticated ? <Navigate to="/profile" replace /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />} />
             <Route path="/users" element={isAuthenticated ? <UserPage /> : <Navigate to="/login" replace />} />
             <Route path="/roles" element={isAuthenticated ? <RolePage /> : <Navigate to="/login" replace />} />
@@ -157,8 +154,11 @@ function AppContent() {
             <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
-            <Route path="/staff_schedule" element={isAuthenticated ? <StaffSchedulePage /> : <Navigate to="/login" replace />} />            
-            <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/staff_schedule" element={isAuthenticated ? <StaffSchedulePage /> : <Navigate to="/login" replace />} />
+            
+            <Route path="/transport_staff" element={isAuthenticated ? <TransportStaffPage /> : <Navigate to="/login" replace />} />
+            <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} />
+            <Route path="/cases" element={isAuthenticated ? <CasesPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoner_movements" element={isAuthenticated ? <PrisonerMovementsPage /> : <Navigate to="/login" replace />} /> 
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />

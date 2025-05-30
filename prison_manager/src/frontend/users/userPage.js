@@ -5,6 +5,7 @@ import UsersList from "./UsersList";
 
 const UserPage = () => {
   const [users, setUsers] = useState([]);
+  const [transportStaff, setTransportStaff] = useState([]);
   const [form, setForm] = useState(initialFormState());
   const [file, setFile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -24,12 +25,14 @@ const UserPage = () => {
       password_: "",
       photo: "",
       roleID: "",
+      transport_role: "",
       id: null,
     };
   }
 
   useEffect(() => {
     fetchUsers();
+    fetchTransportStaff();
     fetchRoles();
   }, []);
 
@@ -42,6 +45,15 @@ const UserPage = () => {
     }
   };
 
+  const fetchTransportStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/transport_staff");
+      setTransportStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching transport staff:", err.response?.data || err.message);
+    }
+  };
+
   const fetchRoles = async () => {
     try {
       const res = await axiosInstance.get("/roles");
@@ -50,6 +62,14 @@ const UserPage = () => {
       console.error("Error fetching roles:", err.response?.data || err.message);
     }
   };
+
+  const usersWithTransportRole = users.map((user) => {
+    const ts = transportStaff.find((t) => t.userID === user.userID);
+    return {
+      ...user,
+      transport_role: ts ? ts.transport_role : "",
+    };
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -65,8 +85,8 @@ const UserPage = () => {
 
   const handleSubmit = async () => {
     try {
+      console.log("Form data before sending:", form);
       const formData = new FormData();
-
       for (const key in form) {
         if (key !== "id" && form[key] !== null && form[key] !== undefined) {
           if (key === "password_" && isEditing && !form[key]) continue;
@@ -82,6 +102,20 @@ const UserPage = () => {
         formData.append("photo", file);
       }
 
+     if (!isEditing && form.roleID) {
+  const selectedRole = roles.find((r) => r.roleID === Number(form.roleID));
+  if (selectedRole && selectedRole.name_.toLowerCase().includes("transport")) {
+    let cleanTransportRole = form.transport_role;
+    if (typeof cleanTransportRole === "string") {
+      const parts = cleanTransportRole.split(",").map(p => p.trim());
+      cleanTransportRole = [...new Set(parts)].join(",");
+    }
+
+    formData.set("transport_role", cleanTransportRole);
+  }
+}
+
+
       if (isEditing) {
         await axiosInstance.put(`/users/${form.id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
@@ -94,6 +128,7 @@ const UserPage = () => {
 
       resetForm();
       fetchUsers();
+      fetchTransportStaff(); 
     } catch (err) {
       console.error("Error saving user:", err.response?.data || err.message);
     }
@@ -109,9 +144,9 @@ const UserPage = () => {
       address_: user.address_,
       email: user.email,
       username: user.username,
-      password_: "",
       photo: user.photo,
       roleID: user.roleID,
+      transport_role: user.transport_role || "",
       id: user.userID,
     });
     setFile(null);
@@ -124,6 +159,7 @@ const UserPage = () => {
       try {
         await axiosInstance.delete(`/users/${id}`);
         fetchUsers();
+        fetchTransportStaff();
       } catch (err) {
         console.error("Error deleting user:", err.response?.data || err.message);
       }
@@ -155,10 +191,11 @@ const UserPage = () => {
           handleSubmit={handleSubmit}
           handleClose={handleModalClose}
           setFile={setFile}
+          roles={roles}
         />
       ) : (
         <UsersList
-          users={users}
+          users={usersWithTransportRole}
           onEdit={handleEdit}
           onDelete={handleDelete}
           goToCreate={handleModalOpen}

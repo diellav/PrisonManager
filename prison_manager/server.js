@@ -67,6 +67,15 @@ app.use("/api/staff_schedule", verifyToken, scheduleRoute);
 const paroleRoutes = require("./backend/routes/paroleRoute");
 app.use("/api/paroles", verifyToken, paroleRoutes);
 
+
+const casesRoutes = require("./backend/routes/casesRoute"); 
+app.use("/api/cases", verifyToken, casesRoutes); 
+
+
+const transportStaffRoute = require("./backend/routes/transport_staffRoute");
+app.use("/api/transport_staff", verifyToken, transportStaffRoute);
+
+
 const prisonerMovementsRoutes = require("./backend/routes/prisonerMovementsRoute");
 app.use("/api/prisoner_movements", verifyToken, prisonerMovementsRoutes);
 
