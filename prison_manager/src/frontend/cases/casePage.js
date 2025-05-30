@@ -130,8 +130,8 @@ const CasePage = () => {
       ) : (
         <CaseList
           cases={cases}
-          prisoners={prisoners}  // kalojmë këto props
-          lawyers={lawyers}      // kalojmë këto props
+          prisoners={prisoners} 
+          lawyers={lawyers}     
           onEdit={handleEdit}
           onDelete={handleDelete}
           goToCreate={handleCreate}

@@ -30,6 +30,7 @@ import ForgotPasswordPage from './frontend/ForgotPasswordPage';
 import StaffSchedulePage from './frontend/schedule/SchedulePage';
 import UserScheduleList from './frontend/UserScheduleList';
 import CasesPage from './frontend/cases/casePage'; 
+import CourtHearingPage from './frontend/court_hearings/court_hearingPage';
 
 import './Bootstrap/css/sb-admin-2.css';
 
@@ -156,6 +157,7 @@ function AppContent() {
             <Route path="/staff_schedule" element={isAuthenticated ? <StaffSchedulePage /> : <Navigate to="/login" replace />} />
             <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} />
             <Route path="/cases" element={isAuthenticated ? <CasesPage /> : <Navigate to="/login" replace />} />
+            <Route path="/court_hearings" element={isAuthenticated ? <CourtHearingPage /> : <Navigate to="/login" replace />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />

@@ -71,6 +71,9 @@ app.use("/api/paroles", verifyToken, paroleRoutes);
 const casesRoutes = require("./backend/routes/casesRoute"); 
 app.use("/api/cases", verifyToken, casesRoutes); 
 
+const courtHearingRoute = require("./backend/routes/court_hearingRoute");
+app.use("/api/court_hearings",verifyToken, courtHearingRoute);
+
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

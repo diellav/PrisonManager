@@ -10,6 +10,7 @@ const hasPermission = (permName) => {
 
 const ParolePage = () => {
   const [paroles, setParoles] = useState([]);
+  const [prisoners, setPrisoners] = useState([]);  
   const [editingParole, setEditingParole] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [alert, setAlert] = useState({ message: "", type: "" });
@@ -22,18 +23,31 @@ const ParolePage = () => {
     } catch (err) {
       console.error("Error fetching paroles:", err);
       showAlert("Error fetching paroles", "danger");
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchPrisoners = async () => {
+    try {
+      const res = await axiosInstance.get("/prisoners"); 
+      setPrisoners(res.data);
+    } catch (err) {
+      console.error("Error fetching prisoners:", err);
+      showAlert("Error fetching prisoners", "danger");
     }
   };
 
   useEffect(() => {
-    if (hasPermission("paroles.read")) {
-      fetchParoles();
-    } else {
-      showAlert("You don't have permission to view paroles.", "danger");
+    const loadData = async () => {
+      if (!hasPermission("paroles.read")) {
+        showAlert("You don't have permission to view paroles.", "danger");
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      await Promise.all([fetchParoles(), fetchPrisoners()]);
       setLoading(false);
-    }
+    };
+    loadData();
   }, []);
 
   const showAlert = (message, type = "warning") => {
@@ -98,18 +112,18 @@ const ParolePage = () => {
       ) : showForm ? (
         <ParoleForm
           editingParole={editingParole}
+          prisoners={prisoners}         
           onSuccess={handleSuccess}
           onCancel={handleCancel}
         />
       ) : (
-        <>
-          <ParoleList
-            paroles={paroles}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            goToCreate={handleCreate}
-          />
-        </>
+        <ParoleList
+          paroles={paroles}
+          prisoners={prisoners}         
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          goToCreate={handleCreate}
+        />
       )}
     </div>
   );
