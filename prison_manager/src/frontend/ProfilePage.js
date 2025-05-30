@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from './axios';
-
+import UserScheduleList from "./UserScheduleList";
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [roles, setRoles] = useState([]);
@@ -37,6 +37,7 @@ const fetchRoles = async () => {
   if (!user) return <div>Loading...</div>;
 
   const roleName = getRoleName(user.roleID);
+  const userID = user.userID; 
 
   return (
     <div className="container">
@@ -133,8 +134,11 @@ const fetchRoles = async () => {
           </div>
         </div>
       </div>
-      <br></br>
-          <p> If you notice any incorrect data, please contact support.</p>
+      <br></br><br/>
+    <UserScheduleList userID={userID} />
+
+    <br/><br/>
+     <p> If you notice any incorrect data, please contact support.</p>
             <p>Email: prisonmanager@support.com</p>
             <p>Message at: +1 (123) 6725748</p>
     </div>

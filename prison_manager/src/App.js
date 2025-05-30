@@ -26,7 +26,8 @@ import AssetPage from './frontend/assets/AssetsPage';
 import PrisonersPage from './frontend/prisoners/prisonersPage';
 import ResetPasswordPage from './frontend/ResetPasswordPage';
 import ForgotPasswordPage from './frontend/ForgotPasswordPage';
-
+import StaffSchedulePage from './frontend/schedule/SchedulePage';
+import UserScheduleList from './frontend/UserScheduleList';
 import './Bootstrap/css/sb-admin-2.css';
 
 function AppContent() {
@@ -155,9 +156,10 @@ function AppContent() {
             <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
-
+            <Route path="/staff_schedule" element={isAuthenticated ? <StaffSchedulePage /> : <Navigate to="/login" replace />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
 
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
