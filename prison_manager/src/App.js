@@ -24,11 +24,17 @@ import OperationalExpensesPage from './frontend/operational_expenses/Operational
 import SalaryPage from './frontend/staff_salary/StaffSalaryPage';
 import AssetPage from './frontend/assets/AssetsPage';
 import PrisonersPage from './frontend/prisoners/prisonersPage';
+import ParolePage from './frontend/parole/parolePage'; 
 import ResetPasswordPage from './frontend/ResetPasswordPage';
 import ForgotPasswordPage from './frontend/ForgotPasswordPage';
 import StaffSchedulePage from './frontend/schedule/SchedulePage';
 import UserScheduleList from './frontend/UserScheduleList';
+<<<<<<< HEAD
 import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
+=======
+import CasesPage from './frontend/cases/casePage'; 
+
+>>>>>>> 27a85e249f757adf6ecf3ae89c6f2653c2529a48
 import './Bootstrap/css/sb-admin-2.css';
 
 function AppContent() {
@@ -90,7 +96,6 @@ function AppContent() {
     };
 
     verifyToken();
-
     const interval = setInterval(verifyToken, 30000);
     return () => clearInterval(interval);
   }, [location.pathname, navigate]);
@@ -138,12 +143,7 @@ function AppContent() {
                 )
               }
             />
-            <Route
-              path="/"
-              element={
-                isAuthenticated ? <Navigate to="/profile" replace /> : <Navigate to="/login" replace />
-              }
-            />
+            <Route path="/" element={isAuthenticated ? <Navigate to="/profile" replace /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />} />
             <Route path="/users" element={isAuthenticated ? <UserPage /> : <Navigate to="/login" replace />} />
             <Route path="/roles" element={isAuthenticated ? <RolePage /> : <Navigate to="/login" replace />} />
@@ -152,17 +152,21 @@ function AppContent() {
             <Route path="/lawyer" element={isAuthenticated ? <LawyerPage /> : <Navigate to="/login" replace />} />
             <Route path="/emergencyContact" element={isAuthenticated ? <EmergencyContactPage /> : <Navigate to="/login" replace />} />
             <Route path="/budget" element={isAuthenticated ? <BudgetPage /> : <Navigate to="/login" replace />} />
-            <Route path="/judges" element={isAuthenticated ? <JudgePage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/judges" element={isAuthenticated ? <JudgePage /> : <Navigate to="/login" replace />} />
             <Route path="/assets" element={isAuthenticated ? <AssetPage /> : <Navigate to="/login" replace />} />
             <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
             <Route path="/staff_schedule" element={isAuthenticated ? <StaffSchedulePage /> : <Navigate to="/login" replace />} />
+<<<<<<< HEAD
             <Route path="/transport_staff" element={isAuthenticated ? <TransportStaffPage /> : <Navigate to="/login" replace />} />
+=======
+            <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} />
+            <Route path="/cases" element={isAuthenticated ? <CasesPage /> : <Navigate to="/login" replace />} />
+>>>>>>> 27a85e249f757adf6ecf3ae89c6f2653c2529a48
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
-
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>

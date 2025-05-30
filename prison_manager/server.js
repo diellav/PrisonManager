@@ -15,7 +15,6 @@ app.use(cors({
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "./backend/uploads")));
 
-
 app.get("/", (req, res) => {
   res.send("Hello from backend");
 });
@@ -64,6 +63,14 @@ app.use("/api/prisoners", verifyToken, prisonersRoutes);
 
 const scheduleRoute = require("./backend/routes/scheduleRoute");
 app.use("/api/staff_schedule", verifyToken, scheduleRoute);
+
+const paroleRoutes = require("./backend/routes/paroleRoute");
+app.use("/api/paroles", verifyToken, paroleRoutes);
+
+
+const casesRoutes = require("./backend/routes/casesRoute"); 
+app.use("/api/cases", verifyToken, casesRoutes); 
+
 
 const transportStaffRoute = require("./backend/routes/transport_staffRoute");
 app.use("/api/transport_staff", verifyToken, transportStaffRoute);
