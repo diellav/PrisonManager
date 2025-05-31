@@ -85,6 +85,10 @@ app.use("/api/prisoner_movements", verifyToken, prisonerMovementsRoutes);
 const prisonerWorkRoute = require("./backend/routes/prisonerWorkRoute");
 app.use("/api/prisoner_work", verifyToken, prisonerWorkRoute);
 
+const prisonerCallRoute = require("./backend/routes/prisoner_callRoute");
+app.use("/api/prisoner_calls", verifyToken, prisonerCallRoute);
+
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

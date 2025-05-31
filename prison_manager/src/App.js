@@ -32,6 +32,7 @@ import UserScheduleList from './frontend/UserScheduleList';
 import CasesPage from './frontend/cases/casePage'; 
 import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
 import CourtHearingPage from './frontend/court_hearings/court_hearingPage';
+import PrisonerCallPage from './frontend/prisoner_calls/prisoner_callPage';
 import './Bootstrap/css/sb-admin-2.css';
 import PrisonerMovementsPage from './frontend/prisonerMovements/prisonerMovementsPage';
 import PrisonerWorkPage from './frontend/prisoner_work/PrisonerWorkPage';
@@ -166,6 +167,7 @@ function AppContent() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
+            <Route path="/prisoner_calls" element={isAuthenticated ? <PrisonerCallPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>
