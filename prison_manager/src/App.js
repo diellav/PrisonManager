@@ -35,6 +35,7 @@ import CourtHearingPage from './frontend/court_hearings/court_hearingPage';
 import './Bootstrap/css/sb-admin-2.css';
 import PrisonerMovementsPage from './frontend/prisonerMovements/prisonerMovementsPage';
 import PrisonerWorkPage from './frontend/prisoner_work/PrisonerWorkPage';
+import KitchenStaffPage from './frontend/kitchen_staff/KitchenStaffPage';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -163,6 +164,7 @@ function AppContent() {
             <Route path="/cases" element={isAuthenticated ? <CasesPage /> : <Navigate to="/login" replace />} />
             <Route path="/prisoner_movements" element={isAuthenticated ? <PrisonerMovementsPage /> : <Navigate to="/login" replace />} /> 
             <Route path="/court_hearings" element={isAuthenticated ? <CourtHearingPage /> : <Navigate to="/login" replace />} />
+            <Route path="/kitchen_staff" element={isAuthenticated ? <KitchenStaffPage /> : <Navigate to="/login" replace />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
