@@ -31,7 +31,8 @@ async function createUser(user) {
     photo,
     roleID,
     transport_role,
-    kitchen_role, 
+    kitchen_role,
+    maintenance_role, 
   } = user;
 
   const hashedPassword = await bcrypt.hash(password_, SALT_ROUNDS);
@@ -78,6 +79,13 @@ const insertedUserID = insertResult.recordset[0].userID;
       .input("kitchen_role", sql.VarChar(255), String(kitchen_role || ""))
       .query("INSERT INTO kitchen_staff (userID, kitchen_role) VALUES (@userID, @kitchen_role)");
   }
+  if (roleName.includes("maintenance")) {
+    await pool
+      .request()
+      .input("userID", sql.Int, insertedUserID)
+      .input("maintenance_role", sql.VarChar(255), String(maintenance_role || ""))
+      .query("INSERT INTO maintenance_staff (userID, maintenance_role) VALUES (@userID, @maintenance_role)");
+  }
   return { success: true, userID: insertedUserID };
 }
 
@@ -97,6 +105,7 @@ async function updateUser(id, user) {
     roleID,
     transport_role,
     kitchen_role, 
+    maintenance_role
   } = user;
 
   await poolConnect;
@@ -194,6 +203,31 @@ async function updateUser(id, user) {
       .request()
       .input("userID", sql.Int, id)
       .query("DELETE FROM kitchen_staff WHERE userID = @userID");
+  }
+  if (roleName.includes("maintenance")) {
+    const existResult = await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("SELECT * FROM maintenance_staff WHERE userID = @userID");
+
+    if (existResult.recordset.length > 0) {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("maintenance_role", sql.VarChar(255), String(maintenance_role || ""))
+        .query("UPDATE maintenance_staff SET maintenance_role = @maintenance_role WHERE userID = @userID");
+    } else {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("maintenance_role", sql.VarChar(255), String(maintenance_role || ""))
+        .query("INSERT INTO maintenance_staff (userID, maintenance_role) VALUES (@userID, @maintenance_role)");
+    }
+  } else {
+    await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("DELETE FROM maintenance_staff WHERE userID = @userID");
   }
 
   return { success: true };

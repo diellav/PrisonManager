@@ -12,6 +12,7 @@ const UserPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [roles, setRoles] = useState([]);
   const [kitchenStaff, setKitchenStaff] = useState([]);
+  const [maintenanceStaff, setMaintenanceStaff] = useState([]);
 
   function initialFormState() {
     return {
@@ -28,6 +29,7 @@ const UserPage = () => {
       roleID: "",
       transport_role: "",
       kitchen_role: "",
+      maintenance_role: "",
       id: null,
     };
   }
@@ -37,6 +39,7 @@ const UserPage = () => {
     fetchTransportStaff();
     fetchRoles();
     fetchKitchenStaff();
+    fetchMaintenanceStaff();
   }, []);
 
   const fetchUsers = async () => {
@@ -65,6 +68,14 @@ const UserPage = () => {
       console.error("Error fetching kitchen staff:", err.response?.data || err.message);
     }
   };
+  const fetchMaintenanceStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/maintenance_staff");
+      setMaintenanceStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching maintenance staff:", err.response?.data || err.message);
+    }
+  };
 
   const fetchRoles = async () => {
     try {
@@ -78,10 +89,12 @@ const UserPage = () => {
   const usersWithRole = users.map((user) => {
     const ts = transportStaff.find((t) => t.userID === user.userID);
     const ks = kitchenStaff.find((k) => k.userID === user.userID);
+    const ms = maintenanceStaff.find((m) => m.userID === user.userID);
     return {
       ...user,
       transport_role: ts ? ts.transport_role : "",
       kitchen_role: ks ? ks.kitchen_role : "",
+      maintenance_role: ms ? ms.maintenance_role : "",
     };
   });
 
@@ -141,6 +154,7 @@ const UserPage = () => {
       fetchUsers();
       fetchTransportStaff();
       fetchKitchenStaff();
+      fetchMaintenanceStaff();
     } catch (err) {
       console.error("Error saving user:", err.response?.data || err.message);
     }
@@ -160,6 +174,7 @@ const UserPage = () => {
       roleID: user.roleID,
       transport_role: user.transport_role || "",
       kitchen_role: user.kitchen_role || "",
+      maintenance_role: user.maintenance_role || "",
       id: user.userID,
     });
     setFile(null);
@@ -174,6 +189,7 @@ const UserPage = () => {
       fetchUsers();
       fetchTransportStaff();
       fetchKitchenStaff();
+      fetchMaintenanceStaff();
     } catch (err) {
       console.error("Error deleting user:", err.response?.data || err.message);
     }

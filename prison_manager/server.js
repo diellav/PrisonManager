@@ -91,6 +91,8 @@ app.use("/api/kitchen_staff", verifyToken, kitchenStaffRoute);
 const prisonerCallRoute = require("./backend/routes/prisoner_callRoute");
 app.use("/api/prisoner_calls", verifyToken, prisonerCallRoute);
 
+const maintenanceStaffRoute = require("./backend/routes/maintenance_staffRoute");
+app.use("/api/maintenance_staff", verifyToken, maintenanceStaffRoute);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

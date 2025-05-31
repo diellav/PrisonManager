@@ -34,7 +34,8 @@ const addUser = async (req, res) => {
       password_,
       roleID,
        transport_role,
-       kitchen_role
+       kitchen_role,
+       maintenance_role,
     } = req.body;
 
     const photo = req.file ? req.file.filename : null;
@@ -53,6 +54,7 @@ const addUser = async (req, res) => {
       roleID,
        transport_role,
        kitchen_role,
+       maintenance_role,
     });
 
     res.status(201).json({ message: "User created", userID: result.userID });
@@ -75,7 +77,8 @@ const updateUser = async (req, res) => {
       photo,
       roleID,
       transport_role,
-      kitchen_role
+      kitchen_role,
+      maintenance_role,
     } = req.body;
 
     const updateData = {
@@ -90,6 +93,7 @@ const updateUser = async (req, res) => {
       roleID,
       transport_role,
       kitchen_role,
+      maintenance_role,
     };
 
     if (req.file) {

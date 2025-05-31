@@ -63,7 +63,6 @@ async function updatePrisonerCall(id, callData) {
       `);
 
     if (result.rowsAffected[0] === 0) {
-      // Nuk u gjet rreshti për të përditësuar
       return null;
     }
 
