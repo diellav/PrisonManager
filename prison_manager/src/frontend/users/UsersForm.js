@@ -13,6 +13,7 @@ const UserForm = ({
   const [error, setError] = useState("");
   const [selectedRoleName, setSelectedRoleName] = useState("");
   const [isTransportStaff, setIsTransportStaff] = useState(false);
+  const [isKitchenStaff, setIsKitchenStaff] = useState(false);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -32,6 +33,7 @@ const UserForm = ({
     const name_ = selectedRole?.name_?.toLowerCase() || "";
     setSelectedRoleName(name_);
     setIsTransportStaff(name_.includes("transport"));
+     setIsKitchenStaff(name_.includes("kitchen"));
   }, [form.roleID, roles]);
 
   const onFileChange = (e) => {
@@ -144,6 +146,19 @@ const UserForm = ({
                   className="form-control"
                   name="transport_role"
                   value={form.transport_role}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+             {isKitchenStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Kitchen Role</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="kitchen_role"
+                  value={form.kitchen_role}
                   onChange={handleInputChange}
                   required
                 />

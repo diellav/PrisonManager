@@ -15,6 +15,8 @@ async function getUserById(id) {
 
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
+
+
 async function createUser(user) {
   const {
     first_name,
@@ -29,6 +31,7 @@ async function createUser(user) {
     photo,
     roleID,
     transport_role,
+    kitchen_role, 
   } = user;
 
   const hashedPassword = await bcrypt.hash(password_, SALT_ROUNDS);
@@ -68,9 +71,17 @@ const insertedUserID = insertResult.recordset[0].userID;
       .input("transport_role", sql.VarChar(255),  String(transport_role || ""))
       .query("INSERT INTO transport_staff (userID, transport_role) VALUES (@userID, @transport_role)");
   }
-
+  if (roleName.includes("kitchen")) {
+    await pool
+      .request()
+      .input("userID", sql.Int, insertedUserID)
+      .input("kitchen_role", sql.VarChar(255), String(kitchen_role || ""))
+      .query("INSERT INTO kitchen_staff (userID, kitchen_role) VALUES (@userID, @kitchen_role)");
+  }
   return { success: true, userID: insertedUserID };
 }
+
+
 
 async function updateUser(id, user) {
   const {
@@ -84,7 +95,8 @@ async function updateUser(id, user) {
     username,
     photo,
     roleID,
-    transport_role
+    transport_role,
+    kitchen_role, 
   } = user;
 
   await poolConnect;
@@ -157,6 +169,33 @@ async function updateUser(id, user) {
       .input("userID", sql.Int, id)
       .query("DELETE FROM transport_staff WHERE userID = @userID");
   }
+
+   if (roleName.includes("kitchen")) {
+    const existResult = await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("SELECT * FROM kitchen_staff WHERE userID = @userID");
+
+    if (existResult.recordset.length > 0) {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("kitchen_role", sql.VarChar(255), String(kitchen_role || ""))
+        .query("UPDATE kitchen_staff SET kitchen_role = @kitchen_role WHERE userID = @userID");
+    } else {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("kitchen_role", sql.VarChar(255), String(kitchen_role || ""))
+        .query("INSERT INTO kitchen_staff (userID, kitchen_role) VALUES (@userID, @kitchen_role)");
+    }
+  } else {
+    await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("DELETE FROM kitchen_staff WHERE userID = @userID");
+  }
+
   return { success: true };
 }
 
