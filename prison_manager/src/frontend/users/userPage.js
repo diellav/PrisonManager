@@ -13,6 +13,8 @@ const UserPage = () => {
   const [roles, setRoles] = useState([]);
   const [kitchenStaff, setKitchenStaff] = useState([]);
   const [maintenanceStaff, setMaintenanceStaff] = useState([]);
+  const [guardStaff, setGuardStaff] = useState([]);
+  const [medicalStaff, setMedicalStaff] = useState([]);
 
   function initialFormState() {
     return {
@@ -30,6 +32,9 @@ const UserPage = () => {
       transport_role: "",
       kitchen_role: "",
       maintenance_role: "",
+      guard_position: "",
+      specialty: "",
+      employment_date: "",
       id: null,
     };
   }
@@ -40,6 +45,8 @@ const UserPage = () => {
     fetchRoles();
     fetchKitchenStaff();
     fetchMaintenanceStaff();
+    fetchGuardStaff();
+    fetchMedicalStaff();
   }, []);
 
   const fetchUsers = async () => {
@@ -76,6 +83,22 @@ const UserPage = () => {
       console.error("Error fetching maintenance staff:", err.response?.data || err.message);
     }
   };
+  const fetchGuardStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/guard_staff");
+      setGuardStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching guard staff:", err.response?.data || err.message);
+    }
+  };
+  const fetchMedicalStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/medical_staff");
+      setMedicalStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching medical staff:", err.response?.data || err.message);
+    }
+  };
 
   const fetchRoles = async () => {
     try {
@@ -90,11 +113,15 @@ const UserPage = () => {
     const ts = transportStaff.find((t) => t.userID === user.userID);
     const ks = kitchenStaff.find((k) => k.userID === user.userID);
     const ms = maintenanceStaff.find((m) => m.userID === user.userID);
+    const gs = guardStaff.find((g) => g.userID === user.userID);
+    const mes = medicalStaff.find((mes) => mes.userID === user.userID);
     return {
       ...user,
       transport_role: ts ? ts.transport_role : "",
       kitchen_role: ks ? ks.kitchen_role : "",
       maintenance_role: ms ? ms.maintenance_role : "",
+      guard_position: gs ? gs.guard_position : "",
+      specialty: mes ? mes.specialty : "",
     };
   });
 
@@ -155,6 +182,8 @@ const UserPage = () => {
       fetchTransportStaff();
       fetchKitchenStaff();
       fetchMaintenanceStaff();
+      fetchGuardStaff();
+      fetchMedicalStaff();
     } catch (err) {
       console.error("Error saving user:", err.response?.data || err.message);
     }
@@ -175,6 +204,9 @@ const UserPage = () => {
       transport_role: user.transport_role || "",
       kitchen_role: user.kitchen_role || "",
       maintenance_role: user.maintenance_role || "",
+      guard_position: user.guard_position || "",
+      specialty: user.specialty || "",
+      employment_date: user.employment_date || "",
       id: user.userID,
     });
     setFile(null);
@@ -190,6 +222,8 @@ const UserPage = () => {
       fetchTransportStaff();
       fetchKitchenStaff();
       fetchMaintenanceStaff();
+      fetchGuardStaff();
+      fetchMedicalStaff();
     } catch (err) {
       console.error("Error deleting user:", err.response?.data || err.message);
     }

@@ -163,7 +163,7 @@ const RolesList = ({ roles, onEdit, onDelete, goToCreate }) => {
                       <td>{role.roleID}</td>
                       <td>{role.name_}</td>
                       <td>{role.description_}</td>
-                      {(hasPermission("roles.edit") || hasPermission("roles.delete")) && (
+                      {(hasPermission("roles.edit") || hasPermission("roles.delete"))  && role.name_ !== "SuperAdmin" && (
                         <td>
                           <div style={{ display: "flex", gap: "6px" }}>
                             {hasPermission("roles.edit") && (

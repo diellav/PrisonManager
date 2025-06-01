@@ -68,7 +68,7 @@ const fetchRoles = async () => {
               </div>
             </div>
             <br></br>
-            <p className="text-muted font-size-sm">Employee since ....</p>
+          {roleName!=='SuperAdmin'&&( <p className="text-muted font-size-sm">Employee since {user.employment_date?.split('T')[0]}</p>)}
             <p>Thank you for being part of our community!</p>
             <br></br>
           </div>
@@ -136,7 +136,7 @@ const fetchRoles = async () => {
         </div>
       </div>
       <br></br><br/>
-    <UserScheduleList userID={userID} />
+    {roleName!=='SuperAdmin'&&( <UserScheduleList userID={userID} /> )}
 
     <br/><br/>
      <p> If you notice any incorrect data, please contact support.</p>
