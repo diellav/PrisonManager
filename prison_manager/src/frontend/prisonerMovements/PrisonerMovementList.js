@@ -70,60 +70,54 @@ const PrisonerMovementsList = ({ movements, onEdit, onDelete, goToCreate }) => {
 
 
   const filteredMovements = movements
-    .filter((mv) => {
-      const prisoner = prisoners.find((p) => p.prisonerID === mv.prisonerID);
-      const fromCell = cells.find((c) => c.cell_block_ID === mv.from_cell_ID);
-      const toCell = cells.find((c) => c.cell_block_ID === mv.to_cell_ID);
+  .filter((mv) => {
+    const prisonerName = getPrisonerName(mv.prisonerID);
+    const fromCellName = getCellName(mv.from_cell_ID);
+    const toCellName = getCellName(mv.to_cell_ID);
+    const dateStr = mv.date_ ? mv.date_.toString().split("T")[0] : "";
 
-      const dateStr = mv.date_ ? mv.date_.toString().split("T")[0] : "";
+    const searchFields = [
+      mv.prisoner_movement_ID?.toString() || "",
+      prisonerName,
+      fromCellName,
+      toCellName,
+      dateStr,
+    ];
 
-      const searchFields = [
-        mv.prisoner_movement_ID?.toString() || "",
-        prisoner ? `${prisoner.first_name} ${prisoner.last_name}` : "",
-        fromCell ? fromCell.cell_block_name : "",
-        toCell ? toCell.cell_block_name : "",
-        dateStr,
-      ];
+    return searchFields.some((val) =>
+      val.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  })
+  .sort((a, b) => {
+    let aVal, bVal;
 
-      return searchFields.some((val) =>
-        val.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    })
-    .sort((a, b) => {
-      let aVal = a[sortField];
-      let bVal = b[sortField];
+    if (sortField === "prisonerID") {
+      aVal = getPrisonerName(a.prisonerID);
+      bVal = getPrisonerName(b.prisonerID);
+    } else if (sortField === "from_cell_ID") {
+      aVal = getCellName(a.from_cell_ID);
+      bVal = getCellName(b.from_cell_ID);
+    } else if (sortField === "to_cell_ID") {
+      aVal = getCellName(a.to_cell_ID);
+      bVal = getCellName(b.to_cell_ID);
+    } else if (sortField === "date_") {
+      aVal = a.date_;
+      bVal = b.date_;
+    } else {
+      aVal = a[sortField];
+      bVal = b[sortField];
+    }
 
+    if (aVal === undefined || aVal === null) aVal = "";
+    if (bVal === undefined || bVal === null) bVal = "";
 
-      if (sortField === "prisonerID") {
-        const aPrisoner = prisoners.find((p) => p.prisonerID === a.prisonerID);
-        const bPrisoner = prisoners.find((p) => p.prisonerID === b.prisonerID);
-        aVal = aPrisoner ? `${aPrisoner.first_name} ${aPrisoner.last_name}` : "";
-        bVal = bPrisoner ? `${bPrisoner.first_name} ${bPrisoner.last_name}` : "";
-      }
-      if (sortField === "from_cell_ID") {
-        const aCell = cells.find((c) => c.cell_block_ID === a.from_cell_ID);
-        const bCell = cells.find((c) => c.cell_block_ID === b.from_cell_ID);
-        aVal = aCell ? aCell.cell_block_name : "";
-        bVal = bCell ? bCell.cell_block_name : "";
-      }
-      if (sortField === "to_cell_ID") {
-        const aCell = cells.find((c) => c.cell_block_ID === a.to_cell_ID);
-        const bCell = cells.find((c) => c.cell_block_ID === b.to_cell_ID);
-        aVal = aCell ? aCell.cell_block_name : "";
-        bVal = bCell ? bCell.cell_block_name : "";
-      }
+    if (typeof aVal === "string") aVal = aVal.toLowerCase();
+    if (typeof bVal === "string") bVal = bVal.toLowerCase();
 
-
-      if (aVal === undefined || aVal === null) aVal = "";
-      if (bVal === undefined || bVal === null) bVal = "";
-
-      if (typeof aVal === "string") aVal = aVal.toLowerCase();
-      if (typeof bVal === "string") bVal = bVal.toLowerCase();
-
-      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
 
 
   const indexOfLast = currentPage * itemsPerPage;

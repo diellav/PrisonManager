@@ -100,26 +100,23 @@ const PrisonerMovementsPage = () => {
 
   const handleSubmit = async () => {
     try {
+      const payload = {
+        prisonerID: Number(form.prisonerID),
+        from_cell_ID: Number(form.from_cell_ID),
+        to_cell_ID: Number(form.to_cell_ID),
+        date_: form.date_,
+      };
+  
       if (editingMovement) {
-        await axiosInstance.put(`/prisoner_movements/${editingMovement.prisoner_movement_ID}`, {
-          prisonerID: Number(form.prisonerID),
-          from_cell_ID: Number(form.from_cell_ID),
-          to_cell_ID: Number(form.to_cell_ID),
-          date_: form.date_,
-        });
+        await axiosInstance.put(`/prisoner_movements/${editingMovement.prisoner_movement_ID}`, payload);
       } else {
-        await axiosInstance.post("/prisoner_movements", {
-          prisonerID: Number(form.prisonerID),
-          from_cell_ID: Number(form.from_cell_ID),
-          to_cell_ID: Number(form.to_cell_ID),
-          date_: form.date_,
-        });
+        await axiosInstance.post("/prisoner_movements", payload);
       }
-
+  
       await axiosInstance.put(`/prisoners/${form.prisonerID}`, {
         cell_block_ID: Number(form.to_cell_ID),
       });
-
+  
       resetForm();
       fetchMovements();
     } catch (err) {
@@ -127,6 +124,7 @@ const PrisonerMovementsPage = () => {
       alert("An error occurred while saving movement.");
     }
   };
+  
 
   const onCancel = () => {
     resetForm();
