@@ -13,6 +13,10 @@ const UserForm = ({
   const [error, setError] = useState("");
   const [selectedRoleName, setSelectedRoleName] = useState("");
   const [isTransportStaff, setIsTransportStaff] = useState(false);
+  const [isKitchenStaff, setIsKitchenStaff] = useState(false);
+  const [isMaintenanceStaff, setIsMaintenanceStaff] = useState(false);
+  const [isGuardStaff, setIsGuardStaff] = useState(false);
+  const [isMedicalStaff, setIsMedicalStaff] = useState(false);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -32,6 +36,10 @@ const UserForm = ({
     const name_ = selectedRole?.name_?.toLowerCase() || "";
     setSelectedRoleName(name_);
     setIsTransportStaff(name_.includes("transport"));
+     setIsKitchenStaff(name_.includes("kitchen"));
+     setIsMaintenanceStaff(name_.includes("maintenance"));
+     setIsGuardStaff(name_.includes("guard"));
+     setIsMedicalStaff(name_.includes("medical"));
   }, [form.roleID, roles]);
 
   const onFileChange = (e) => {
@@ -128,7 +136,7 @@ const UserForm = ({
                 required
               >
                 <option value="">Select Role</option>
-                {roles.map((role) => (
+                {roles.filter((role) => role.name_.toLowerCase() !== "superadmin").map((role) => (
                   <option key={role.roleID} value={role.roleID}>
                     {role.name_}
                   </option>
@@ -149,6 +157,69 @@ const UserForm = ({
                 />
               </div>
             )}
+             {isKitchenStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Kitchen Role</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="kitchen_role"
+                  value={form.kitchen_role}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+            {isMaintenanceStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Maintenance Role</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="maintenance_role"
+                  value={form.maintenance_role}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+            {isGuardStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Guard Position</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="guard_position"
+                  value={form.guard_positon}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}{isMedicalStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Specialty</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="specialty"
+                  value={form.specialty}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+            <div className="col-md-6 mb-3">
+              <label>Employment Date</label>
+              <input
+                type="date" 
+                className="form-control"
+                name="employment_date"
+                value={form.employment_date || ""}
+                onChange={handleInputChange}
+                required
+              >
+              </input>
+            </div>
           </div>
 
           <div className="d-flex justify-content-end">

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
+const ParoleList = ({ paroles, prisoners, onEdit, onDelete, goToCreate }) => {
   const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
   const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
 
@@ -29,6 +29,11 @@ const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
   const handleItemsPerPageChange = (e) => {
     setItemsPerPage(parseInt(e.target.value));
     setCurrentPage(1);
+  };
+
+  const getPrisonerName = (id) => {
+    const prisoner = prisoners?.find((p) => p.prisonerID === id);
+    return prisoner ? `${prisoner.first_name} ${prisoner.last_name}` : id;
   };
 
   const sortedParoles = [...paroles]
@@ -76,7 +81,10 @@ const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
   return (
     <div>
       <div className="card shadow-sm mb-4 border-0">
-        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom" style={{ backgroundColor: "#4E73DF" }}>
+        <div
+          className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom"
+          style={{ backgroundColor: "#4E73DF" }}
+        >
           <h4 className="m-0 text-primary fw-bold">Parole List</h4>
           {hasPermission("paroles.create") && (
             <button className="btn btn-primary" onClick={goToCreate}>
@@ -85,44 +93,13 @@ const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
           )}
         </div>
         <div className="card-body">
-          <div className="row mb-3 align-items-center">
-            <div className="col-md-6 d-flex align-items-center">
-              <label className="d-flex align-items-center" style={{ gap: "10px" }}>
-                Show
-                <select
-                  className="form-select form-select-sm"
-                  style={{ width: "80px" }}
-                  value={itemsPerPage}
-                  onChange={handleItemsPerPageChange}
-                >
-                  {[10, 25, 50, 100].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-                entries
-              </label>
-            </div>
-            <div className="col-md-6 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0">
-              <input
-                type="text"
-                className="form-control form-control-sm"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-                style={{ maxWidth: "300px" }}
-              />
-            </div>
-          </div>
-
           <div className="table-responsive">
             <table className="table align-middle">
               <thead className="table-light">
                 <tr>
                   {[
                     { field: "parole_ID", label: "ID" },
-                    { field: "prisonerID", label: "Prisoner ID" },
+                    { field: "prisonerID", label: "Prisoner" },
                     { field: "request_date", label: "Request Date" },
                     { field: "decision_date", label: "Decision Date" },
                     { field: "status_", label: "Status" },
@@ -151,7 +128,7 @@ const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
                   currentParoles.map((parole) => (
                     <tr key={parole.parole_ID}>
                       <td>{parole.parole_ID}</td>
-                      <td>{parole.prisonerID}</td>
+                      <td>{getPrisonerName(parole.prisonerID)}</td>
                       <td>{parole.request_date?.split("T")[0]}</td>
                       <td>{parole.decision_date?.split("T")[0]}</td>
                       <td>{parole.status_}</td>
@@ -161,7 +138,10 @@ const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
                         <td>
                           <div style={{ display: "flex", gap: "6px" }}>
                             {hasPermission("paroles.edit") && (
-                              <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(parole)}>
+                              <button
+                                className="btn btn-sm btn-outline-info"
+                                onClick={() => onEdit(parole)}
+                              >
                                 Edit
                               </button>
                             )}
@@ -191,43 +171,26 @@ const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
               </tbody>
             </table>
           </div>
-
-          <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-            <div className="small text-muted mb-2 mb-md-0">
-              Showing {indexOfFirst + 1} to {Math.min(indexOfLast, sortedParoles.length)} of {sortedParoles.length} entries
-            </div>
-            <ul className="pagination mb-0 mt-2 mt-md-0">
-              <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                <button className="page-link" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}>
-                  Prev
-                </button>
-              </li>
-              {pageNumbers.map((number) => (
-                <li key={number} className={`page-item ${currentPage === number ? "active" : ""}`}>
-                  <button className="page-link" onClick={() => setCurrentPage(number)}>
-                    {number}
-                  </button>
-                </li>
-              ))}
-              <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                <button className="page-link" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}>
-                  Next
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
 
       {showConfirm && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}>
+          <div
+            className="modal show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}
+          >
             <div className="modal-dialog">
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Confirm Deletion</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowConfirm(false)}></button>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowConfirm(false)}
+                  ></button>
                 </div>
                 <div className="modal-body">
                   <p>Are you sure you want to delete this parole record?</p>
@@ -243,7 +206,7 @@ const ParoleList = ({ paroles, onEdit, onDelete, goToCreate }) => {
                       setShowConfirm(false);
                     }}
                   >
-                    Yes, I'm sure
+                    Delete
                   </button>
                 </div>
               </div>

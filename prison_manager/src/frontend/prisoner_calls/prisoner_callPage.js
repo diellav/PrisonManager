@@ -1,29 +1,28 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
-import CaseForm from "./caseForm";
-import CaseList from "./caseList";
+import PrisonerCallForm from "./prisoner_callForm";
+import PrisonerCallList from "./prisoner_callList";
 
 const hasPermission = (permName) => {
   const perms = JSON.parse(localStorage.getItem("permissions") || "[]");
   return perms.includes(permName.toLowerCase());
 };
 
-const CasePage = () => {
-  const [cases, setCases] = useState([]);
+const PrisonerCallPage = () => {
+  const [calls, setCalls] = useState([]);
   const [prisoners, setPrisoners] = useState([]);
-  const [lawyers, setLawyers] = useState([]);
-  const [editingCase, setEditingCase] = useState(null);
+  const [editingCall, setEditingCall] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [alert, setAlert] = useState({ message: "", type: "" });
   const [loading, setLoading] = useState(true);
 
-  const fetchCases = async () => {
+  const fetchCalls = async () => {
     try {
-      const res = await axiosInstance.get("/cases");
-      setCases(res.data);
+      const res = await axiosInstance.get("/prisoner_calls");
+      setCalls(res.data);
     } catch (err) {
-      console.error("Error fetching cases:", err);
-      showAlert("Error fetching cases", "danger");
+      console.error("Error fetching calls:", err);
+      showAlert("Error fetching calls", "danger");
     }
   };
 
@@ -37,27 +36,17 @@ const CasePage = () => {
     }
   };
 
-  const fetchLawyers = async () => {
-    try {
-      const res = await axiosInstance.get("/lawyers");
-      setLawyers(res.data);
-    } catch (err) {
-      console.error("Error fetching lawyers:", err);
-      showAlert("Error fetching lawyers", "danger");
-    }
-  };
-
   const fetchAllData = async () => {
     setLoading(true);
-    await Promise.all([fetchCases(), fetchPrisoners(), fetchLawyers()]);
+    await Promise.all([fetchCalls(), fetchPrisoners()]);
     setLoading(false);
   };
 
   useEffect(() => {
-    if (hasPermission("cases.read")) {
+    if (hasPermission("prisoner_calls.read")) {
       fetchAllData();
     } else {
-      showAlert("You don't have permission to view cases.", "danger");
+      showAlert("You don't have permission to view prisoner calls.", "danger");
       setLoading(false);
     }
   }, []);
@@ -68,50 +57,50 @@ const CasePage = () => {
   };
 
   const handleCreate = () => {
-    if (!hasPermission("cases.create")) {
-      return showAlert("You don't have permission to create cases.", "danger");
+    if (!hasPermission("prisoner_calls.create")) {
+      return showAlert("You don't have permission to create prisoner calls.", "danger");
     }
-    setEditingCase(null);
+    setEditingCall(null);
     setShowForm(true);
   };
 
-  const handleEdit = (caseItem) => {
-    if (!hasPermission("cases.edit")) {
-      return showAlert("You don't have permission to edit cases.", "danger");
+  const handleEdit = (call) => {
+    if (!hasPermission("prisoner_calls.edit")) {
+      return showAlert("You don't have permission to edit prisoner calls.", "danger");
     }
-    setEditingCase(caseItem);
+    setEditingCall(call);
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
-    if (!hasPermission("cases.delete")) {
-      return showAlert("You don't have permission to delete cases.", "danger");
+    if (!hasPermission("prisoner_calls.delete")) {
+      return showAlert("You don't have permission to delete prisoner calls.", "danger");
     }
     try {
-      await axiosInstance.delete(`/cases/${id}`);
-      showAlert("Case deleted successfully.", "success");
+      await axiosInstance.delete(`/prisoner_calls/${id}`);
+      showAlert("Call deleted successfully.", "success");
       fetchAllData();
     } catch (err) {
-      console.error("Error deleting case:", err);
-      showAlert("Failed to delete case.", "danger");
+      console.error("Error deleting call:", err);
+      showAlert("Failed to delete call.", "danger");
     }
   };
 
   const handleCancel = () => {
     setShowForm(false);
-    setEditingCase(null);
+    setEditingCall(null);
   };
 
   const handleSuccess = () => {
     setShowForm(false);
-    setEditingCase(null);
+    setEditingCall(null);
     fetchAllData();
-    showAlert("Case saved successfully.", "success");
+    showAlert("Call saved successfully.", "success");
   };
 
   return (
     <div className="container mt-4">
-      <h2>Case Management</h2>
+      <h2>Prisoner Call Management</h2>
 
       {alert.message && (
         <div className={`alert alert-${alert.type}`} role="alert">
@@ -122,16 +111,15 @@ const CasePage = () => {
       {loading ? (
         <p>Loading...</p>
       ) : showForm ? (
-        <CaseForm
-          editingCase={editingCase}
+        <PrisonerCallForm
+          editingCall={editingCall}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
         />
       ) : (
-        <CaseList
-          cases={cases}
-          prisoners={prisoners} 
-          lawyers={lawyers}     
+        <PrisonerCallList
+          calls={calls}
+          prisoners={prisoners}
           onEdit={handleEdit}
           onDelete={handleDelete}
           goToCreate={handleCreate}
@@ -141,4 +129,4 @@ const CasePage = () => {
   );
 };
 
-export default CasePage;
+export default PrisonerCallPage;

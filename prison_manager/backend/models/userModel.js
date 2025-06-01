@@ -15,6 +15,8 @@ async function getUserById(id) {
 
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
+
+
 async function createUser(user) {
   const {
     first_name,
@@ -29,6 +31,11 @@ async function createUser(user) {
     photo,
     roleID,
     transport_role,
+    kitchen_role,
+    maintenance_role, 
+    guard_position,
+    specialty,
+    employment_date,
   } = user;
 
   const hashedPassword = await bcrypt.hash(password_, SALT_ROUNDS);
@@ -46,11 +53,12 @@ async function createUser(user) {
   .input("password_", sql.VarChar(255), hashedPassword)
   .input("photo", sql.VarChar(255), photo)
   .input("roleID", sql.Int, roleID)
+  .input("employment_date", sql.Date, employment_date)
   .query(`
     INSERT INTO users 
-      (first_name, last_name, date_of_birth, gender, phone, address_, email, username, password_, photo, roleID)
+      (first_name, last_name, date_of_birth, gender, phone, address_, email, username, password_, photo, roleID, employment_date)
     VALUES 
-      (@first_name, @last_name, @date_of_birth, @gender, @phone, @address_, @email, @username, @password_, @photo, @roleID);
+      (@first_name, @last_name, @date_of_birth, @gender, @phone, @address_, @email, @username, @password_, @photo, @roleID,@employment_date);
     SELECT SCOPE_IDENTITY() AS userID;
   `);
 
@@ -68,9 +76,38 @@ const insertedUserID = insertResult.recordset[0].userID;
       .input("transport_role", sql.VarChar(255),  String(transport_role || ""))
       .query("INSERT INTO transport_staff (userID, transport_role) VALUES (@userID, @transport_role)");
   }
-
+  if (roleName.includes("kitchen")) {
+    await pool
+      .request()
+      .input("userID", sql.Int, insertedUserID)
+      .input("kitchen_role", sql.VarChar(255), String(kitchen_role || ""))
+      .query("INSERT INTO kitchen_staff (userID, kitchen_role) VALUES (@userID, @kitchen_role)");
+  }
+  if (roleName.includes("maintenance")) {
+    await pool
+      .request()
+      .input("userID", sql.Int, insertedUserID)
+      .input("maintenance_role", sql.VarChar(255), String(maintenance_role || ""))
+      .query("INSERT INTO maintenance_staff (userID, maintenance_role) VALUES (@userID, @maintenance_role)");
+  }
+  if (roleName.includes("guard")) {
+    await pool
+      .request()
+      .input("userID", sql.Int, insertedUserID)
+      .input("guard_position", sql.VarChar(255), String(guard_position || ""))
+      .query("INSERT INTO guard_staff (userID, guard_position) VALUES (@userID, @guard_position)");
+  }
+  if (roleName.includes("medical")) {
+    await pool
+      .request()
+      .input("userID", sql.Int, insertedUserID)
+      .input("specialty", sql.VarChar(255), String(specialty || ""))
+      .query("INSERT INTO medical_staff (userID, specialty) VALUES (@userID, @specialty)");
+  }
   return { success: true, userID: insertedUserID };
 }
+
+
 
 async function updateUser(id, user) {
   const {
@@ -84,7 +121,12 @@ async function updateUser(id, user) {
     username,
     photo,
     roleID,
-    transport_role
+    transport_role,
+    kitchen_role, 
+    maintenance_role,
+    guard_position,
+    specialty,
+    employment_date,
   } = user;
 
   await poolConnect;
@@ -99,7 +141,8 @@ async function updateUser(id, user) {
       address_ = @address_,
       email = @email,
       username = @username,
-      roleID = @roleID
+      roleID = @roleID,
+      employment_date=@employment_date
   `;
 
   if (photo !== undefined && photo !== null) {
@@ -117,7 +160,8 @@ async function updateUser(id, user) {
     .input("address_", sql.VarChar(255), address_)
     .input("email", sql.VarChar(255), email)
     .input("username", sql.VarChar(255), username)
-    .input("roleID", sql.Int, roleID);
+    .input("roleID", sql.Int, roleID)
+    .input("employment_date", sql.Date, employment_date);
 
   if (photo !== undefined && photo !== null) {
     request.input("photo", sql.VarChar(255), photo);
@@ -156,6 +200,114 @@ async function updateUser(id, user) {
       .request()
       .input("userID", sql.Int, id)
       .query("DELETE FROM transport_staff WHERE userID = @userID");
+  }
+
+  
+   if (roleName.includes("kitchen")) {
+    const existResult = await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("SELECT * FROM kitchen_staff WHERE userID = @userID");
+
+    if (existResult.recordset.length > 0) {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("kitchen_role", sql.VarChar(255), String(kitchen_role || ""))
+        .query("UPDATE kitchen_staff SET kitchen_role = @kitchen_role WHERE userID = @userID");
+    } else {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("kitchen_role", sql.VarChar(255), String(kitchen_role || ""))
+        .query("INSERT INTO kitchen_staff (userID, kitchen_role) VALUES (@userID, @kitchen_role)");
+    }
+  } else {
+    await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("DELETE FROM kitchen_staff WHERE userID = @userID");
+  }
+
+
+  if (roleName.includes("maintenance")) {
+    const existResult = await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("SELECT * FROM maintenance_staff WHERE userID = @userID");
+
+    if (existResult.recordset.length > 0) {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("maintenance_role", sql.VarChar(255), String(maintenance_role || ""))
+        .query("UPDATE maintenance_staff SET maintenance_role = @maintenance_role WHERE userID = @userID");
+    } else {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("maintenance_role", sql.VarChar(255), String(maintenance_role || ""))
+        .query("INSERT INTO maintenance_staff (userID, maintenance_role) VALUES (@userID, @maintenance_role)");
+    }
+  } else {
+    await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("DELETE FROM maintenance_staff WHERE userID = @userID");
+  }
+
+
+  if (roleName.includes("guard")) {
+    const existResult = await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("SELECT * FROM guard_staff WHERE userID = @userID");
+
+    if (existResult.recordset.length > 0) {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("guard_position", sql.VarChar(255), String(guard_position || ""))
+        .query("UPDATE guard_staff SET guard_position = @guard_position WHERE userID = @userID");
+    } else {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("guard_position", sql.VarChar(255), String(guard_position || ""))
+        .query("INSERT INTO guard_staff (userID, guard_position) VALUES (@userID, @guard_position)");
+    }
+  } else {
+    await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("DELETE FROM guard_staff WHERE userID = @userID");
+  }
+
+
+  if (roleName.includes("medical")) {
+    const existResult = await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("SELECT * FROM medical_staff WHERE userID = @userID");
+
+    if (existResult.recordset.length > 0) {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("specialty", sql.VarChar(255), String(specialty || ""))
+        .query("UPDATE medical_staff SET specialty = @specialty WHERE userID = @userID");
+    } else {
+      await pool
+        .request()
+        .input("userID", sql.Int, id)
+        .input("specialty", sql.VarChar(255), String(specialty || ""))
+        .query("INSERT INTO medical_staff (userID, specialty) VALUES (@userID, @specialty)");
+    }
+  } else {
+    await pool
+      .request()
+      .input("userID", sql.Int, id)
+      .query("DELETE FROM medical_staff WHERE userID = @userID");
   }
   return { success: true };
 }

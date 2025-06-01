@@ -65,6 +65,7 @@
           user.email,
           user.username,
           roleName,
+          user.employment_date
         ].some((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()));
       })
       .sort((a, b) => {
@@ -212,6 +213,12 @@
                     >
                       Role {renderSortIcons("roleName")}
                     </th>
+                     <th
+                      style={{ cursor: "pointer", color: "white", backgroundColor: "#4E73DF" }}
+                      onClick={() => handleSort("employment_date")}
+                    >
+                      Employment Date {renderSortIcons("employment_date")}
+                    </th>
                     {(hasPermission("users.edit") || hasPermission("users.delete")) && (
                       <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
                     )}
@@ -246,7 +253,8 @@
                           )}
                         </td>
                         <td>{getRoleName(user.roleID)}</td>
-                        {(hasPermission("users.edit") || hasPermission("users.delete")) && (
+                        <td>{user.employment_date?.split("T")[0]}</td>
+                        {(hasPermission("users.edit") || hasPermission("users.delete")) && getRoleName(user.roleID) !== "SuperAdmin" && (
                           <td>
                             <div style={{ display: "flex", gap: "6px" }}>
                               {hasPermission("users.edit") && (

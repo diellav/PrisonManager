@@ -11,6 +11,10 @@ const UserPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [roles, setRoles] = useState([]);
+  const [kitchenStaff, setKitchenStaff] = useState([]);
+  const [maintenanceStaff, setMaintenanceStaff] = useState([]);
+  const [guardStaff, setGuardStaff] = useState([]);
+  const [medicalStaff, setMedicalStaff] = useState([]);
 
   function initialFormState() {
     return {
@@ -26,6 +30,11 @@ const UserPage = () => {
       photo: "",
       roleID: "",
       transport_role: "",
+      kitchen_role: "",
+      maintenance_role: "",
+      guard_position: "",
+      specialty: "",
+      employment_date: "",
       id: null,
     };
   }
@@ -34,6 +43,10 @@ const UserPage = () => {
     fetchUsers();
     fetchTransportStaff();
     fetchRoles();
+    fetchKitchenStaff();
+    fetchMaintenanceStaff();
+    fetchGuardStaff();
+    fetchMedicalStaff();
   }, []);
 
   const fetchUsers = async () => {
@@ -54,6 +67,39 @@ const UserPage = () => {
     }
   };
 
+  const fetchKitchenStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/kitchen_staff");
+      setKitchenStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching kitchen staff:", err.response?.data || err.message);
+    }
+  };
+  const fetchMaintenanceStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/maintenance_staff");
+      setMaintenanceStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching maintenance staff:", err.response?.data || err.message);
+    }
+  };
+  const fetchGuardStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/guard_staff");
+      setGuardStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching guard staff:", err.response?.data || err.message);
+    }
+  };
+  const fetchMedicalStaff = async () => {
+    try {
+      const res = await axiosInstance.get("/medical_staff");
+      setMedicalStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching medical staff:", err.response?.data || err.message);
+    }
+  };
+
   const fetchRoles = async () => {
     try {
       const res = await axiosInstance.get("/roles");
@@ -63,11 +109,19 @@ const UserPage = () => {
     }
   };
 
-  const usersWithTransportRole = users.map((user) => {
+  const usersWithRole = users.map((user) => {
     const ts = transportStaff.find((t) => t.userID === user.userID);
+    const ks = kitchenStaff.find((k) => k.userID === user.userID);
+    const ms = maintenanceStaff.find((m) => m.userID === user.userID);
+    const gs = guardStaff.find((g) => g.userID === user.userID);
+    const mes = medicalStaff.find((mes) => mes.userID === user.userID);
     return {
       ...user,
       transport_role: ts ? ts.transport_role : "",
+      kitchen_role: ks ? ks.kitchen_role : "",
+      maintenance_role: ms ? ms.maintenance_role : "",
+      guard_position: gs ? gs.guard_position : "",
+      specialty: mes ? mes.specialty : "",
     };
   });
 
@@ -85,7 +139,6 @@ const UserPage = () => {
 
   const handleSubmit = async () => {
     try {
-      console.log("Form data before sending:", form);
       const formData = new FormData();
       for (const key in form) {
         if (key !== "id" && form[key] !== null && form[key] !== undefined) {
@@ -102,19 +155,17 @@ const UserPage = () => {
         formData.append("photo", file);
       }
 
-     if (!isEditing && form.roleID) {
-  const selectedRole = roles.find((r) => r.roleID === Number(form.roleID));
-  if (selectedRole && selectedRole.name_.toLowerCase().includes("transport")) {
-    let cleanTransportRole = form.transport_role;
-    if (typeof cleanTransportRole === "string") {
-      const parts = cleanTransportRole.split(",").map(p => p.trim());
-      cleanTransportRole = [...new Set(parts)].join(",");
-    }
-
-    formData.set("transport_role", cleanTransportRole);
-  }
-}
-
+      if (!isEditing && form.roleID) {
+        const selectedRole = roles.find((r) => r.roleID === Number(form.roleID));
+        if (selectedRole && selectedRole.name_.toLowerCase().includes("transport")) {
+          let cleanTransportRole = form.transport_role;
+          if (typeof cleanTransportRole === "string") {
+            const parts = cleanTransportRole.split(",").map((p) => p.trim());
+            cleanTransportRole = [...new Set(parts)].join(",");
+          }
+          formData.set("transport_role", cleanTransportRole);
+        }
+      }
 
       if (isEditing) {
         await axiosInstance.put(`/users/${form.id}`, formData, {
@@ -128,7 +179,11 @@ const UserPage = () => {
 
       resetForm();
       fetchUsers();
-      fetchTransportStaff(); 
+      fetchTransportStaff();
+      fetchKitchenStaff();
+      fetchMaintenanceStaff();
+      fetchGuardStaff();
+      fetchMedicalStaff();
     } catch (err) {
       console.error("Error saving user:", err.response?.data || err.message);
     }
@@ -147,6 +202,11 @@ const UserPage = () => {
       photo: user.photo,
       roleID: user.roleID,
       transport_role: user.transport_role || "",
+      kitchen_role: user.kitchen_role || "",
+      maintenance_role: user.maintenance_role || "",
+      guard_position: user.guard_position || "",
+      specialty: user.specialty || "",
+      employment_date: user.employment_date || "",
       id: user.userID,
     });
     setFile(null);
@@ -154,15 +214,18 @@ const UserPage = () => {
     setShowModal(true);
   };
 
+
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        await axiosInstance.delete(`/users/${id}`);
-        fetchUsers();
-        fetchTransportStaff();
-      } catch (err) {
-        console.error("Error deleting user:", err.response?.data || err.message);
-      }
+    try {
+      await axiosInstance.delete(`/users/${id}`);
+      fetchUsers();
+      fetchTransportStaff();
+      fetchKitchenStaff();
+      fetchMaintenanceStaff();
+      fetchGuardStaff();
+      fetchMedicalStaff();
+    } catch (err) {
+      console.error("Error deleting user:", err.response?.data || err.message);
     }
   };
 
@@ -195,9 +258,9 @@ const UserPage = () => {
         />
       ) : (
         <UsersList
-          users={usersWithTransportRole}
+          users={usersWithRole}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={handleDelete} 
           goToCreate={handleModalOpen}
           getRoleName={getRoleName}
         />
