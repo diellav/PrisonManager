@@ -1,4 +1,3 @@
-// controllers/judgeController.js
 const judgeModel = require("../models/judgeModel");
 
 const getJudges = async (req, res) => {

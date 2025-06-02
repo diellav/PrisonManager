@@ -1,4 +1,3 @@
-// models/judgeModel.js
 const { pool, poolConnect, sql } = require("../database");
 
 async function getAllJudges() {

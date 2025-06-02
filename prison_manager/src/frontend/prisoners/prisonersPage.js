@@ -5,25 +5,29 @@ import PrisonersList from "./PrisonersList";
 
 const PrisonersPage = () => {
   const [prisoners, setPrisoners] = useState([]);
-  const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    date_of_birth: "",
-    gender: "",
-    national_id: "",
-    address_: "",
-    photo: "",
-    sentence_start: "",
-    sentence_end: "",
-    status_: "",
-    rank_: "",
-    cell_block_ID: "",
-    emergency_contact_ID: "",
-    prisonerID: null,
-  });
-
+  const [form, setForm] = useState(initialFormState());
+  const [file, setFile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+  function initialFormState() {
+    return {
+      first_name: "",
+      last_name: "",
+      date_of_birth: "",
+      gender: "",
+      national_id: "",
+      address_: "",
+      photo: "", 
+      sentence_start: "",
+      sentence_end: "",
+      status_: "",
+      rank_: "",
+      cell_block_ID: "",
+      emergency_contact_ID: "",
+      prisonerID: null,
+    };
+  }
 
   useEffect(() => {
     fetchPrisoners();
@@ -40,38 +44,48 @@ const PrisonersPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetForm = () => {
-    setForm({
-      first_name: "",
-      last_name: "",
-      date_of_birth: "",
-      gender: "",
-      national_id: "",
-      address_: "",
-      photo: "",
-      sentence_start: "",
-      sentence_end: "",
-      status_: "",
-      rank_: "",
-      cell_block_ID: "",
-      emergency_contact_ID: "",
-      prisonerID: null,
-    });
+    setForm(initialFormState());
+    setFile(null);
     setIsEditing(false);
     setShowModal(false);
   };
 
   const handleSubmit = async () => {
     try {
-      const payload = { ...form };
+      const formData = new FormData();
+
+      for (const key in form) {
+        if (key !== "prisonerID" && form[key] !== null && form[key] !== undefined) {
+          formData.append(key, form[key]);
+        }
+      }
+
+      if (form.cell_block_ID) {
+        formData.set("cell_block_ID", Number(form.cell_block_ID));
+      }
+      if (form.emergency_contact_ID) {
+        formData.set("emergency_contact_ID", Number(form.emergency_contact_ID));
+      }
+
+      if (file) {
+        formData.append("photo", file);
+      }
 
       if (isEditing) {
-        await axiosInstance.put(`/prisoners/${form.prisonerID}`, payload);
+        const id = Number(form.prisonerID);
+        if (isNaN(id)) throw new Error("Invalid prisonerID for update.");
+
+        await axiosInstance.put(`/prisoners/${id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       } else {
-        await axiosInstance.post("/prisoners", payload);
+        await axiosInstance.post("/prisoners", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
 
       resetForm();
@@ -96,8 +110,9 @@ const PrisonersPage = () => {
       rank_: prisoner.rank_,
       cell_block_ID: prisoner.cell_block_ID || "",
       emergency_contact_ID: prisoner.emergency_contact_ID,
-      prisonerID: prisoner.prisonerID,
+      prisonerID: Number(prisoner.prisonerID),
     });
+    setFile(null); 
     setIsEditing(true);
     setShowModal(true);
   };
@@ -132,6 +147,7 @@ const PrisonersPage = () => {
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
           handleClose={handleModalClose}
+          setFile={setFile}  
         />
       ) : (
         <PrisonersList

@@ -29,7 +29,6 @@ const addPrisoner = async (req, res) => {
       gender,
       national_id,
       address_,
-      photo,
       sentence_start,
       sentence_end,
       status_,
@@ -37,6 +36,8 @@ const addPrisoner = async (req, res) => {
       cell_block_ID,
       emergency_contact_ID
     } = req.body;
+
+    const photo = req.file ? req.file.filename : null;
 
     const result = await prisonerModel.createPrisoner({
       first_name,
@@ -63,7 +64,12 @@ const addPrisoner = async (req, res) => {
 const updatePrisoner = async (req, res) => {
   try {
     const prisonerID = req.params.id;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+
+    if (req.file) {
+      updateData.photo = req.file.filename;
+    }
+
     await prisonerModel.updatePrisoner(prisonerID, updateData);
     res.send("Prisoner updated successfully");
   } catch (err) {

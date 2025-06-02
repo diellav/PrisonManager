@@ -7,6 +7,7 @@ const PrisonersForm = ({
   handleInputChange,
   handleSubmit,
   handleClose,
+  setFile, 
 }) => {
   const [cells, setCells] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -29,6 +30,10 @@ const PrisonersForm = ({
     fetchData();
   }, []);
 
+  const onFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
   return (
     <div className="card shadow mb-4">
       <div className="card-header py-3">
@@ -44,6 +49,7 @@ const PrisonersForm = ({
             e.preventDefault();
             handleSubmit();
           }}
+          encType="multipart/form-data"
         >
           <div className="row">
             {[
@@ -52,7 +58,6 @@ const PrisonersForm = ({
               { label: "Date of Birth", name: "date_of_birth", type: "date" },
               { label: "National ID", name: "national_id" },
               { label: "Address", name: "address_" },
-              { label: "Photo URL", name: "photo" },
               { label: "Sentence Start", name: "sentence_start", type: "date" },
               { label: "Sentence End", name: "sentence_end", type: "date" },
               { label: "Status", name: "status_" },
@@ -66,10 +71,21 @@ const PrisonersForm = ({
                   name={name}
                   value={form[name] || ""}
                   onChange={handleInputChange}
-                  required={name !== "photo"}
+                  required
                 />
               </div>
             ))}
+
+            <div className="col-md-6 mb-3">
+              <label>Photo</label>
+              <input
+                type="file"
+                className="form-control"
+                name="photo"
+                onChange={onFileChange}
+                accept="image/*"
+              />
+            </div>
 
             <div className="col-md-6 mb-3">
               <label>Gender</label>
