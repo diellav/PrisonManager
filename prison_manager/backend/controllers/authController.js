@@ -184,10 +184,67 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const resetPasswordDirect = async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const { password } = req.body;
+
+  if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const hashed = await bcrypt.hash(password, 10);
+
+    await poolConnect;
+    await pool.request()
+      .input('userID', sql.Int, decoded.userID)
+      .input('password_', sql.VarChar, hashed)
+      .query('UPDATE users SET password_ = @password_ WHERE userID = @userID');
+
+    res.json({ message: 'Password updated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update password' });
+  }
+};
+
+const changePassword = async (req, res) => {
+  const userID = req.user.userID;
+  const { currentPassword, newPassword } = req.body;
+  try {
+    await poolConnect;
+    const userResult = await pool.request()
+      .input('userID', sql.Int, userID)
+      .query('SELECT password_ FROM users WHERE userID = @userID');
+    
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = userResult.recordset[0];
+    const isMatch = await bcrypt.compare(currentPassword, user.password_);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await pool.request()
+      .input('userID', sql.Int, userID)
+      .input('password_', sql.VarChar, hashed)
+      .query('UPDATE users SET password_ = @password_ WHERE userID = @userID');
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to change password' });
+  }
+};
+
+
+
 module.exports = {
   loginUser,
   validateToken,
   getSidebarMenu,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  resetPasswordDirect,
+  changePassword
 };
