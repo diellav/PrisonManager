@@ -208,6 +208,7 @@ const resetPasswordDirect = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
+  
   const userID = req.user.userID;
   const { currentPassword, newPassword } = req.body;
   try {
@@ -220,12 +221,7 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const user = userResult.recordset[0];
-    const isMatch = await bcrypt.compare(currentPassword, user.password_);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
-    }
-
+    
     const hashed = await bcrypt.hash(newPassword, 10);
     await pool.request()
       .input('userID', sql.Int, userID)

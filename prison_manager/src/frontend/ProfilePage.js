@@ -51,7 +51,6 @@ const ProfilePage = () => {
 
     try {
       await axiosInstance.post('/auth/change-password', {
-        userID: user.userID,
         newPassword
       });
       setSuccess('Password changed successfully');
