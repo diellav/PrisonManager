@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 
 const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("cell_block_ID");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -40,14 +43,7 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
     const color = active ? "white" : "#343a40";
 
     return (
-      <span
-        className="ms-1 d-inline-flex flex-column"
-        style={{
-          fontSize: "0.7rem",
-          lineHeight: "0.7rem",
-          transform: "translateY(-7px)",
-        }}
-      >
+      <span className="ms-1 d-inline-flex flex-column" style={{ fontSize: "0.7rem", lineHeight: "0.7rem", transform: "translateY(-7px)" }}>
         <span style={{ color, opacity: activeAsc ? 1 : 0.3 }}>▲</span>
         <span style={{ color, opacity: activeDesc ? 1 : 0.3 }}>▼</span>
       </span>
@@ -56,10 +52,7 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
 
   const filteredCells = [...cells]
     .filter((cell) =>
-      Object.values({
-        ...cell,
-        block_name: getBlockName(cell.block_id),
-      }).some((value) =>
+      Object.values({ ...cell, block_name: getBlockName(cell.block_id) }).some((value) =>
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
       )
     )
@@ -82,9 +75,11 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
       <div className="card shadow-sm mb-4 border-0">
         <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
           <h4 className="m-0 text-primary fw-bold">Cells List</h4>
-          <button className="btn btn-primary" onClick={goToCreate}>
-            + Add Cell
-          </button>
+          {hasPermission("cells.create") && (
+            <button className="btn btn-primary" onClick={goToCreate}>
+              + Add Cell
+            </button>
+          )}
         </div>
 
         <div className="card-body">
@@ -98,10 +93,11 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
                 >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
+                  {[10, 25, 50, 100].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
                 </select>
                 entries
               </label>
@@ -142,7 +138,9 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
                       {label} {renderSortIcons(field)}
                     </th>
                   ))}
-                  <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
+                  {(hasPermission("cells.edit") || hasPermission("cells.delete")) && (
+                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -155,25 +153,28 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
                       <td>{cell.capacity}</td>
                       <td>{cell.actual_capacity}</td>
                       <td>{cell.category}</td>
-                      <td>
-                        <div style={{ display: "flex", gap: "6px" }}>
-                          <button
-                            className="btn btn-sm btn-outline-info"
-                            onClick={() => onEdit(cell)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => {
-                              setDeleteId(cell.cell_block_ID);
-                              setShowConfirm(true);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      {(hasPermission("cells.edit") || hasPermission("cells.delete")) && (
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {hasPermission("cells.edit") && (
+                              <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(cell)}>
+                                Edit
+                              </button>
+                            )}
+                            {hasPermission("cells.delete") && (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setDeleteId(cell.cell_block_ID);
+                                  setShowConfirm(true);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (
@@ -194,10 +195,7 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
             </div>
             <ul className="pagination mb-0 mt-2 mt-md-0">
               <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                >
+                <button className="page-link" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}>
                   Prev
                 </button>
               </li>
@@ -209,10 +207,7 @@ const CellsList = ({ cells, blocks, onEdit, onDelete, goToCreate }) => {
                 </li>
               ))}
               <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                >
+                <button className="page-link" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}>
                   Next
                 </button>
               </li>

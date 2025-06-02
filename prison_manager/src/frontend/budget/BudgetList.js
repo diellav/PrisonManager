@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("budget_ID");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const itemsPerPage = 10;
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -23,26 +26,10 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
     }
   };
 
-  const sortedBudgets = [...budgets]
-    .filter((budget) =>
-      Object.values(budget).some((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-    .sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentBudgets = sortedBudgets.slice(indexOfFirst, indexOfLast);
-
-  const totalPages = Math.ceil(sortedBudgets.length / itemsPerPage);
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    setCurrentPage(1);
+  };
 
   const renderSortIcons = (field) => {
     const active = sortField === field;
@@ -65,25 +52,67 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
     );
   };
 
+  const filteredBudgets = [...budgets]
+    .filter((budget) =>
+      [
+        budget.budget_ID,
+        budget.year_,
+        budget.allocated_funds,
+        budget.used_funds,
+        budget.remaining_funds,
+        budget.last_updated,
+        budget.description_,
+      ].some((val) =>
+        String(val).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    )
+    .sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentBudgets = filteredBudgets.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredBudgets.length / itemsPerPage);
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   return (
     <div>
       <div className="card shadow-sm mb-4 border-0">
-        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <div
+          className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom"
+          style={{ backgroundColor: "#4E73DF" }}
+        >
           <h4 className="m-0 text-primary fw-bold">Budget List</h4>
-          <button className="btn btn-primary" onClick={goToCreate}>
-            + Add Budget
-          </button>
+          {hasPermission("budget.create") && (
+            <button className="btn btn-primary" onClick={goToCreate}>
+              + Add Budget
+            </button>
+          )}
         </div>
+
         <div className="card-body">
           <div className="row mb-3 align-items-center">
             <div className="col-md-6 d-flex align-items-center">
               <label className="d-flex align-items-center" style={{ gap: "10px" }}>
                 Show
-                <select className="form-select form-select-sm" style={{ width: "80px" }}>
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: "80px" }}
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                >
+                  {[10, 25, 50, 100].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
                 </select>
                 entries
               </label>
@@ -106,15 +135,15 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
                 <tr>
                   {[
                     { field: "budget_ID", label: "ID" },
+                    { field: "description_", label: "Description" },
                     { field: "year_", label: "Year" },
-                    { field: "allocated_funds", label: "Allocated Funds" },
-                    { field: "used_funds", label: "Used Funds" },
-                    { field: "remaining_funds", label: "Remaining Funds" },
+                    { field: "allocated_funds", label: "Allocated" },
+                    { field: "used_funds", label: "Used" },
+                    { field: "remaining_funds", label: "Remaining" },
                     { field: "last_updated", label: "Last Updated" },
                   ].map(({ field, label }) => (
                     <th
                       key={field}
-                      className="sortable"
                       style={{
                         cursor: "pointer",
                         color: "white",
@@ -125,9 +154,11 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
                       {label} {renderSortIcons(field)}
                     </th>
                   ))}
-                  <th style={{ color: "white", backgroundColor: "#4E73DF" }}>
-                    Actions
-                  </th>
+                  {(hasPermission("budget.edit") || hasPermission("budget.delete")) && (
+                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -135,35 +166,42 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
                   currentBudgets.map((budget) => (
                     <tr key={budget.budget_ID}>
                       <td>{budget.budget_ID}</td>
+                      <td>{budget.description_}</td>
                       <td>{budget.year_}</td>
                       <td>{budget.allocated_funds}</td>
                       <td>{budget.used_funds}</td>
                       <td>{budget.remaining_funds}</td>
-                      <td>{new Date(budget.last_updated).toLocaleString()}</td>
-                      <td>
-                        <div style={{ display: "flex", gap: "6px" }}>
-                          <button
-                            className="btn btn-sm btn-outline-info"
-                            onClick={() => onEdit(budget)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => {
-                              setDeleteId(budget.budget_ID);
-                              setShowConfirm(true);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      <td>{budget.last_updated?.split("T")[0]}</td>
+                      {(hasPermission("budget.edit") || hasPermission("budget.delete")) && (
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {hasPermission("budget.edit") && (
+                              <button
+                                className="btn btn-sm btn-outline-info"
+                                onClick={() => onEdit(budget)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {hasPermission("budget.delete") && (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setDeleteId(budget.budget_ID);
+                                  setShowConfirm(true);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="text-center text-muted py-3">
+                    <td colSpan={7} className="text-center text-muted py-3">
                       No budgets found.
                     </td>
                   </tr>
@@ -175,8 +213,8 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
           <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
             <div className="small text-muted mb-2 mb-md-0">
               Showing {indexOfFirst + 1} to{" "}
-              {Math.min(indexOfLast, sortedBudgets.length)} of{" "}
-              {sortedBudgets.length} entries
+              {Math.min(indexOfLast, filteredBudgets.length)} of{" "}
+              {filteredBudgets.length} entries
             </div>
             <ul className="pagination mb-0 mt-2 mt-md-0">
               <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
@@ -210,13 +248,9 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
         </div>
       </div>
 
-      
       {showConfirm && (
         <>
-          <div
-            className="modal-backdrop fade show"
-            style={{ zIndex: 1050 }}
-          ></div>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
           <div
             className="modal show d-block"
             tabIndex="-1"
@@ -233,7 +267,7 @@ const BudgetList = ({ budgets, onEdit, onDelete, goToCreate }) => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Are you sure you want to delete this data?</p>
+                  <p>Are you sure you want to delete this budget entry?</p>
                 </div>
                 <div className="modal-footer">
                   <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>

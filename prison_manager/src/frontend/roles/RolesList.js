@@ -52,7 +52,7 @@ const RolesList = ({ roles, onEdit, onDelete, goToCreate }) => {
     );
   };
 
-  // Filter and sort roles
+
   const filteredRoles = [...roles]
     .filter((role) =>
       [role.roleID, role.name_, role.description_]
@@ -163,7 +163,7 @@ const RolesList = ({ roles, onEdit, onDelete, goToCreate }) => {
                       <td>{role.roleID}</td>
                       <td>{role.name_}</td>
                       <td>{role.description_}</td>
-                      {(hasPermission("roles.edit") || hasPermission("roles.delete")) && (
+                      {(hasPermission("roles.edit") || hasPermission("roles.delete"))  && role.name_ !== "SuperAdmin" && (
                         <td>
                           <div style={{ display: "flex", gap: "6px" }}>
                             {hasPermission("roles.edit") && (
@@ -244,7 +244,6 @@ const RolesList = ({ roles, onEdit, onDelete, goToCreate }) => {
         </div>
       </div>
 
-      {/* Confirm delete modal */}
       {showConfirm && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>

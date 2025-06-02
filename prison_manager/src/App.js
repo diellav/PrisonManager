@@ -18,8 +18,29 @@ import EmergencyContactPage from './frontend/emergencyContact/emergencyContactPa
 import BudgetPage from './frontend/budget/budgetPage';
 import LoginPage from './frontend/LoginPage';
 import ProfilePage from './frontend/ProfilePage';
-import './Bootstrap/css/sb-admin-2.css';
 import BlockPage from './frontend/blocks/BlockPage';
+import JudgePage from './frontend/judges/judgePage'; 
+import OperationalExpensesPage from './frontend/operational_expenses/OperationalExpensePage';
+import SalaryPage from './frontend/staff_salary/StaffSalaryPage';
+import AssetPage from './frontend/assets/AssetsPage';
+import PrisonersPage from './frontend/prisoners/prisonersPage';
+import ParolePage from './frontend/parole/parolePage'; 
+import ResetPasswordPage from './frontend/ResetPasswordPage';
+import ForgotPasswordPage from './frontend/ForgotPasswordPage';
+import StaffSchedulePage from './frontend/schedule/SchedulePage';
+import UserScheduleList from './frontend/UserScheduleList';
+import CasesPage from './frontend/cases/casePage'; 
+import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
+import CourtHearingPage from './frontend/court_hearings/court_hearingPage';
+import PrisonerCallPage from './frontend/prisoner_calls/prisoner_callPage';
+import './Bootstrap/css/sb-admin-2.css';
+import PrisonerMovementsPage from './frontend/prisonerMovements/prisonerMovementsPage';
+import PrisonerWorkPage from './frontend/prisoner_work/PrisonerWorkPage';
+import KitchenStaffPage from './frontend/kitchen_staff/KitchenStaffPage';
+import MaintenanceStaffPage from './frontend/maintenance_staff/maintenance_staffPage';
+
+
+import IncidentsPage from './frontend/incidents/IncidentsPage';
 import MedicalStaffPage from './frontend/medicalStaff/medicalStaffPage';
 import VisitorSignUpPage from './frontend/visitors/VisitorSignUpPage';
 import VisitorsPage from './frontend/visitors/visitorsPage';
@@ -48,6 +69,7 @@ function AppContent() {
   useEffect(() => {
     const verifyToken = async () => {
       const token = localStorage.getItem('token');
+      const publicPaths = ['/login', '/forgot-password'];
 
       if (token) {
         try {
@@ -78,16 +100,15 @@ function AppContent() {
           setIsAuthenticated(false);
           setUser(null);
           setUserType(null);
-          if (location.pathname !== '/login') {
+          if (!publicPaths.includes(location.pathname) && !location.pathname.startsWith('/reset-password')) {
             navigate('/login', { replace: true });
           }
         }
       } else {
         setIsAuthenticated(false);
         setUser(null);
-        setUserType(null);
-       if (location.pathname !== '/login' && location.pathname !== '/visitor-signup') {
-         navigate('/login', { replace: true });
+        if (!publicPaths.includes(location.pathname) && !location.pathname.startsWith('/reset-password')) {
+          navigate('/login', { replace: true });
         }
 
       }
@@ -96,7 +117,6 @@ function AppContent() {
     };
 
     verifyToken();
-
     const interval = setInterval(verifyToken, 30000);
     return () => clearInterval(interval);
   }, [location.pathname, navigate]);
@@ -169,6 +189,26 @@ function AppContent() {
             <Route path="/lawyer" element={isAuthenticated ? <LawyerPage /> : <Navigate to="/login" replace />} />
             <Route path="/emergencyContact" element={isAuthenticated ? <EmergencyContactPage /> : <Navigate to="/login" replace />} />
             <Route path="/budget" element={isAuthenticated ? <BudgetPage /> : <Navigate to="/login" replace />} />
+            <Route path="/judges" element={isAuthenticated ? <JudgePage /> : <Navigate to="/login" replace />} />
+            <Route path="/assets" element={isAuthenticated ? <AssetPage /> : <Navigate to="/login" replace />} />
+            <Route path="/operational_expenses" element={isAuthenticated ? <OperationalExpensesPage /> : <Navigate to="/login" replace />} />
+            <Route path="/staff_salaries" element={isAuthenticated ? <SalaryPage /> : <Navigate to="/login" replace />} />
+            <Route path="/prisoners" element={isAuthenticated ? <PrisonersPage /> : <Navigate to="/login" replace />} />
+            <Route path="/staff_schedule" element={isAuthenticated ? <StaffSchedulePage /> : <Navigate to="/login" replace />} />
+            <Route path="/prisoner_work" element={isAuthenticated ? <PrisonerWorkPage /> : <Navigate to="/login" replace />} />
+            <Route path="/transport_staff" element={isAuthenticated ? <TransportStaffPage /> : <Navigate to="/login" replace />} />
+            <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} />
+            <Route path="/cases" element={isAuthenticated ? <CasesPage /> : <Navigate to="/login" replace />} />
+            <Route path="/prisoner_movements" element={isAuthenticated ? <PrisonerMovementsPage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/court_hearings" element={isAuthenticated ? <CourtHearingPage /> : <Navigate to="/login" replace />} />
+            <Route path="/kitchen_staff" element={isAuthenticated ? <KitchenStaffPage /> : <Navigate to="/login" replace />} />
+            <Route path="/incidents" element={isAuthenticated ? <IncidentsPage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
+            <Route path="/prisoner_calls" element={isAuthenticated ? <PrisonerCallPage /> : <Navigate to="/login" replace />} />
+            <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />            <Route path="/reset-password" element={<ResetPasswordPage />} />
+
            <Route path="/medical_staff" element={isAuthenticated ? <MedicalStaffPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>

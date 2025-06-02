@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 
 const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("block_id");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -24,29 +27,9 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
   };
 
   const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(parseInt(e.target.value));
+    setItemsPerPage(parseInt(e.target.value, 10));
     setCurrentPage(1);
   };
-
-  const sortedBlocks = [...blocks]
-    .filter((block) =>
-      Object.values(block).some((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-    .sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentBlocks = sortedBlocks.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(sortedBlocks.length / itemsPerPage);
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const renderSortIcons = (field) => {
     const active = sortField === field;
@@ -69,15 +52,46 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
     );
   };
 
+  const filteredBlocks = [...blocks]
+    .filter((block) =>
+      [block.block_id, block.block_name, block.category]
+        .some((val) =>
+          String(val).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    )
+    .sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentBlocks = filteredBlocks.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredBlocks.length / itemsPerPage);
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   return (
     <div>
       <div className="card shadow-sm mb-4 border-0">
-        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-          <h4 className="m-0 text-primary fw-bold">Blocks List</h4>
-          <button className="btn btn-primary" onClick={goToCreate}>
-            + Add Block
-          </button>
+        <div
+          className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom"
+          style={{ backgroundColor: "#4E73DF" }}
+        >
+          <h4 className="m-0 text-primary fw-bold">Block List</h4>
+          {hasPermission("blocks.create") && (
+            <button className="btn btn-primary" onClick={goToCreate}>
+              + Add Block
+            </button>
+          )}
         </div>
+
         <div className="card-body">
           <div className="row mb-3 align-items-center">
             <div className="col-md-6 d-flex align-items-center">
@@ -89,10 +103,11 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
                 >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
+                  {[10, 25, 50, 100].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
                 </select>
                 entries
               </label>
@@ -120,6 +135,7 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
                   ].map(({ field, label }) => (
                     <th
                       key={field}
+                      className="sortable"
                       style={{
                         cursor: "pointer",
                         color: "white",
@@ -130,7 +146,11 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
                       {label} {renderSortIcons(field)}
                     </th>
                   ))}
-                  <th style={{ color: "white", backgroundColor: "#4E73DF" }}>Actions</th>
+                  {(hasPermission("blocks.edit") || hasPermission("blocks.delete")) && (
+                    <th style={{ color: "white", backgroundColor: "#4E73DF" }}>
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -140,30 +160,36 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
                       <td>{block.block_id}</td>
                       <td>{block.block_name}</td>
                       <td>{block.category}</td>
-                      <td>
-                        <div style={{ display: "flex", gap: "6px" }}>
-                          <button
-                            className="btn btn-sm btn-outline-info"
-                            onClick={() => onEdit(block)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => {
-                              setDeleteId(block.block_id);
-                              setShowConfirm(true);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      {(hasPermission("blocks.edit") || hasPermission("blocks.delete")) && (
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {hasPermission("blocks.edit") && (
+                              <button
+                                className="btn btn-sm btn-outline-info"
+                                onClick={() => onEdit(block)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {hasPermission("blocks.delete") && (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setDeleteId(block.block_id);
+                                  setShowConfirm(true);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="text-center text-muted py-3">
+                    <td colSpan={4} className="text-center text-muted py-3">
                       No blocks found.
                     </td>
                   </tr>
@@ -174,8 +200,8 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
 
           <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
             <div className="small text-muted mb-2 mb-md-0">
-              Showing {indexOfFirst + 1} to {Math.min(indexOfLast, sortedBlocks.length)} of{" "}
-              {sortedBlocks.length} entries
+              Showing {indexOfFirst + 1} to {Math.min(indexOfLast, filteredBlocks.length)} of{" "}
+              {filteredBlocks.length} entries
             </div>
             <ul className="pagination mb-0 mt-2 mt-md-0">
               <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
@@ -187,7 +213,10 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
                 </button>
               </li>
               {pageNumbers.map((number) => (
-                <li key={number} className={`page-item ${currentPage === number ? "active" : ""}`}>
+                <li
+                  key={number}
+                  className={`page-item ${currentPage === number ? "active" : ""}`}
+                >
                   <button className="page-link" onClick={() => setCurrentPage(number)}>
                     {number}
                   </button>
@@ -218,16 +247,25 @@ const BlocksList = ({ blocks, onEdit, onDelete, goToCreate }) => {
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Confirm Deletion</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowConfirm(false)}></button>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowConfirm(false)}
+                  ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Are you sure you want to delete this block?</p>
+                  <p>Are you sure you want to delete block ID {deleteId}?</p>
                 </div>
                 <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowConfirm(false)}
+                  >
                     Cancel
                   </button>
                   <button
+                    type="button"
                     className="btn btn-danger"
                     onClick={() => {
                       onDelete(deleteId);

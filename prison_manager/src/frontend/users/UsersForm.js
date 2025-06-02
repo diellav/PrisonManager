@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
 
-const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClose }) => {
+const UserForm = ({
+  form,
+  isEditing,
+  handleInputChange,
+  handleSubmit,
+  handleClose,
+  setFile,
+}) => {
   const [roles, setRoles] = useState([]);
   const [error, setError] = useState("");
+  const [selectedRoleName, setSelectedRoleName] = useState("");
+  const [isTransportStaff, setIsTransportStaff] = useState(false);
+  const [isKitchenStaff, setIsKitchenStaff] = useState(false);
+  const [isMaintenanceStaff, setIsMaintenanceStaff] = useState(false);
+  const [isGuardStaff, setIsGuardStaff] = useState(false);
+  const [isMedicalStaff, setIsMedicalStaff] = useState(false);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -12,11 +25,26 @@ const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClos
         setRoles(response.data);
       } catch (err) {
         console.error("Error fetching roles:", err);
-        setError("Failed to load roles");
+        setError("Failed to load roles.");
       }
     };
     fetchRoles();
   }, []);
+
+  useEffect(() => {
+    const selectedRole = roles.find((r) => r.roleID === Number(form.roleID));
+    const name_ = selectedRole?.name_?.toLowerCase() || "";
+    setSelectedRoleName(name_);
+    setIsTransportStaff(name_.includes("transport"));
+     setIsKitchenStaff(name_.includes("kitchen"));
+     setIsMaintenanceStaff(name_.includes("maintenance"));
+     setIsGuardStaff(name_.includes("guard"));
+     setIsMedicalStaff(name_.includes("medical"));
+  }, [form.roleID, roles]);
+
+  const onFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
   return (
     <div className="card shadow mb-4">
@@ -27,36 +55,61 @@ const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClos
       </div>
       <div className="card-body">
         {error && <div className="alert alert-danger">{error}</div>}
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit();
           }}
+          encType="multipart/form-data"
         >
           <div className="row">
-            {[{ label: "First Name", name: "first_name" },
+            {[
+              { label: "First Name", name: "first_name" },
               { label: "Last Name", name: "last_name" },
               { label: "Date of Birth", name: "date_of_birth", type: "date" },
               { label: "Phone", name: "phone" },
               { label: "Address", name: "address_" },
               { label: "Email", name: "email", type: "email" },
               { label: "Username", name: "username" },
-              { label: "Password", name: "password_", type: "password" },
-              { label: "Photo URL", name: "photo" }]
-              .map(({ label, name, type = "text" }) => (
-                <div key={name} className="col-md-6 mb-3">
-                  <label>{label}</label>
-                  <input
-                    type={type}
-                    className="form-control"
-                    name={name}
-                    value={form[name] || ""}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              ))
-            }
+            ].map(({ label, name, type = "text" }) => (
+              <div key={name} className="col-md-6 mb-3">
+                <label>{label}</label>
+                <input
+                  type={type}
+                  className="form-control"
+                  name={name}
+                  value={form[name] || ""}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            ))}
+
+            {!isEditing && (
+              <div className="col-md-6 mb-3">
+                <label>Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="password_"
+                  value={form.password_ || ""}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+
+            <div className="col-md-6 mb-3">
+              <label>Photo</label>
+              <input
+                type="file"
+                className="form-control"
+                name="photo"
+                onChange={onFileChange}
+                accept="image/*"
+              />
+            </div>
 
             <div className="col-md-6 mb-3">
               <label>Gender</label>
@@ -83,12 +136,89 @@ const UserForm = ({ form, isEditing, handleInputChange, handleSubmit, handleClos
                 required
               >
                 <option value="">Select Role</option>
-                {roles.map((role) => (
+                {roles.filter((role) => role.name_.toLowerCase() !== "superadmin").map((role) => (
                   <option key={role.roleID} value={role.roleID}>
                     {role.name_}
                   </option>
                 ))}
               </select>
+            </div>
+
+            {isTransportStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Transport Role</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="transport_role"
+                  value={form.transport_role}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+             {isKitchenStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Kitchen Role</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="kitchen_role"
+                  value={form.kitchen_role}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+            {isMaintenanceStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Maintenance Role</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="maintenance_role"
+                  value={form.maintenance_role}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+            {isGuardStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Guard Position</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="guard_position"
+                  value={form.guard_positon}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}{isMedicalStaff && (
+              <div className="col-md-6 mb-3">
+                <label>Specialty</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="specialty"
+                  value={form.specialty}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
+            <div className="col-md-6 mb-3">
+              <label>Employment Date</label>
+              <input
+                type="date" 
+                className="form-control"
+                name="employment_date"
+                value={form.employment_date || ""}
+                onChange={handleInputChange}
+                required
+              >
+              </input>
             </div>
           </div>
 

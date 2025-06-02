@@ -83,50 +83,52 @@ const RolePage = () => {
       console.error('Failed to save role:', error.response?.data || error.message);
     }
   };
-const handleEdit = async (role) => {
-  if (!hasPermission("roles.edit")) {
-    alert("No permission to edit roles.");
-    return;
-  }
 
-  try {
-    const res = await axiosInstance.get(`/roles/${role.roleID}`);
-    const roleData = res.data;
-    setForm({
-      name: roleData.name_,
-      description: roleData.description_,
-      id: roleData.roleID,
-      permissionIDs: roleData.permissionIDs || [],
-    });
-    setIsEditing(true);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (error) {
-    if (error.response?.status === 403) {
-      alert("Access denied: You do not have permission to edit this role.");
-    } else {
-      alert("Failed to fetch role details.");
+  const handleEdit = async (role) => {
+    if (!hasPermission("roles.edit")) {
+      alert("No permission to edit roles.");
+      return;
     }
-    console.error("Error fetching role details:", error.response?.data || error.message);
-  }
-};
 
+    try {
+      const res = await axiosInstance.get(`/roles/${role.roleID}`);
+      const roleData = res.data;
+      setForm({
+        name: roleData.name_,
+        description: roleData.description_,
+        id: roleData.roleID,
+        permissionIDs: roleData.permissionIDs || [],
+      });
+      setIsEditing(true);
+      setShowForm(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      if (error.response?.status === 403) {
+        alert("Access denied: You do not have permission to edit this role.");
+      } else {
+        alert("Failed to fetch role details.");
+      }
+      console.error("Error fetching role details:", error.response?.data || error.message);
+    }
+  };
 
   const handleDelete = async (id) => {
-    if (!hasPermission("roles.delete")) return showAlert("No permission to delete roles.", "danger");
-    if (window.confirm("Are you sure you want to delete this role?")) {
-      try {
-        await axiosInstance.delete(`/roles/${id}`);
-        fetchRoles();
-      } catch (err) {
-        showAlert("Failed to delete role.", "danger");
-        console.error("Error deleting role:", err.response?.data || err.message);
-      }
+    if (!hasPermission("roles.delete")) {
+      return showAlert("No permission to delete roles.", "danger");
+    }
+    try {
+      await axiosInstance.delete(`/roles/${id}`);
+      fetchRoles();
+    } catch (err) {
+      showAlert("Failed to delete role.", "danger");
+      console.error("Error deleting role:", err.response?.data || err.message);
     }
   };
 
   const handleGoToCreate = () => {
-    if (!hasPermission("roles.create")) return showAlert("No permission to create roles.", "danger");
+    if (!hasPermission("roles.create")) {
+      return showAlert("No permission to create roles.", "danger");
+    }
     resetForm();
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });

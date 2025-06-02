@@ -7,22 +7,27 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
     allocated_funds: "",
     used_funds: "",
     last_updated: "",
+    description_: "",
   });
 
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (editingBudget) {
-      setForm({
-        year: editingBudget.year || "",
-        allocated_funds: editingBudget.allocated_funds || "",
-        used_funds: editingBudget.used_funds || "",
-        last_updated: editingBudget.last_updated
-          ? editingBudget.last_updated.substring(0, 10)
-          : "",
-      });
-    }
-  }, [editingBudget]);
+ useEffect(() => {
+  if (editingBudget) {
+    setForm({
+      description_: editingBudget.description_ || "",
+      year_: editingBudget.year_ !== undefined && editingBudget.year_ !== null
+        ? editingBudget.year_.toString()
+        : "",
+      allocated_funds: editingBudget.allocated_funds?.toString() || "",
+      used_funds: editingBudget.used_funds?.toString() || "",
+      last_updated: editingBudget.last_updated
+        ? editingBudget.last_updated.substring(0, 10)
+        : "",
+    });
+  }
+}, [editingBudget]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,23 +36,30 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+      if (parseFloat(form.used_funds) > parseFloat(form.allocated_funds)) {
+        setError("Used funds cannot be greater than allocated funds.");
+        return;
+      }
+
     const remaining_funds =
       parseFloat(form.allocated_funds) - parseFloat(form.used_funds);
 
     const budgetData = {
-      year: parseInt(form.year),
+      year_: parseInt(form.year_),
       allocated_funds: parseFloat(form.allocated_funds),
       used_funds: parseFloat(form.used_funds),
       remaining_funds,
       last_updated: form.last_updated,
+      description_: form.description_,
     };
 
     try {
-     if (editingBudget && editingBudget.id) {
-  await axiosInstance.put(`/budgets/${editingBudget.id}`, budgetData);
-} else {
-  await axiosInstance.post("/budgets", budgetData);
-}
+      if (editingBudget && editingBudget.budget_ID) {
+        await axiosInstance.put(`/budgets/${editingBudget.budget_ID}`, budgetData);
+      } else {
+        await axiosInstance.post("/budgets", budgetData);
+      }
 
       onSuccess();
     } catch (err) {
@@ -68,12 +80,24 @@ const BudgetForm = ({ editingBudget, onSuccess, onCancel }) => {
         <form onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-md-6 mb-3">
+              <label>Description</label>
+              <input
+                type="text"
+                name="description_"
+                className="form-control"
+                value={form.description_}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="col-md-6 mb-3">
               <label>Year</label>
               <input
                 type="number"
-                name="year"
+                name="year_"
                 className="form-control"
-                value={form.year}
+                value={form.year_}
                 onChange={handleChange}
                 required
               />

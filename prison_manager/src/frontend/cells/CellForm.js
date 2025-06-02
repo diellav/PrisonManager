@@ -20,20 +20,21 @@ const CellForm = ({
           <div className="row">
             <div className="col-md-6 mb-3">
               <label className="form-label">Block</label>
-              <select
-                name="block_id"
-                className="form-control"
-                value={form.block_id || ""}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Select Block</option>
-                {blocks.map((block) => (
-                  <option key={block.block_id} value={block.block_id}>
-                    {block.block_name}
-                  </option>
-                ))}
-              </select>
+             <select
+              name="block_id"
+              className="form-control"
+              value={form.block_id || ""}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Block</option>
+              {(blocks || []).map((block) => (
+                <option key={block.block_id} value={block.block_id}>
+                  {block.block_name}
+                </option>
+              ))}
+            </select>
+
             </div>
 
             <div className="col-md-6 mb-3">
@@ -42,7 +43,7 @@ const CellForm = ({
                 type="text"
                 className="form-control"
                 name="cell_number"
-                value={form.cell_number}
+                value={form.cell_number || ""}
                 onChange={handleInputChange}
                 required
               />
@@ -54,7 +55,7 @@ const CellForm = ({
                 type="number"
                 className="form-control"
                 name="capacity"
-                value={form.capacity}
+                value={form.capacity || ""}
                 onChange={handleInputChange}
                 required
               />
@@ -66,7 +67,7 @@ const CellForm = ({
                 type="number"
                 className="form-control"
                 name="actual_capacity"
-                value={form.actual_capacity}
+                value={form.actual_capacity || ""}
                 onChange={handleInputChange}
                 required
               />
@@ -78,7 +79,7 @@ const CellForm = ({
                 type="text"
                 className="form-control"
                 name="category"
-                value={form.category}
+                value={form.category || ""}
                 disabled
               />
             </div>
