@@ -107,7 +107,12 @@ function AppContent() {
       } else {
         setIsAuthenticated(false);
         setUser(null);
-        if (!publicPaths.includes(location.pathname) && !location.pathname.startsWith('/reset-password')) {
+        setUserType(null);
+         if (
+          !publicPaths.includes(location.pathname) &&
+          !location.pathname.startsWith('/reset-password') &&
+          location.pathname !== '/visitor-signup'
+        ) {
           navigate('/login', { replace: true });
         }
 
@@ -180,7 +185,7 @@ function AppContent() {
             <Route path="/visitors" element={isAuthenticated ? <VisitorsPage /> : <Navigate to="/login" replace />} />
 
             
-
+            <Route path="/" element={isAuthenticated ? <Navigate to="/profile" replace /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />} />
             <Route path="/users" element={isAuthenticated ? <UserPage /> : <Navigate to="/login" replace />} />
             <Route path="/roles" element={isAuthenticated ? <RolePage /> : <Navigate to="/login" replace />} />
@@ -207,8 +212,8 @@ function AppContent() {
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
             <Route path="/prisoner_calls" element={isAuthenticated ? <PrisonerCallPage /> : <Navigate to="/login" replace />} />
-            <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />            <Route path="/reset-password" element={<ResetPasswordPage />} />
-
+            <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />          
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
            <Route path="/medical_staff" element={isAuthenticated ? <MedicalStaffPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>

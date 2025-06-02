@@ -101,6 +101,7 @@ const loginUser = async (req, res) => {
 });
 
   } catch (error) {
+    console.error('Login error:', error);
     return res.status(500).json({ message: 'Internal server error.' });
   }
 };
@@ -152,7 +153,6 @@ const getSidebarMenu = async (req, res) => {
     const menuMap = {};
     result.recordset.forEach((perm) => {
       const group = perm.group_ || 'Other';
-      const group = perm.group_ || 'Other';
       if (!menuMap[group]) {
         menuMap[group] = [];
       }
@@ -166,7 +166,9 @@ const getSidebarMenu = async (req, res) => {
       items,
     }));
     return res.json(menuSections);
+  
   } catch (err) {
+    console.error('Sidebar error:', err);
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
