@@ -35,6 +35,7 @@ const addRole = async (req, res) => {
 const updateRole = async (req, res) => {
   try {
     const { name, description, permissionIDs } = req.body;
+    console.log("Permissions received from frontend:", permissionIDs);
     await roleModel.updateRole(req.params.id, name, description, permissionIDs);
     res.send("Role updated successfully");
   } catch (err) {

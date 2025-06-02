@@ -38,7 +38,14 @@ const budgetRoutes = require("./backend/routes/budgetRoute");
 app.use("/api/budgets", verifyToken, budgetRoutes);
 
 const blockRoutes = require("./backend/routes/blockRoute");
-app.use("/api/blocks", blockRoutes);
+app.use("/api/blocks", verifyToken, blockRoutes);
+
+const medicalStaffRoutes = require("./backend/routes/medicalStaffRoute");
+app.use("/api/medical_staff", verifyToken, medicalStaffRoutes);
+
+const visitorRoutes = require('./backend/routes/visitorSignupRoute');
+app.use('/api/visitors', visitorRoutes);
+
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

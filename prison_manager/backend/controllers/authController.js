@@ -3,61 +3,104 @@ const jwt = require('jsonwebtoken');
 const { pool, poolConnect } = require('../database');
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
+
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
   try {
     await poolConnect;
 
-    const result = await pool
+    
+    const userResult = await pool
       .request()
       .input('username', username)
       .query('SELECT * FROM Users WHERE username = @username');
 
-    if (result.recordset.length === 0) {
+    if (userResult.recordset.length > 0) {
+      const user = userResult.recordset[0];
+
+      const isMatch = await bcrypt.compare(password, user.password_);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Incorrect password.' });
+      }
+
+  
+      const permissionResult = await pool
+        .request()
+        .input('roleID', user.roleID)
+        .query(`
+          SELECT p.name
+          FROM role_permissions rp
+          JOIN permissions p ON rp.permissionID = p.permissionID
+          WHERE rp.roleID = @roleID
+        `);
+
+      const permissions = permissionResult.recordset.map(p => p.name.toLowerCase());
+
+      const token = jwt.sign(
+        {
+          userID: user.userID,
+          username: user.username,
+          roleID: user.roleID,
+          permissions,
+          photo: user.photo,
+          type: 'user',
+        },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      return res.status(200).json({
+        token,
+        permissions,
+        type: 'user',
+      });
+    }
+
+
+    const visitorResult = await pool
+      .request()
+      .input('username', username)
+      .query('SELECT * FROM Visitors WHERE username = @username');
+
+    if (visitorResult.recordset.length === 0) {
       return res.status(400).json({ message: 'User does not exist.' });
     }
 
-    const user = result.recordset[0];
-    const isMatch = await bcrypt.compare(password, user.password_);
-    if (!isMatch) {
+    const visitor = visitorResult.recordset[0];
+
+    const isMatchVisitor = await bcrypt.compare(password, visitor.password);
+    if (!isMatchVisitor) {
       return res.status(400).json({ message: 'Incorrect password.' });
     }
 
-    const roleID = user.roleID;
-    const permissionResult = await pool
-      .request()
-      .input('roleID', roleID)
-      .query(`
-        SELECT p.name
-        FROM role_permissions rp
-        JOIN permissions p ON rp.permissionID = p.permissionID
-        WHERE rp.roleID = @roleID
-      `);
-    const permissions = permissionResult.recordset.map(p => p.name.toLowerCase());
-
     const token = jwt.sign(
       {
-        userID: user.userID,
-        username: user.username,
-        roleID: user.roleID,
-        permissions, 
-        photo: user.photo,
+        visitorID: visitor.visitor_ID,
+        username: visitor.username,
+        permissions: [], 
+        type: 'visitor',
       },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
 
     return res.status(200).json({
-      token,
-      permissions,
-    });
+  token,
+  permissions: [],
+  type: 'visitor',
+  user: {
+    visitorID: visitor.visitor_ID,
+    username: visitor.username,
+    type: 'visitor',
+  },
+});
+
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({ message: 'Internal server error.' });
   }
 };
-
 
 const validateToken = (req, res) => {
   const authHeader = req.headers['authorization'];
@@ -83,6 +126,12 @@ const getSidebarMenu = async (req, res) => {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+
+   
+    if (decoded.type === 'visitor') {
+      return res.json([]);
+    }
+
     const roleID = decoded.roleID;
 
     await poolConnect;
@@ -99,7 +148,7 @@ const getSidebarMenu = async (req, res) => {
 
     const menuMap = {};
     result.recordset.forEach((perm) => {
-      const group = perm.group_ || 'Other'; 
+      const group = perm.group_ || 'Other';
       if (!menuMap[group]) {
         menuMap[group] = [];
       }
@@ -118,6 +167,7 @@ const getSidebarMenu = async (req, res) => {
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
+
 module.exports = {
   loginUser,
   validateToken,

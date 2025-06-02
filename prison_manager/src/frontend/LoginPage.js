@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import axiosInstance from './axios';
-import { jwtDecode } from 'jwt-decode';
+import axiosInstance from './axios'; 
+import {jwtDecode} from 'jwt-decode'; 
+import { Link, useNavigate } from 'react-router-dom';
 
 function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,20 +15,44 @@ function LoginPage({ onLogin }) {
     try {
       const response = await axiosInstance.post('/auth/login', {
         username,
-        password
+        password,
       });
 
-      const data = response.data;
+      const { token, permissions } = response.data;
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('permissions', JSON.stringify(data.permissions || []));
-      const decoded = jwtDecode(data.token);
-      onLogin(decoded);
+      localStorage.setItem('token', token);
+      localStorage.setItem('permissions', JSON.stringify(permissions || []));
+
+ 
+      try {
+        const validateRes = await axiosInstance.get('/auth/validate');
+        const user = validateRes.data.user;
+
+        const decoded = jwtDecode(token);
+        localStorage.setItem('userType', decoded.type || user.userType || '');
+
+  
+        onLogin(user);
+
+  
+        const userType = decoded.type || user.userType;
+          if (userType === 'visitor') {
+            navigate('/visitor-dashboard', { replace: true });
+          } else {
+            navigate('/profile', { replace: true });
+          }
+
+      } catch (validationError) {
+        console.error("Token validation failed:", validationError);
+        setErrorMessage("Login failed during validation.");
+      }
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      const message =
+        error.response?.data?.message || 'Login failed. Please check your credentials.';
       setErrorMessage(message);
     }
   };
+
   return (
     <div className="bg-gradient-primary" style={{ minHeight: '100vh' }}>
       <div className="container">
@@ -50,6 +76,7 @@ function LoginPage({ onLogin }) {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
+                            autoComplete="username"
                           />
                         </div>
                         <div className="form-group">
@@ -60,6 +87,7 @@ function LoginPage({ onLogin }) {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            autoComplete="current-password"
                           />
                         </div>
                         <button type="submit" className="btn btn-primary btn-user btn-block">
@@ -71,10 +99,15 @@ function LoginPage({ onLogin }) {
                       </form>
                       <hr />
                       <div className="text-center">
-                        <a className="small" href="#">Forgot Password?</a>
+                        <a className="small" href="#">
+                          Forgot Password?
+                        </a>
                       </div>
-                      <div className="text-center">
-                        <a className="small" href="#">Create an Account!</a>
+                      <div className="mt-3 text-center">
+                        <span>Don’t have an account? </span>
+                        <Link to="/visitor-signup" className="small">
+                          Sign Up
+                        </Link>
                       </div>
                     </div>
                   </div>
