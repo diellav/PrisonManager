@@ -103,22 +103,6 @@ app.use("/api/medical_staff", verifyToken, medicalStaffRoutes);
 const visitorRoutes = require('./backend/routes/visitorSignupRoute');
 app.use('/api/visitors', visitorRoutes);
 
-
-const medicalStaffRoutes = require("./backend/routes/medicalStaffRoute");
-app.use("/api/medical_staff", verifyToken, medicalStaffRoutes);
-
-
-const visitorRoutes = require('./backend/routes/visitorSignupRoute');
-app.use('/api/visitors', visitorRoutes);
-
-
-const medicalStaffRoutes = require("./backend/routes/medicalStaffRoute");
-app.use("/api/medical_staff", verifyToken, medicalStaffRoutes);
-
-const visitorRoutes = require('./backend/routes/visitorSignupRoute');
-app.use('/api/visitors', visitorRoutes);
-
-
 const guardStaffRoute = require("./backend/routes/guardStaffRoute");
 app.use("/api/guard_staff", verifyToken, guardStaffRoute);
 
