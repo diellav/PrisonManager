@@ -127,14 +127,14 @@ const handleSubmit = async () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this prisoner?")) {
+
       try {
         await axiosInstance.delete(`/prisoners/${id}`);
         fetchPrisoners();
       } catch (err) {
         console.error("Error deleting prisoner:", err.response?.data || err.message);
       }
-    }
+
   };
 
   const handleModalOpen = () => {

@@ -173,7 +173,8 @@ const getIncidentInfo = (id) => {
                         {hasPermission("security_logs.edit") && (
                           <button
                              className="btn btn-sm btn-outline-info"
-                            onClick={() => onEdit(log.security_log_ID)}
+                            onClick={() => onEdit(log)}
+
                           >
                             Edit
                           </button>
@@ -234,15 +235,23 @@ const getIncidentInfo = (id) => {
       {showConfirm && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}>
+          <div
+            className="modal show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}
+          >
             <div className="modal-dialog">
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Confirm Deletion</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowConfirm(false)}></button>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowConfirm(false)}
+                  ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Are you sure you want to delete this log entry?</p>
+                <p>Are you sure you want to delete this log entry?</p>
                 </div>
                 <div className="modal-footer">
                   <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
@@ -262,7 +271,7 @@ const getIncidentInfo = (id) => {
             </div>
           </div>
         </>
-      )}
+        )}
     </div>
   );
 };

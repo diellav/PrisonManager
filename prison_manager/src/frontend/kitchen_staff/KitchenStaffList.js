@@ -50,30 +50,38 @@ const KitchenStaffList = ({
     );
   };
 
-  const filteredStaff = [...staff]
-    .filter((s) =>
-      [s.kitchen_staff_ID, s.userID, s.kitchen_role]
-        .some((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    .sort((a, b) => {
-      let aVal = a[sortField];
-      let bVal = b[sortField];
+const filteredStaff = [...staff]
+  .filter((s) => {
+    const user = users.find((u) => u.userID === s.userID);
+    const fullName = user ? `${user.first_name} ${user.last_name}`.toLowerCase() : "";
+    const term = searchTerm.toLowerCase();
 
-      if (sortField === "user_name") {
-        const aUser = users.find((u) => u.userID === a.userID);
-        const bUser = users.find((u) => u.userID === b.userID);
+    return (
+      String(s.kitchen_staff_ID).includes(term) ||
+      String(s.kitchen_role).toLowerCase().includes(term) ||
+      fullName.includes(term)
+    );
+  })
+  .sort((a, b) => {
+    let aVal = a[sortField];
+    let bVal = b[sortField];
 
-        aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
-        bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
-      }
+    if (sortField === "user_name") {
+      const aUser = users.find((u) => u.userID === a.userID);
+      const bUser = users.find((u) => u.userID === b.userID);
 
-      if (typeof aVal === "string") aVal = aVal.toLowerCase();
-      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+      aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
+      bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
+    }
 
-      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
+    if (typeof aVal === "string") aVal = aVal.toLowerCase();
+    if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
