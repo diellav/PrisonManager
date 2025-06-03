@@ -41,6 +41,8 @@ import MaintenanceStaffPage from './frontend/maintenance_staff/maintenance_staff
 
 
 import IncidentsPage from './frontend/incidents/IncidentsPage';
+import GuardStaffPage from './frontend/guard_staff/GuardStaffPage';
+import SecurityLogsPage from './frontend/securityLogs/SecurityLogsPage';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -170,7 +172,9 @@ function AppContent() {
             <Route path="/prisoner_movements" element={isAuthenticated ? <PrisonerMovementsPage /> : <Navigate to="/login" replace />} /> 
             <Route path="/court_hearings" element={isAuthenticated ? <CourtHearingPage /> : <Navigate to="/login" replace />} />
             <Route path="/kitchen_staff" element={isAuthenticated ? <KitchenStaffPage /> : <Navigate to="/login" replace />} />
+            <Route path="/guard_staff" element={isAuthenticated ? <GuardStaffPage /> : <Navigate to="/login" replace />} />
             <Route path="/incidents" element={isAuthenticated ? <IncidentsPage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/security_logs" element={isAuthenticated ? <SecurityLogsPage /> : <Navigate to="/login" replace />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />

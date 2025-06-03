@@ -1,6 +1,6 @@
   import React, { useState } from "react";
 
-  const TransportStaffList = ({
+  const GuardStaffList = ({
     staff,
     onEdit,
     users = [],
@@ -9,7 +9,7 @@
     const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [sortField, setSortField] = useState("transport_staff_ID");
+    const [sortField, setSortField] = useState("guard_staff_ID");
     const [sortDirection, setSortDirection] = useState("asc");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -52,7 +52,7 @@
 
     const filteredStaff = [...staff]
       .filter((s) =>
-        [s.transport_staff_ID, s.userID, s.transport_role]
+        [s.guard_staff_ID, s.userID, s.guard_position]
           .some((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
       )
       .sort((a, b) => {
@@ -81,13 +81,14 @@
     const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
     const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+
     return (
       <div className="card shadow-sm mb-4 border-0">
         <div
           className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom"
           style={{ backgroundColor: "#4E73DF" }}
         >
-          <h4 className="m-0 text-primary fw-bold">Transport Staff List</h4>
+          <h4 className="m-0 text-primary fw-bold">Guard Staff List</h4>
         </div>
 
         <div className="card-body">
@@ -127,9 +128,9 @@
               <thead className="table-light">
                 <tr>
                   {[ 
-                    { label: "ID", field: "transport_staff_ID" },
+                    { label: "ID", field: "guard_staff_ID" },
                     { label: "Staff name", field: "first_name" },
-                    { label: "Role", field: "transport_role" },
+                    { label: "Position", field: "guard_position" },
                   ].map(({ label, field }) => (
                     <th
                       key={field}
@@ -139,7 +140,7 @@
                       {label} {renderSortIcons(field)}
                     </th>
                   ))}
-                  {(hasPermission("transport_staff.edit") || hasPermission("transport_staff.delete")) && (
+                  {(hasPermission("guard_staff.edit") || hasPermission("guard_staff.delete")) && (
                     <th style={{ backgroundColor: "#4E73DF", color: "white" }}>Actions</th>
                   )}
                 </tr>
@@ -151,14 +152,14 @@
                     const userName = user ? `${user.first_name} ${user.last_name}` : s.userID;
 
                     return (
-                      <tr key={s.transport_staff_ID}>
-                        <td>{s.transport_staff_ID}</td>
+                      <tr key={s.guard_staff_ID}>
+                        <td>{s.guard_staff_ID}</td>
                         <td>{userName}</td>
-                        <td>{s.transport_role}</td>
-                        {(hasPermission("transport_staff.edit") || hasPermission("transport_staff.delete")) && (
+                        <td>{s.guard_position}</td>
+                        {(hasPermission("guard_staff.edit") || hasPermission("guard_staff.delete")) && (
                           <td>
                             <div style={{ display: "flex", gap: "6px" }}>
-                              {hasPermission("transport_staff.edit") && (
+                              {hasPermission("guard_staff.edit") && (
                                 <button
                                   className="btn btn-sm btn-outline-info"
                                   onClick={() => onEdit(s)}
@@ -175,7 +176,7 @@
                 ) : (
                   <tr>
                     <td colSpan="100%" className="text-center">
-                      No transport staff found.
+                      No guard staff found.
                     </td>
                   </tr>
                 )}
@@ -228,4 +229,4 @@
     );
   };
 
-  export default TransportStaffList;
+  export default GuardStaffList;

@@ -94,12 +94,14 @@ app.use("/api/prisoner_calls", verifyToken, prisonerCallRoute);
 const maintenanceStaffRoute = require("./backend/routes/maintenance_staffRoute");
 app.use("/api/maintenance_staff", verifyToken, maintenanceStaffRoute);
 
-
-
-
 const incidentsRoutes = require("./backend/routes/incidentsRoute");
 app.use("/api/incidents", verifyToken, incidentsRoutes);
 
+const guardStaffRoute = require("./backend/routes/guardStaffRoute");
+app.use("/api/guard_staff", verifyToken, guardStaffRoute);
+
+const securityLogsRoute = require("./backend/routes/securityLogsRoute");
+app.use("/api/security_logs", verifyToken, securityLogsRoute);
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

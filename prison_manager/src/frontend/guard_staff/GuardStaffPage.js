@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
-import MaintenanceStaffForm from "./maintenance_staffForm";
-import MaintenanceStaffList from "./maintenance_staffList";
+import GuardStaffForm from "./GuardStaffForm";
+import GuardStaffList from "./GuardStaffList";
 
-const MaintenanceStaffPage = () => {
+const GuardStaffPage = () => {
   const [staff, setStaff] = useState([]);
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(initialFormState());
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+
 
   function initialFormState() {
     return {
       userID: "",
-      maintenance_role: "",
-      maintenance_staff_ID: null,
+      guard_position: "",
+      guard_staff_ID: null,
     };
   }
 
@@ -27,10 +27,10 @@ const MaintenanceStaffPage = () => {
 
   const fetchStaff = async () => {
     try {
-      const res = await axiosInstance.get("/maintenance_staff");
+      const res = await axiosInstance.get("/guard_staff");
       setStaff(res.data);
     } catch (err) {
-      console.error("Error fetching maintenance staff:", err.response?.data || err.message);
+      console.error("Error fetching guard staff:", err.response?.data || err.message);
     }
   };
 
@@ -57,28 +57,29 @@ const MaintenanceStaffPage = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        const id = Number(form.maintenance_staff_ID);
-        if (isNaN(id)) throw new Error("Invalid maintenance_staff_ID for update.");
-        await axiosInstance.put(`/maintenance_staff/${id}`, form);
+        const id = Number(form.guard_staff_ID);
+        if (isNaN(id)) throw new Error("Invalid guard_staff_ID for update.");
+        await axiosInstance.put(`/guard_staff/${id}`, form);
       } else {
-        await axiosInstance.post("/maintenance_staff", form);
+        await axiosInstance.post("/guard_staff", form);
       }
       resetForm();
       fetchStaff();
     } catch (err) {
-      console.error("Error saving maintenance staff:", err.response?.data || err.message);
+      console.error("Error saving guard staff:", err.response?.data || err.message);
     }
   };
 
   const handleEdit = (staffMember) => {
     setForm({
       userID: staffMember.userID,
-      maintenance_role: staffMember.maintenance_role,
-      maintenance_staff_ID: Number(staffMember.maintenance_staff_ID),
+      guard_position: staffMember.guard_position,
+      guard_staff_ID: Number(staffMember.guard_staff_ID),
     });
     setIsEditing(true);
     setShowModal(true);
   };
+
 
 
   const handleModalOpen = () => {
@@ -92,9 +93,9 @@ const MaintenanceStaffPage = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Maintenance Staff Management</h2>
+      <h2 className="mb-4">Guard Staff Management</h2>
       {showModal ? (
-        <MaintenanceStaffForm
+        <GuardStaffForm
           form={form}
           isEditing={isEditing}
           handleInputChange={handleInputChange}
@@ -102,16 +103,16 @@ const MaintenanceStaffPage = () => {
           handleClose={handleModalClose}
         />
       ) : (
-        <MaintenanceStaffList
+        <GuardStaffList
           staff={staff}
           users={users}
           onEdit={handleEdit}
           goToCreate={handleModalOpen}
-          showConfirm={showConfirm}
+          showConfirm={showConfirm} 
         />
       )}
     </div>
   );
 };
 
-export default MaintenanceStaffPage;
+export default GuardStaffPage;

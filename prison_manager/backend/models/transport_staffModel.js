@@ -41,17 +41,10 @@ async function updateTransportStaff(id, data) {
     `);
 }
 
-async function deleteTransportStaff(id) {
-  await poolConnect;
-  await pool
-    .request()
-    .input("id", sql.Int, id)
-    .query("DELETE FROM transport_staff WHERE transport_staff_ID = @id");
-}
+
 
 module.exports = {
   getAllTransportStaff,
   getTransportStaffById,
   updateTransportStaff,
-  deleteTransportStaff,
 };

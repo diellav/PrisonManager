@@ -9,8 +9,7 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -76,15 +75,7 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
   const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  const openConfirm = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
-  };
 
-  const closeConfirm = () => {
-    setDeleteId(null);
-    setShowConfirm(false);
-  };
 
   return (
     <div className="card shadow-sm mb-4 border-0">
@@ -156,11 +147,6 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
                                 Edit
                               </button>
                             )}
-                            {hasPermission("maintenance_staff.delete") && (
-                              <button className="btn btn-sm btn-outline-danger" onClick={() => openConfirm(s.maintenance_staff_ID)}>
-                                Delete
-                              </button>
-                            )}
                           </div>
                         </td>
                       )}
@@ -197,31 +183,6 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
           </ul>
         </div>
       </div>
-
-      {showConfirm && (
-        <>
-          <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}>
-            <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Confirm Deletion</h5>
-                  <button type="button" className="btn-close" onClick={closeConfirm}></button>
-                </div>
-                <div className="modal-body">
-                  <p>Are you sure you want to delete maintenance staff ID {deleteId}?</p>
-                </div>
-                <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={closeConfirm}>Cancel</button>
-                  <button className="btn btn-danger" onClick={() => { onDelete(deleteId); closeConfirm(); }}>
-                    Yes, I'm sure
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 };

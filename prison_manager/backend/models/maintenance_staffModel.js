@@ -40,17 +40,10 @@ async function updateMaintenanceStaff(id, data) {
     `);
 }
 
-async function deleteMaintenanceStaff(id) {
-  await poolConnect;
-  await pool
-    .request()
-    .input("id", sql.Int, id)
-    .query("DELETE FROM maintenance_staff WHERE maintenance_staff_ID = @id");
-}
+
 
 module.exports = {
   getAllMaintenanceStaff,
   getMaintenanceStaffById,
   updateMaintenanceStaff,
-  deleteMaintenanceStaff,
 };
