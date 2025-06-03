@@ -41,12 +41,18 @@ import MaintenanceStaffPage from './frontend/maintenance_staff/maintenance_staff
 
 
 import IncidentsPage from './frontend/incidents/IncidentsPage';
+import MedicalStaffPage from './frontend/medicalStaff/medicalStaffPage';
+import VisitorSignUpPage from './frontend/visitors/VisitorSignUpPage';
+import VisitorsPage from './frontend/visitors/visitorsPage';
+
+
 import GuardStaffPage from './frontend/guard_staff/GuardStaffPage';
 import SecurityLogsPage from './frontend/securityLogs/SecurityLogsPage';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const location = useLocation();
@@ -57,7 +63,9 @@ function AppContent() {
     localStorage.removeItem('permissions');
     setIsAuthenticated(false);
     setUser(null);
+    setUserType(null);
     navigate('/login', { replace: true });
+    localStorage.removeItem('userType');
   };
 
   useEffect(() => {
@@ -79,6 +87,12 @@ function AppContent() {
             const data = await response.json();
             setIsAuthenticated(true);
             setUser(data.user);
+             setUserType(data.user.userType);
+
+          if (data.user.userType === 'visitor' && location.pathname !== '/visitor-dashboard') {
+            navigate('/visitor-dashboard', { replace: true });
+           }
+
           } else {
             throw new Error('Invalid or expired token');
           }
@@ -87,6 +101,7 @@ function AppContent() {
           localStorage.removeItem('permissions');
           setIsAuthenticated(false);
           setUser(null);
+          setUserType(null);
           if (!publicPaths.includes(location.pathname) && !location.pathname.startsWith('/reset-password')) {
             navigate('/login', { replace: true });
           }
@@ -94,9 +109,15 @@ function AppContent() {
       } else {
         setIsAuthenticated(false);
         setUser(null);
-        if (!publicPaths.includes(location.pathname) && !location.pathname.startsWith('/reset-password')) {
+        setUserType(null);
+         if (
+          !publicPaths.includes(location.pathname) &&
+          !location.pathname.startsWith('/reset-password') &&
+          location.pathname !== '/visitor-signup'
+        ) {
           navigate('/login', { replace: true });
         }
+
       }
 
       setIsCheckingAuth(false);
@@ -121,10 +142,11 @@ function AppContent() {
 
   return (
     <div id="wrapper" className="d-flex">
-      {isAuthenticated && !isLoginPage && <Sidebar onLogout={handleLogout} />}
+      {isAuthenticated && !isLoginPage && userType !== 'visitor' && <Sidebar onLogout={handleLogout} />}
+
 
       <div id="content-wrapper" className="d-flex flex-column w-100">
-        {isAuthenticated && !isLoginPage && user && (
+        {isAuthenticated && !isLoginPage && userType !== 'visitor' && user && (
           <Topbar
             username={user.username}
             photo={user.photo}
@@ -141,15 +163,30 @@ function AppContent() {
                   <Navigate to="/" replace />
                 ) : (
                   <LoginPage
-                    onLogin={(decodedUser) => {
+                    onLogin={(user) => {
                       setIsAuthenticated(true);
-                      setUser(decodedUser);
-                      navigate('/profile', { replace: true });
+                      setUser(user);
+                      setUserType(user.userType);
+
+                      if (user.userType === 'visitor') {
+                        navigate('/visitor-dashboard', { replace: true });
+                      } else {
+                        navigate('/profile', { replace: true });
+                      }
                     }}
                   />
                 )
               }
             />
+            <Route
+              path="/visitor-signup"
+              element={<VisitorSignUpPage />}
+            />
+            <Route path="/visitor-login" element={<LoginPage />} />
+
+            <Route path="/visitors" element={isAuthenticated ? <VisitorsPage /> : <Navigate to="/login" replace />} />
+
+            
             <Route path="/" element={isAuthenticated ? <Navigate to="/profile" replace /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />} />
             <Route path="/users" element={isAuthenticated ? <UserPage /> : <Navigate to="/login" replace />} />
@@ -179,7 +216,9 @@ function AppContent() {
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
             <Route path="/prisoner_calls" element={isAuthenticated ? <PrisonerCallPage /> : <Navigate to="/login" replace />} />
-            <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />
+            <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />          
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+           <Route path="/medical_staff" element={isAuthenticated ? <MedicalStaffPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>

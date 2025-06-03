@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
-
 const PrisonersForm = ({
   form,
   isEditing,
   handleInputChange,
   handleSubmit,
   handleClose,
-  setFile, 
+  setFile,
+  error,
 }) => {
   const [cells, setCells] = useState([]);
   const [contacts, setContacts] = useState([]);
-  const [error, setError] = useState("");
+
+  const onFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,15 +27,10 @@ const PrisonersForm = ({
         setContacts(contactsRes.data);
       } catch (err) {
         console.error("Error fetching cells or contacts:", err);
-        setError("Failed to load cell blocks or emergency contacts.");
       }
     };
     fetchData();
   }, []);
-
-  const onFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
 
   return (
     <div className="card shadow mb-4">

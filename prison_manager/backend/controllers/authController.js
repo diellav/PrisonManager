@@ -7,57 +7,101 @@ const { v4: uuidv4 } = require('uuid');
 const sql = require('mssql');
 const sendResetEmail = require('../utils/emailSender');
 
+
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
   try {
     await poolConnect;
 
-    const result = await pool
+    
+    const userResult = await pool
       .request()
       .input('username', username)
       .query('SELECT * FROM Users WHERE username = @username');
 
-    if (result.recordset.length === 0) {
+    if (userResult.recordset.length > 0) {
+      const user = userResult.recordset[0];
+
+      const isMatch = await bcrypt.compare(password, user.password_);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Incorrect password.' });
+      }
+
+  
+      const permissionResult = await pool
+        .request()
+        .input('roleID', user.roleID)
+        .query(`
+          SELECT p.name
+          FROM role_permissions rp
+          JOIN permissions p ON rp.permissionID = p.permissionID
+          WHERE rp.roleID = @roleID
+        `);
+
+      const permissions = permissionResult.recordset.map(p => p.name.toLowerCase());
+
+      const token = jwt.sign(
+        {
+          userID: user.userID,
+          username: user.username,
+          roleID: user.roleID,
+          permissions,
+          photo: user.photo,
+          type: 'user',
+        },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      return res.status(200).json({
+        token,
+        permissions,
+        type: 'user',
+      });
+    }
+
+
+    const visitorResult = await pool
+      .request()
+      .input('username', username)
+      .query('SELECT * FROM Visitors WHERE username = @username');
+
+    if (visitorResult.recordset.length === 0) {
       return res.status(400).json({ message: 'User does not exist.' });
     }
 
-    const user = result.recordset[0];
-    const isMatch = await bcrypt.compare(password, user.password_);
-    if (!isMatch) {
+    const visitor = visitorResult.recordset[0];
+
+    const isMatchVisitor = await bcrypt.compare(password, visitor.password);
+    if (!isMatchVisitor) {
       return res.status(400).json({ message: 'Incorrect password.' });
     }
 
-    const roleID = user.roleID;
-    const permissionResult = await pool
-      .request()
-      .input('roleID', roleID)
-      .query(`
-        SELECT p.name
-        FROM role_permissions rp
-        JOIN permissions p ON rp.permissionID = p.permissionID
-        WHERE rp.roleID = @roleID
-      `);
-    const permissions = permissionResult.recordset.map(p => p.name.toLowerCase());
-
     const token = jwt.sign(
       {
-        userID: user.userID,
-        username: user.username,
-        roleID: user.roleID,
-        permissions,
-        photo: user.photo,
-        employment_date: user.employment_date
+        visitorID: visitor.visitor_ID,
+        username: visitor.username,
+        permissions: [], 
+        type: 'visitor',
       },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
 
     return res.status(200).json({
-      token,
-      permissions,
-    });
+  token,
+  permissions: [],
+  type: 'visitor',
+  user: {
+    visitorID: visitor.visitor_ID,
+    username: visitor.username,
+    type: 'visitor',
+  },
+});
+
   } catch (error) {
+    console.error('Login error:', error);
     return res.status(500).json({ message: 'Internal server error.' });
   }
 };
@@ -86,6 +130,12 @@ const getSidebarMenu = async (req, res) => {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+
+   
+    if (decoded.type === 'visitor') {
+      return res.json([]);
+    }
+
     const roleID = decoded.roleID;
 
     await poolConnect;
@@ -116,7 +166,9 @@ const getSidebarMenu = async (req, res) => {
       items,
     }));
     return res.json(menuSections);
+  
   } catch (err) {
+    console.error('Sidebar error:', err);
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
@@ -185,10 +237,64 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const resetPasswordDirect = async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const { password } = req.body;
+
+  if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const hashed = await bcrypt.hash(password, 10);
+
+    await poolConnect;
+    await pool.request()
+      .input('userID', sql.Int, decoded.userID)
+      .input('password_', sql.VarChar, hashed)
+      .query('UPDATE users SET password_ = @password_ WHERE userID = @userID');
+
+    res.json({ message: 'Password updated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update password' });
+  }
+};
+
+const changePassword = async (req, res) => {
+  
+  const userID = req.user.userID;
+  const { currentPassword, newPassword } = req.body;
+  try {
+    await poolConnect;
+    const userResult = await pool.request()
+      .input('userID', sql.Int, userID)
+      .query('SELECT password_ FROM users WHERE userID = @userID');
+    
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await pool.request()
+      .input('userID', sql.Int, userID)
+      .input('password_', sql.VarChar, hashed)
+      .query('UPDATE users SET password_ = @password_ WHERE userID = @userID');
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to change password' });
+  }
+};
+
+
+
+
 module.exports = {
   loginUser,
   validateToken,
   getSidebarMenu,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  resetPasswordDirect,
+  changePassword
 };

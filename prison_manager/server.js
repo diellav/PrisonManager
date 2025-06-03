@@ -44,7 +44,7 @@ const budgetRoutes = require("./backend/routes/budgetRoute");
 app.use("/api/budgets", verifyToken, budgetRoutes);
 
 const blockRoutes = require("./backend/routes/blockRoute");
-app.use("/api/blocks", verifyToken, blockRoutes);
+app.use("/api/blocks", verifyToken, verifyToken, blockRoutes);
 
 const assetsRoutes = require("./backend/routes/assetsRoute");
 app.use("/api/assets", verifyToken, assetsRoutes);
@@ -97,8 +97,31 @@ app.use("/api/maintenance_staff", verifyToken, maintenanceStaffRoute);
 const incidentsRoutes = require("./backend/routes/incidentsRoute");
 app.use("/api/incidents", verifyToken, incidentsRoutes);
 
+const medicalStaffRoutes = require("./backend/routes/medicalStaffRoute");
+app.use("/api/medical_staff", verifyToken, medicalStaffRoutes);
+
+const visitorRoutes = require('./backend/routes/visitorSignupRoute');
+app.use('/api/visitors', visitorRoutes);
+
+
+const medicalStaffRoutes = require("./backend/routes/medicalStaffRoute");
+app.use("/api/medical_staff", verifyToken, medicalStaffRoutes);
+
+
+const visitorRoutes = require('./backend/routes/visitorSignupRoute');
+app.use('/api/visitors', visitorRoutes);
+
+
+const medicalStaffRoutes = require("./backend/routes/medicalStaffRoute");
+app.use("/api/medical_staff", verifyToken, medicalStaffRoutes);
+
+const visitorRoutes = require('./backend/routes/visitorSignupRoute');
+app.use('/api/visitors', visitorRoutes);
+
+
 const guardStaffRoute = require("./backend/routes/guardStaffRoute");
 app.use("/api/guard_staff", verifyToken, guardStaffRoute);
+
 
 const securityLogsRoute = require("./backend/routes/securityLogsRoute");
 app.use("/api/security_logs", verifyToken, securityLogsRoute);
