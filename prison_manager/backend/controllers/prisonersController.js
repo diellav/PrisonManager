@@ -57,6 +57,9 @@ const addPrisoner = async (req, res) => {
 
     res.status(201).json({ message: "Prisoner created", prisonerID: result.prisonerID });
   } catch (err) {
+    if (err.message.includes("Cell capacity reached")) {
+      return res.status(400).json({ error: err.message });
+    }
     res.status(500).send(err.message);
   }
 };
@@ -73,6 +76,9 @@ const updatePrisoner = async (req, res) => {
     await prisonerModel.updatePrisoner(prisonerID, updateData);
     res.send("Prisoner updated successfully");
   } catch (err) {
+    if (err.message.includes("Cell capacity reached")) {
+      return res.status(400).json({ error: err.message });
+    }
     res.status(500).send(err.message);
   }
 };
@@ -93,3 +99,5 @@ module.exports = {
   updatePrisoner,
   deletePrisoner,
 };
+
+ 

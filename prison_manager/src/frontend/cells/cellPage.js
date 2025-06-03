@@ -138,38 +138,45 @@ const CellPage = () => {
     }
   };
 const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (isEditing && !hasPermission("cells.edit")) {
-    return showAlert("You don't have permission to edit cells.", "danger");
-  }
-  if (!isEditing && !hasPermission("cells.create")) {
-    return showAlert("You don't have permission to create cells.", "danger");
-  }
-
-  try {
-    if (isEditing) {
-      const updatedForm = {
-        ...form,
-        block_id: parseInt(form.block_id),
-        capacity: parseInt(form.capacity),
-        actual_capacity: parseInt(form.actual_capacity),
-      };
-
-      await axiosInstance.put(`/cells/${parseInt(form.id)}`, updatedForm);
-    } else {
-      await axiosInstance.post("/cells", form);
+    if (isEditing && !hasPermission("cells.edit")) {
+      return showAlert("You don't have permission to edit cells.", "danger");
+    }
+    if (!isEditing && !hasPermission("cells.create")) {
+      return showAlert("You don't have permission to create cells.", "danger");
     }
 
-    setForm(initialFormState);
-    setIsEditing(false);
-    setShowModal(false);
-    fetchCells();
-  } catch (err) {
-    showAlert("Failed to save cell. Please try again.", "danger");
-    console.error("Error saving cell:", err.response?.data || err.message);
-  }
-};
+    try {
+    if (isEditing) {
+  const updatedForm = {
+    ...form,
+    block_id: parseInt(form.block_id),
+    capacity: parseInt(form.capacity),
+    actual_capacity: parseInt(form.actual_capacity),
+  };
+  await axiosInstance.put(`/cells/${parseInt(form.id)}`, updatedForm);
+} else {
+  const newCell = {
+    block_id: parseInt(form.block_id),
+    cell_number: form.cell_number,
+    capacity: parseInt(form.capacity),
+    category: form.category,
+    actual_capacity: 0
+  };
+  await axiosInstance.post("/cells", newCell);
+}
+
+
+      setForm(initialFormState);
+      setIsEditing(false);
+      setShowModal(false);
+      fetchCells();
+    } catch (err) {
+      showAlert("Failed to save cell. Please try again.", "danger");
+      console.error("Error saving cell:", err.response?.data || err.message);
+    }
+  };
 
 
   return (
