@@ -38,16 +38,13 @@ import PrisonerMovementsPage from './frontend/prisonerMovements/prisonerMovement
 import PrisonerWorkPage from './frontend/prisoner_work/PrisonerWorkPage';
 import KitchenStaffPage from './frontend/kitchen_staff/KitchenStaffPage';
 import MaintenanceStaffPage from './frontend/maintenance_staff/maintenance_staffPage';
-
-
 import IncidentsPage from './frontend/incidents/IncidentsPage';
 import MedicalStaffPage from './frontend/medicalStaff/medicalStaffPage';
 import VisitorSignUpPage from './frontend/visitors/VisitorSignUpPage';
 import VisitorsPage from './frontend/visitors/visitorsPage';
-
-
 import GuardStaffPage from './frontend/guard_staff/GuardStaffPage';
 import SecurityLogsPage from './frontend/securityLogs/SecurityLogsPage';
+import AppointmentsPage from './frontend/appointments/appointmentsPage';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -219,6 +216,7 @@ function AppContent() {
             <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />          
             <Route path="/reset-password" element={<ResetPasswordPage />} />
            <Route path="/medical_staff" element={isAuthenticated ? <MedicalStaffPage /> : <Navigate to="/login" replace />} />
+           <Route path="/appointments" element={isAuthenticated ? <AppointmentsPage /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>

@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 
-const MedicalStaffList = ({ staffList, onEdit, onDelete, goToCreate }) => {
+const MedicalStaffList = ({ staff, onEdit, users = [] }) => {
+  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("medical_staff_ID");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -21,54 +24,78 @@ const MedicalStaffList = ({ staffList, onEdit, onDelete, goToCreate }) => {
     }
   };
 
-  const filtered = [...staffList]
-    .filter((staff) =>
-      Object.values(staff).some((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    setCurrentPage(1);
+  };
+
+  const renderSortIcons = (field) => {
+    const active = sortField === field;
+    const activeAsc = active && sortDirection === "asc";
+    const activeDesc = active && sortDirection === "desc";
+    const color = active ? "white" : "#343a40";
+
+    return (
+      <span
+        className="ms-1 d-inline-flex flex-column"
+        style={{ fontSize: "0.7rem", lineHeight: "0.7rem", transform: "translateY(-7px)" }}
+      >
+        <span style={{ color, opacity: activeAsc ? 1 : 0.3 }}>▲</span>
+        <span style={{ color, opacity: activeDesc ? 1 : 0.3 }}>▼</span>
+      </span>
+    );
+  };
+
+  const filteredStaff = [...staff]
+    .filter((s) =>
+      [s.medical_staff_ID, s.userID, s.specialty]
+        .some((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
     )
     .sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+
+      if (sortField === "user_name") {
+        const aUser = users.find((u) => u.userID === a.userID);
+        const bUser = users.find((u) => u.userID === b.userID);
+
+        aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
+        bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
+      }
+
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentStaff = filtered.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-
-  const renderSortIcons = (field) => {
-    const active = sortField === field;
-    return (
-      <span className="ms-1 d-inline-flex flex-column" style={{ fontSize: "0.7rem", lineHeight: "0.7rem" }}>
-        <span style={{ color: active && sortDirection === "asc" ? "white" : "#ccc", opacity: active ? 1 : 0.4 }}>▲</span>
-        <span style={{ color: active && sortDirection === "desc" ? "white" : "#ccc", opacity: active ? 1 : 0.4 }}>▼</span>
-      </span>
-    );
-  };
+  const currentStaff = filteredStaff.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
     <div className="card shadow-sm mb-4 border-0">
-      <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+      <div
+        className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom"
+        style={{ backgroundColor: "#4E73DF" }}
+      >
         <h4 className="m-0 text-primary fw-bold">Medical Staff List</h4>
-        <button className="btn btn-primary" onClick={goToCreate}>+ Add Medical Staff</button>
       </div>
+
       <div className="card-body">
-        <div className="row mb-3">
-          <div className="col-md-6">
-            <div className="d-flex align-items-center gap-2">
-              <label>Show</label>
+        <div className="row mb-3 align-items-center">
+          <div className="col-md-6 d-flex align-items-center">
+            <label className="d-flex align-items-center" style={{ gap: "10px" }}>
+              Show
               <select
                 className="form-select form-select-sm"
                 style={{ width: "80px" }}
                 value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(parseInt(e.target.value));
-                  setCurrentPage(1);
-                }}
+                onChange={handleItemsPerPageChange}
               >
                 {[10, 25, 50, 100].map((num) => (
                   <option key={num} value={num}>
@@ -76,8 +103,8 @@ const MedicalStaffList = ({ staffList, onEdit, onDelete, goToCreate }) => {
                   </option>
                 ))}
               </select>
-              <label>entries</label>
-            </div>
+              entries
+            </label>
           </div>
           <div className="col-md-6 d-flex justify-content-md-end justify-content-start mt-2 mt-md-0">
             <input
@@ -93,66 +120,88 @@ const MedicalStaffList = ({ staffList, onEdit, onDelete, goToCreate }) => {
 
         <div className="table-responsive">
           <table className="table align-middle">
-            <thead style={{ backgroundColor: "#4E73DF", color: "white" }}>
+            <thead className="table-light">
               <tr>
-                <th onClick={() => handleSort("medical_staff_ID")} style={{ cursor: "pointer" }}>
-                  ID {renderSortIcons("medical_staff_ID")}
-                </th>
-                <th onClick={() => handleSort("userID")} style={{ cursor: "pointer" }}>
-                  User ID {renderSortIcons("userID")}
-                </th>
-                <th onClick={() => handleSort("specialty")} style={{ cursor: "pointer" }}>
-                  Specialty {renderSortIcons("specialty")}
-                </th>
-                <th>Actions</th>
+                {[
+                  { label: "ID", field: "medical_staff_ID" },
+                  { label: "Staff name", field: "first_name" },
+                  { label: "Specialty", field: "specialty" },
+                ].map(({ label, field }) => (
+                  <th
+                    key={field}
+                    style={{ cursor: "pointer", backgroundColor: "#4E73DF", color: "white" }}
+                    onClick={() => handleSort(field)}
+                  >
+                    {label} {renderSortIcons(field)}
+                  </th>
+                ))}
+                {(hasPermission("medical_staff.edit") || hasPermission("medical_staff.delete")) && (
+                  <th style={{ backgroundColor: "#4E73DF", color: "white" }}>Actions</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {currentStaff.length > 0 ? (
-                currentStaff.map((staff) => (
-                  <tr key={staff.medical_staff_ID}>
-                    <td>{staff.medical_staff_ID}</td>
-                    <td>{staff.userID}</td>
-                    <td>{staff.specialty}</td>
-                    <td>
-                      <div className="d-flex gap-2">
-                        <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(staff)}>
-                          Edit
-                        </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(staff.medical_staff_ID)}>
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                currentStaff.map((s) => {
+                  const user = users.find((u) => u.userID === s.userID);
+                  const userName = user ? `${user.first_name} ${user.last_name}` : s.userID;
+
+                  return (
+                    <tr key={s.medical_staff_ID}>
+                      <td>{s.medical_staff_ID}</td>
+                      <td>{userName}</td>
+                      <td>{s.specialty}</td>
+                      {(hasPermission("medical_staff.edit") || hasPermission("medical_staff.delete")) && (
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {hasPermission("medical_staff.edit") && (
+                              <button
+                                className="btn btn-sm btn-outline-info"
+                                onClick={() => onEdit(s)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan="4" className="text-center text-muted">
-                    No records found.
+                  <td colSpan="100%" className="text-center">
+                    No medical staff found.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
 
-          <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-            <div className="mb-2 mb-md-0">
-              Showing {filtered.length === 0 ? 0 : indexOfFirst + 1} to{" "}
-              {Math.min(indexOfLast, filtered.length)} of {filtered.length} entries
-            </div>
-            <div>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
-                <button
-                  key={number}
-                  onClick={() => setCurrentPage(number)}
-                  className={`btn btn-sm mx-1 ${number === currentPage ? "btn-primary" : "btn-outline-primary"}`}
-                >
-                  {number}
-                </button>
-              ))}
-            </div>
+        <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+          <div className="small text-muted mb-2 mb-md-0">
+            Showing {indexOfFirst + 1} to {Math.min(indexOfLast, filteredStaff.length)} of {filteredStaff.length} entries
           </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Prev
+              </button>
+            </li>
+            {pageNumbers.map((num) => (
+              <li key={num} className={`page-item ${num === currentPage ? "active" : ""}`}>
+                <button className="page-link" onClick={() => setCurrentPage(num)}>
+                  {num}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

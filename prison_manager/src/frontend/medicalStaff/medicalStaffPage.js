@@ -4,79 +4,106 @@ import MedicalStaffForm from "./medicalStaffForm";
 import MedicalStaffList from "./medicalStaffList";
 
 const MedicalStaffPage = () => {
-  const [medicalStaff, setMedicalStaff] = useState([]);
-  const [editingStaff, setEditingStaff] = useState(null);
+  const [staff, setStaff] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [form, setForm] = useState(initialFormState());
+  const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  function initialFormState() {
+    return {
+      userID: "",
+      specialty: "",
+      medical_staff_ID: null,
+    };
+  }
 
   useEffect(() => {
-    fetchMedicalStaff();
+    fetchStaff();
+    fetchUsers();
   }, []);
 
-  const fetchMedicalStaff = async () => {
-    setLoading(true);
+  const fetchStaff = async () => {
     try {
       const res = await axiosInstance.get("/medical_staff");
-      setMedicalStaff(res.data);
+      setStaff(res.data);
     } catch (err) {
-      console.error("Error fetching medical staff:", err);
-      setError("Error fetching medical staff.");
-    } finally {
-      setLoading(false);
+      console.error("Error fetching medical staff:", err.response?.data || err.message);
     }
   };
 
-  const goToCreate = () => {
-    setEditingStaff(null);
-    setShowForm(true);
-  };
-
-  const onEdit = (staff) => {
-    setEditingStaff(staff);
-    setShowForm(true);
-  };
-
-  const onDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this medical staff?")) {
-      try {
-        await axiosInstance.delete(`/medical_staff/${id}`);
-        setMedicalStaff(medicalStaff.filter((m) => m.medical_staff_ID !== id));
-      } catch (err) {
-        console.error("Error deleting medical staff:", err);
-        setError("Failed to delete medical staff.");
-      }
+  const fetchUsers = async () => {
+    try {
+      const res = await axiosInstance.get("/users");
+      setUsers(res.data);
+    } catch (err) {
+      console.error("Error fetching users:", err.response?.data || err.message);
     }
   };
 
-  const onSuccess = () => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const resetForm = () => {
+    setForm(initialFormState());
+    setIsEditing(false);
     setShowForm(false);
-    fetchMedicalStaff();
   };
 
-  const onCancel = () => {
+  const handleSubmit = async () => {
+    try {
+      if (isEditing) {
+        const id = Number(form.medical_staff_ID);
+        if (isNaN(id)) throw new Error("Invalid medical_staff_ID for update.");
+        await axiosInstance.put(`/medical_staff/${id}`, form);
+      } else {
+        await axiosInstance.post("/medical_staff", form);
+      }
+      resetForm();
+      fetchStaff();
+    } catch (err) {
+      console.error("Error saving medical staff:", err.response?.data || err.message);
+    }
+  };
+
+  const handleEdit = (staffMember) => {
+    setForm({
+      userID: staffMember.userID,
+      specialty: staffMember.specialty,
+      medical_staff_ID: Number(staffMember.medical_staff_ID),
+    });
+    setIsEditing(true);
+    setShowForm(true);
+  };
+
+  const handleFormOpen = () => {
+    resetForm();
+    setShowForm(true);
+  };
+
+  const handleFormClose = () => {
     setShowForm(false);
   };
 
   return (
-    <div>
-      <h2>Medical Staff Management</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <div className="alert alert-danger">{error}</div>
-      ) : showForm ? (
+    <div className="container mt-4">
+      <h2 className="mb-4">Medical Staff Management</h2>
+      {showForm ? (
         <MedicalStaffForm
-          editingStaff={editingStaff}
-          onSuccess={onSuccess}
-          onCancel={onCancel}
+          form={form}
+          isEditing={isEditing}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          handleClose={handleFormClose}
         />
       ) : (
         <MedicalStaffList
-          staffList={medicalStaff}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          goToCreate={goToCreate}
+          staff={staff}
+          users={users}
+          onEdit={handleEdit}
+          goToCreate={handleFormOpen}
         />
       )}
     </div>

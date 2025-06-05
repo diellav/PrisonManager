@@ -4,7 +4,16 @@ const getAllMedicalStaff = async () => {
   try {
     await poolConnect;
     const result = await pool.request()
-      .query(`SELECT medical_staff_ID, userID, specialty FROM medical_staff`);
+      .query(`
+        SELECT 
+          ms.medical_staff_ID,
+          ms.userID,
+          u.first_name,
+          u.last_name,
+          ms.specialty
+        FROM medical_staff ms
+        JOIN users u ON ms.userID = u.userID
+      `);
     return result.recordset;
   } catch (error) {
     throw error;

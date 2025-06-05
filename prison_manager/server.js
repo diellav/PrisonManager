@@ -67,17 +67,14 @@ app.use("/api/staff_schedule", verifyToken, scheduleRoute);
 const paroleRoutes = require("./backend/routes/paroleRoute");
 app.use("/api/paroles", verifyToken, paroleRoutes);
 
-
 const casesRoutes = require("./backend/routes/casesRoute"); 
 app.use("/api/cases", verifyToken, casesRoutes); 
 
 const courtHearingRoute = require("./backend/routes/court_hearingRoute");
 app.use("/api/court_hearings",verifyToken, courtHearingRoute);
 
-
 const transportStaffRoute = require("./backend/routes/transport_staffRoute");
 app.use("/api/transport_staff", verifyToken, transportStaffRoute);
-
 
 const prisonerMovementsRoutes = require("./backend/routes/prisonerMovementsRoute");
 app.use("/api/prisoner_movements", verifyToken, prisonerMovementsRoutes);
@@ -106,9 +103,11 @@ app.use('/api/visitors', visitorRoutes);
 const guardStaffRoute = require("./backend/routes/guardStaffRoute");
 app.use("/api/guard_staff", verifyToken, guardStaffRoute);
 
-
 const securityLogsRoute = require("./backend/routes/securityLogsRoute");
 app.use("/api/security_logs", verifyToken, securityLogsRoute);
+
+const appointmentRoutes = require("./backend/routes/appointmentsRoute");
+app.use("/api/appointments", verifyToken, appointmentRoutes);
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
