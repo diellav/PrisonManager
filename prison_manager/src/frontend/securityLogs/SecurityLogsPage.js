@@ -3,67 +3,49 @@ import axiosInstance from "../axios";
 import SecurityLogsForm from "./SecurityLogsForm";
 import SecurityLogsList from "./securityLogsList";
 
-const hasPermission = (permName) => {
-  const perms = JSON.parse(localStorage.getItem("permissions") || "[]");
-  return perms.includes(permName.toLowerCase());
-};
+  function getCurrentLocalDateTime() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now - offset).toISOString().slice(0, 16);
+  }
 
-const getCurrentLocalDateTime = () => {
-  const now = new Date();
-  const tzOffset = now.getTimezoneOffset() * 60000;
-  return new Date(now - tzOffset).toISOString().slice(0, 16);
-};
-
-const initialFormState = {
-  security_log_ID: null,
-  event_type: "",
-  location_: "",
-  description_: "",
-  action_taken: "",
-  time_stamp: getCurrentLocalDateTime(),
-  incident_ID: "",
-  reporting_guard_ID: "",
-};
+    function initialFormState() {
+    return {
+      security_log_ID: null,
+      event_type: "",
+      location_: "",
+      description_: "",
+      action_taken: "",
+      time_stamp: getCurrentLocalDateTime(),
+      incident_ID: "",
+      reporting_guard_ID: "",
+    };
+  }
 
 const SecurityLogsPage = () => {
   const [logs, setLogs] = useState([]);
   const [incidents, setIncidents] = useState([]);
   const [guards, setGuards] = useState([]);
-  const [form, setForm] = useState(initialFormState);
+  const [form, setForm] = useState(initialFormState());
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState({ message: "", type: "" });
+  const [formError, setFormError] = useState("");
+
+
+
 
   useEffect(() => {
-    if (hasPermission("security_logs.read")) {
-      fetchLogs();
-    } else {
-      showAlert("You don't have permission to view security logs.", "danger");
-      setLoading(false);
-    }
-
-    if (hasPermission("security_logs.create") || hasPermission("security_logs.edit")) {
-      fetchIncidents();
-      fetchGuards();
-    }
+    fetchLogs();
+    fetchIncidents();
+    fetchGuards();
   }, []);
 
-  const showAlert = (message, type = "warning") => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert({ message: "", type: "" }), 4000);
-  };
-
   const fetchLogs = async () => {
-    setLoading(true);
     try {
       const res = await axiosInstance.get("/security_logs");
       setLogs(res.data);
     } catch (err) {
-      console.error("Error fetching logs:", err);
-      showAlert("Failed to fetch logs.", "danger");
-    } finally {
-      setLoading(false);
+      console.error("Error fetching logs:", err.response?.data || err.message);
     }
   };
 
@@ -72,7 +54,7 @@ const SecurityLogsPage = () => {
       const res = await axiosInstance.get("/incidents");
       setIncidents(res.data);
     } catch (err) {
-      console.error("Error fetching incidents:", err);
+      console.error("Error fetching incidents:", err.response?.data || err.message);
     }
   };
 
@@ -81,85 +63,30 @@ const SecurityLogsPage = () => {
       const res = await axiosInstance.get("/guard_staff");
       setGuards(res.data);
     } catch (err) {
-      console.error("Error fetching guards:", err);
+      console.error("Error fetching guards:", err.response?.data || err.message);
     }
-  };
-
-  const handleEdit = (log) => {
-    if (!hasPermission("security_logs.edit")) {
-      return showAlert("You don't have permission to edit logs.", "danger");
-    }
-
-    setForm({
-      security_log_ID: log.security_log_ID || null,
-      event_type: log.event_type || "",
-      location_: log.location_ || "",
-      description_: log.description_ || "",
-      action_taken: log.action_taken || "",
-      time_stamp: log.time_stamp ? log.time_stamp.slice(0, 16) : getCurrentLocalDateTime(),
-      incident_ID: log.incident_ID || "",
-      reporting_guard_ID: log.reporting_guard_ID || "",
-    });
-
-    setIsEditing(true);
-    setShowModal(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!hasPermission("security_logs.delete")) {
-      return showAlert("You don't have permission to delete logs.", "danger");
-    }
-
-    try {
-      await axiosInstance.delete(`/security_logs/${id}`);
-      fetchLogs();
-    } catch (err) {
-      console.error("Error deleting log:", err.response?.data || err.message);
-      showAlert("Failed to delete log.", "danger");
-    }
-  };
-
-  const handleModalOpen = () => {
-    if (!hasPermission("security_logs.create")) {
-      return showAlert("You don't have permission to create logs.", "danger");
-    }
-
-    setForm({
-      ...initialFormState,
-      time_stamp: getCurrentLocalDateTime(),
-    });
-    setIsEditing(false);
-    setShowModal(true);
-  };
-
-  const handleModalClose = () => {
-    setForm({
-      ...initialFormState,
-      time_stamp: getCurrentLocalDateTime(),
-    });
-    setIsEditing(false);
-    setShowModal(false);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setForm((prevForm) => ({
-      ...prevForm,
-      [name]: name === "reporting_guard_ID" || name === "incident_ID"
-        ? Number(value) || ""
-        : value,
+    setForm((prev) => ({
+      ...prev,
+      [name]:
+        (name === "incident_ID" || name === "reporting_guard_ID") && value !== ""
+          ? Number(value)
+          : value,
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const resetForm = () => {
+    setForm(initialFormState());
+    setIsEditing(false);
+    setShowModal(false);
+    setFormError("");
+  };
 
-    if (isEditing && !hasPermission("security_logs.edit")) {
-      return showAlert("You don't have permission to edit logs.", "danger");
-    }
-    if (!isEditing && !hasPermission("security_logs.create")) {
-      return showAlert("You don't have permission to create logs.", "danger");
-    }
+  const handleSubmit = async () => {
+    setFormError("");
 
     try {
       const payload = {
@@ -169,62 +96,82 @@ const SecurityLogsPage = () => {
       };
 
       if (isEditing) {
-        if (!form.security_log_ID) {
-          showAlert("No log ID found for editing.", "danger");
-          return;
-        }
         await axiosInstance.put(`/security_logs/${form.security_log_ID}`, payload);
       } else {
         await axiosInstance.post("/security_logs", payload);
       }
 
-      setForm({
-        ...initialFormState,
-        time_stamp: getCurrentLocalDateTime(),
-      });
-      setIsEditing(false);
-      setShowModal(false);
+      resetForm();
       fetchLogs();
     } catch (err) {
       console.error("Error saving log:", err.response?.data || err.message);
-      showAlert("Failed to save log. Please try again.", "danger");
+      if (err.response?.data?.error) {
+        setFormError(err.response.data.error);
+      } else {
+        setFormError("Something went wrong while saving the log.");
+      }
     }
+  };
+
+const handleEdit = (log) => {
+
+  setForm({
+    security_log_ID: log.security_log_ID, 
+    event_type: log.event_type || "",
+    location_: log.location_ || "",
+    description_: log.description_ || "",
+    action_taken: log.action_taken || "",
+    time_stamp: log.time_stamp?.slice(0, 16) || getCurrentLocalDateTime(),
+    incident_ID: log.incident_ID ?? "",
+    reporting_guard_ID: log.reporting_guard_ID ?? "",
+  });
+  setIsEditing(true);
+  setShowModal(true);
+};
+
+
+
+  const handleDelete = async (id) => {
+      try {
+        await axiosInstance.delete(`/security_logs/${id}`);
+        fetchLogs();
+      }catch (err) {
+        console.error("Error deleting log:", err.response?.data || err.message);
+      }
+  };
+
+  const handleModalOpen = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
   };
 
   return (
     <div className="container mt-4">
-      <h2>Security Logs Management</h2>
-
-      {alert.message && (
-        <div className={`alert alert-${alert.type}`} role="alert">
-          {alert.message}
-        </div>
-      )}
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : showModal ? (
+      <h2 className="mb-4">Security Logs Management</h2>
+      {showModal ? (
         <SecurityLogsForm
           form={form}
+          isEditing={isEditing}
           incidents={incidents}
           guards={guards}
-          isEditing={isEditing}
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
           onCancel={handleModalClose}
-          setForm={setForm}
+          error={formError}
         />
-      ) : hasPermission("security_logs.read") ? (
+      ) : (
         <SecurityLogsList
           logs={logs}
           guards={guards}
           incidents={incidents}
-          onDelete={handleDelete}
           onEdit={handleEdit}
+          onDelete={handleDelete}
           goToCreate={handleModalOpen}
         />
-      ) : (
-        <p>You do not have permission to view security logs.</p>
       )}
     </div>
   );

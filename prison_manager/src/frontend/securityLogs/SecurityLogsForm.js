@@ -12,15 +12,6 @@ const SecurityLogsForm = ({
 }) => {
   const [selectedGuard, setSelectedGuard] = useState(null);
 
-useEffect(() => {
-  if (!isEditing && (!form.time_stamp || form.time_stamp === "")) {
-    const now = new Date();
-    const tzOffset = now.getTimezoneOffset() * 60000;
-    const localISOTime = new Date(now - tzOffset).toISOString().slice(0, 16);
-    setForm((prev) => ({ ...prev, time_stamp: localISOTime }));
-  }
-}, [isEditing, setForm]);
-
 
   useEffect(() => {
     if (form.reporting_guard_ID) {
@@ -104,13 +95,13 @@ useEffect(() => {
               <input
                 type="datetime-local"
                 id="time_stamp"
-                className="form-control"
                 name="time_stamp"
+                className="form-control"
                 value={form.time_stamp || ""}
                 onChange={handleInputChange}
                 required
-                disabled={isEditing} 
-              />
+                />
+
             </div>
 
             <div className="col-md-6 mb-3">
@@ -126,8 +117,7 @@ useEffect(() => {
                 {incidents.map((incident) => (
                   <option key={incident.incident_ID} value={incident.incident_ID}>
                     ID: {incident.incident_ID} Date: {incident.date_reported?.slice(0, 10)}
-                    </option>
-
+                  </option>
                 ))}
               </select>
             </div>
@@ -149,14 +139,6 @@ useEffect(() => {
                   </option>
                 ))}
               </select>
-              <div className="mt-1">
-                <small className="text-muted">
-                  Selected:{" "}
-                  {selectedGuard
-                    ? `${selectedGuard.first_name} ${selectedGuard.last_name}`
-                    : "None"}
-                </small>
-              </div>
             </div>
           </div>
 

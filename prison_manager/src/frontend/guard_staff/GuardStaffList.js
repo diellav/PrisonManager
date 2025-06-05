@@ -50,30 +50,37 @@
       );
     };
 
-    const filteredStaff = [...staff]
-      .filter((s) =>
-        [s.guard_staff_ID, s.userID, s.guard_position]
-          .some((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-      .sort((a, b) => {
-        let aVal = a[sortField];
-        let bVal = b[sortField];
+const filteredStaff = [...staff]
+  .filter((s) => {
+    const user = users.find((u) => u.userID === s.userID);
+    const userName = user ? `${user.first_name} ${user.last_name}`.toLowerCase() : "";
+    return (
+      userName.includes(searchTerm.toLowerCase()) ||
+      String(s.guard_staff_ID).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(s.userID).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(s.guard_position).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  })
+  .sort((a, b) => {
+    let aVal = a[sortField];
+    let bVal = b[sortField];
 
-        if (sortField === "user_name") {
-          const aUser = users.find((u) => u.userID === a.userID);
-          const bUser = users.find((u) => u.userID === b.userID);
+    if (sortField === "first_name") {
+      const aUser = users.find((u) => u.userID === a.userID);
+      const bUser = users.find((u) => u.userID === b.userID);
 
-          aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
-          bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
-        }
+      aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
+      bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
+    }
 
-        if (typeof aVal === "string") aVal = aVal.toLowerCase();
-        if (typeof bVal === "string") bVal = bVal.toLowerCase();
+    if (typeof aVal === "string") aVal = aVal.toLowerCase();
+    if (typeof bVal === "string") bVal = bVal.toLowerCase();
 
-        if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-        if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-        return 0;
-      });
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
 
     const indexOfLast = currentPage * itemsPerPage;
     const indexOfFirst = indexOfLast - itemsPerPage;
