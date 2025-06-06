@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-const AppointmentsList = ({
-  appointments,
+const MedicalRecordsList = ({
+  records = [],
   prisoners = [],
   medicalStaff = [],
   users = [],
@@ -13,7 +13,7 @@ const AppointmentsList = ({
   const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState("appointment_ID");
+  const [sortField, setSortField] = useState("medical_record_ID");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -28,7 +28,6 @@ const AppointmentsList = ({
   const getMedicalStaffName = (staffId) => {
     const staff = medicalStaff.find((m) => m.medical_staff_ID === staffId);
     if (!staff) return "Unknown";
-
     const user = users.find((u) => u.userID === staff.userID);
     return user ? `${user.first_name} ${user.last_name}` : "Unknown";
   };
@@ -52,27 +51,29 @@ const AppointmentsList = ({
     setCurrentPage(1);
   };
 
-  const filteredAppointments = appointments.filter((appointment) => {
-    const prisonerName = getPrisonerName(appointment.prisonerID).toLowerCase();
-    const staffName = getMedicalStaffName(appointment.medical_staff_ID).toLowerCase();
-    const dateString = (appointment.date_ || "").toLowerCase();
+  const filteredRecords = records.filter((record) => {
+    const prisonerName = getPrisonerName(record.prisonerID).toLowerCase();
+    const staffName = getMedicalStaffName(record.medical_staff_ID).toLowerCase();
+    const diagnosis = record.diagnosis?.toLowerCase() || "";
+    const treatment = record.treatment?.toLowerCase() || "";
+    const medications = record.medications?.toLowerCase() || "";
 
     return (
       prisonerName.includes(searchTerm.toLowerCase()) ||
       staffName.includes(searchTerm.toLowerCase()) ||
-      dateString.includes(searchTerm.toLowerCase()) ||
-      String(appointment.appointment_ID).includes(searchTerm)
+      diagnosis.includes(searchTerm.toLowerCase()) ||
+      treatment.includes(searchTerm.toLowerCase()) ||
+      medications.includes(searchTerm.toLowerCase()) ||
+      String(record.medical_record_ID).includes(searchTerm)
     );
   });
 
-  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
+  const sortedRecords = filteredRecords.sort((a, b) => {
     let aValue = a[sortField];
     let bValue = b[sortField];
 
-    if (sortField === "date_") {
-      aValue = new Date(aValue);
-      bValue = new Date(bValue);
-    }
+    if (typeof aValue === "string") aValue = aValue.toLowerCase();
+    if (typeof bValue === "string") bValue = bValue.toLowerCase();
 
     if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
@@ -81,8 +82,9 @@ const AppointmentsList = ({
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentAppointments = sortedAppointments.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(sortedAppointments.length / itemsPerPage);
+  const currentRecords = sortedRecords.slice(indexOfFirst, indexOfLast);
+
+  const totalPages = Math.ceil(sortedRecords.length / itemsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const renderSortIcons = (field) => {
@@ -98,9 +100,7 @@ const AppointmentsList = ({
           fontSize: "0.7rem",
           lineHeight: "0.7rem",
           transform: "translateY(-7px)",
-          userSelect: "none",
         }}
-        aria-hidden="true"
       >
         <span style={{ color, opacity: activeAsc ? 1 : 0.3 }}>▲</span>
         <span style={{ color, opacity: activeDesc ? 1 : 0.3 }}>▼</span>
@@ -125,10 +125,10 @@ const AppointmentsList = ({
     <>
       <div className="card shadow-sm mb-4 border-0">
         <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-          <h4 className="m-0 text-primary fw-bold">Appointments</h4>
-          {hasPermission("appointments.create") && (
+          <h4 className="m-0 text-primary fw-bold">Medical Records List</h4>
+          {hasPermission("medical_records.create") && (
             <button className="btn btn-primary" onClick={goToCreate}>
-              + Add Appointment
+              + Add Record
             </button>
           )}
         </div>
@@ -170,10 +170,10 @@ const AppointmentsList = ({
               <thead className="table-light">
                 <tr>
                   <th
-                    onClick={() => handleSort("appointment_ID")}
+                    onClick={() => handleSort("medical_record_ID")}
                     style={{ cursor: "pointer", backgroundColor: "#4E73DF", color: "white" }}
                   >
-                    ID {renderSortIcons("appointment_ID")}
+                    ID {renderSortIcons("medical_record_ID")}
                   </th>
                   <th
                     onClick={() => handleSort("prisonerID")}
@@ -188,43 +188,52 @@ const AppointmentsList = ({
                     Medical Staff {renderSortIcons("medical_staff_ID")}
                   </th>
                   <th
-                    onClick={() => handleSort("date_")}
+                    onClick={() => handleSort("diagnosis")}
                     style={{ cursor: "pointer", backgroundColor: "#4E73DF", color: "white" }}
                   >
-                    Date {renderSortIcons("date_")}
+                    Diagnosis {renderSortIcons("diagnosis")}
                   </th>
-                  {(hasPermission("appointments.edit") || hasPermission("appointments.delete")) && (
+                  <th
+                    onClick={() => handleSort("treatment")}
+                    style={{ cursor: "pointer", backgroundColor: "#4E73DF", color: "white" }}
+                  >
+                    Treatment {renderSortIcons("treatment")}
+                  </th>
+                  <th
+                    onClick={() => handleSort("medications")}
+                    style={{ cursor: "pointer", backgroundColor: "#4E73DF", color: "white" }}
+                  >
+                    Medications {renderSortIcons("medications")}
+                  </th>
+                  {(hasPermission("medical_records.edit") || hasPermission("medical_records.delete")) && (
                     <th style={{ backgroundColor: "#4E73DF", color: "white" }}>Actions</th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {currentAppointments.length > 0 ? (
-                  currentAppointments.map((appointment) => (
-                    <tr key={appointment.appointment_ID}>
-                      <td>{appointment.appointment_ID}</td>
-                      <td>{getPrisonerName(appointment.prisonerID)}</td>
-                      <td>{getMedicalStaffName(appointment.medical_staff_ID)}</td>
-                      <td>{appointment.date_?.split("T")[0]}</td>
-
-                      {(hasPermission("appointments.edit") || hasPermission("appointments.delete")) && (
+                {currentRecords.length > 0 ? (
+                  currentRecords.map((record) => (
+                    <tr key={record.medical_record_ID}>
+                      <td>{record.medical_record_ID}</td>
+                      <td>{getPrisonerName(record.prisonerID)}</td>
+                      <td>{getMedicalStaffName(record.medical_staff_ID)}</td>
+                      <td>{record.diagnosis}</td>
+                      <td>{record.treatment}</td>
+                      <td>{record.medications || "-"}</td>
+                      {(hasPermission("medical_records.edit") || hasPermission("medical_records.delete")) && (
                         <td>
                           <div className="d-flex gap-2">
-                            {hasPermission("appointments.edit") && (
-                              <button
-                                className="btn btn-sm btn-outline-info"
-                                onClick={() => onEdit(appointment)}
-                              >
+                            {hasPermission("medical_records.edit") && (
+                              <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(record)}>
                                 Edit
                               </button>
                             )}
-
-                            {hasPermission("appointments.delete") && (
+                            {hasPermission("medical_records.delete") && (
                               <button
                                 className="btn btn-sm btn-outline-danger"
                                 onClick={() => {
-                                  setDeleteId(appointment.appointment_ID);
                                   setShowConfirm(true);
+                                  setDeleteId(record.medical_record_ID);
                                 }}
                               >
                                 Delete
@@ -237,8 +246,8 @@ const AppointmentsList = ({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="text-center text-muted py-3">
-                      No appointments found.
+                    <td colSpan="7" className="text-center">
+                      No records found.
                     </td>
                   </tr>
                 )}
@@ -247,60 +256,60 @@ const AppointmentsList = ({
           </div>
 
           <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-            <div className="small text-muted mb-2 mb-md-0">
-              Showing {indexOfFirst + 1} to {Math.min(indexOfLast, sortedAppointments.length)} of{" "}
-              {sortedAppointments.length} entries
-            </div>
-            <ul className="pagination mb-0 mt-2 mt-md-0">
-              <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                >
-                  Prev
-                </button>
-              </li>
-              {pageNumbers.map((num) => (
-                <li key={num} className={`page-item ${num === currentPage ? "active" : ""}`}>
-                  <button className="page-link" onClick={() => setCurrentPage(num)}>
-                    {num}
-                  </button>
-                </li>
-              ))}
-              <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  Next
-                </button>
-              </li>
-            </ul>
-          </div>
+  <div className="small text-muted mb-2 mb-md-0">
+    Showing {indexOfFirst + 1} to {Math.min(indexOfLast, sortedRecords.length)} of {sortedRecords.length} entries
+  </div>
+  <ul className="pagination mb-0 mt-2 mt-md-0">
+    <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+      <button
+        className="page-link"
+        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+      >
+        Prev
+      </button>
+    </li>
+    {pageNumbers.map((number) => (
+      <li
+        key={number}
+        className={`page-item ${currentPage === number ? "active" : ""}`}
+      >
+        <button
+          className="page-link"
+          onClick={() => setCurrentPage(number)}
+        >
+          {number}
+        </button>
+      </li>
+    ))}
+    <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+      <button
+        className="page-link"
+        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+      >
+        Next
+      </button>
+    </li>
+  </ul>
+</div>
+
         </div>
       </div>
 
       {showConfirm && (
         <div
-          className="modal show"
-          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+          className="modal fade show"
           tabIndex="-1"
+          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+          aria-modal="true"
           role="dialog"
         >
-          <div className="modal-dialog modal-dialog-centered" role="document">
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Confirm Delete</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={cancelDelete}
-                  aria-label="Close"
-                ></button>
+                <button type="button" className="btn-close" onClick={cancelDelete}></button>
               </div>
-              <div className="modal-body">
-                <p>Are you sure you want to delete appointment ID {deleteId}?</p>
-              </div>
+              <div className="modal-body">Are you sure you want to delete this medical record?</div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={cancelDelete}>
                   Cancel
@@ -317,4 +326,4 @@ const AppointmentsList = ({
   );
 };
 
-export default AppointmentsList;
+export default MedicalRecordsList;

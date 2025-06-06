@@ -56,7 +56,7 @@ const fetchUsers = async () => {
  
   const fetchStaffList = async () => {
     try {
-      const res = await axiosInstance.get("/users");
+      const res = await axiosInstance.get("/medical_staff");
       setStaffList(res.data);
     } catch (err) {
       console.error("Error fetching staff list:", err);
