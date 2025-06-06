@@ -108,6 +108,9 @@ app.use("/api/security_logs", verifyToken, securityLogsRoute);
 
 const appointmentRoutes = require("./backend/routes/appointmentsRoute");
 app.use("/api/appointments", verifyToken, appointmentRoutes);
+
+const medicalRecordsRoutes = require("./backend/routes/medicalRecordsRoute");
+app.use("/api/medical_records",verifyToken, medicalRecordsRoutes);
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

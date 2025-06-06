@@ -45,6 +45,7 @@ import VisitorDashboard from './frontend/VisitorDashboard';
 import GuardStaffPage from './frontend/guard_staff/GuardStaffPage';
 import SecurityLogsPage from './frontend/securityLogs/SecurityLogsPage';
 import AppointmentsPage from './frontend/appointments/appointmentsPage';
+import MedicalRecordsPage from './frontend/medicalRecords/medicalRecordsPage';
 import './Bootstrap/css/sb-admin-2.css';
 
 function AppContent() {
@@ -194,6 +195,7 @@ function AppContent() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/medical_staff" element={isAuthenticated ? <MedicalStaffPage /> : <Navigate to="/login" replace />} />
             <Route path="/appointments" element={isAuthenticated ? <AppointmentsPage /> : <Navigate to="/login" replace />} />
+           <Route path="/medical_records" element={isAuthenticated ? <MedicalRecordsPage /> : <Navigate to="/login" replace />} />
             <Route path="/visitor-dashboard" element={isAuthenticated && userType === 'visitor' ? <VisitorDashboard /> : <Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
