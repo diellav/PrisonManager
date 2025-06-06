@@ -23,7 +23,7 @@ const getVisitorByUsername = async (username) => {
 };
 
 const createVisitor = async (visitorData) => {
-  const { first_name, last_name, username, password, email, relationship, visit_request = 0 } = visitorData;
+  const { first_name, last_name, username, password, email } = visitorData;
   await poolConnect;
   const result = await pool.request()
     .input('first_name', sql.VarChar, first_name)
@@ -31,19 +31,17 @@ const createVisitor = async (visitorData) => {
     .input('username', sql.VarChar, username)
     .input('password', sql.VarChar, password)  
     .input('email', sql.VarChar, email)
-    .input('relationship', sql.VarChar, relationship)
-    .input('visit_request', sql.Bit, visit_request)
 
     .query(
       `INSERT INTO visitors 
-       (first_name, last_name, username, password, email, relationship, visit_request)
-       VALUES (@first_name, @last_name, @username, @password, @email, @relationship, @visit_request)`
+       (first_name, last_name, username, password, email)
+       VALUES (@first_name, @last_name, @username, @password, @email)`
     );
   return result;
 };
 
 const updateVisitor = async (id, visitorData) => {
-  const { first_name, last_name, username, password, email, relationship, visit_request } = visitorData;
+  const { first_name, last_name, username, password, email } = visitorData;
   await poolConnect;
   const result = await pool.request()
     .input('id', sql.Int, id)
@@ -52,17 +50,13 @@ const updateVisitor = async (id, visitorData) => {
     .input('username', sql.VarChar, username)
     .input('password', sql.VarChar, password)
     .input('email', sql.VarChar, email)
-    .input('relationship', sql.VarChar, relationship)
-    .input('visit_request', sql.Bit, visit_request)
     .query(
       `UPDATE visitors SET 
          first_name = @first_name, 
          last_name = @last_name, 
          username = @username, 
          password = @password, 
-         email = @email, 
-         relationship = @relationship, 
-         visit_request = @visit_request
+         email = @email
        WHERE visitor_ID = @id`
     );
   return result;
@@ -82,5 +76,5 @@ module.exports = {
   getVisitorByUsername,
   createVisitor,
   updateVisitor,
-  deleteVisitor
+  deleteVisitor,
 };

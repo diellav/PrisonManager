@@ -11,7 +11,6 @@ function SignUpVisitor() {
     username: '',
     password: '',
     email: '',
-    relationship: '',
   });
 
   const [message, setMessage] = useState('');
@@ -26,7 +25,7 @@ function SignUpVisitor() {
     setMessage('');
     setError('');
     try {
-      await axiosInstance.post('/auth/visitor-signup', formData);
+      await axiosInstance.post('/visitors/signup', formData);
       console.log('Sign up successful, redirecting...');
       navigate('/login', { replace: true });
     } catch (err) {
@@ -100,18 +99,6 @@ function SignUpVisitor() {
             required
           />
         </div>
-
-        <div className="form-group">
-          <label>Relationship</label>
-          <input
-            name="relationship"
-            type="text"
-            className="form-control"
-            value={formData.relationship}
-            onChange={handleChange}
-          />
-        </div>
-
         <button type="submit" className="btn btn-primary">Sign Up</button>
       </form>
     </div>

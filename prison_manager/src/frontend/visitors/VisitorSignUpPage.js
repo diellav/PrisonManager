@@ -11,7 +11,7 @@ const VisitorSignUpPage = () => {
     username: "",
     password: "",
     email: "",
-    relationship: "",
+
   });
 
   const [success, setSuccess] = useState(false);
@@ -34,7 +34,6 @@ const VisitorSignUpPage = () => {
         username: "",
         password: "",
         email: "",
-        relationship: "",
       });
 
 
@@ -74,7 +73,6 @@ const VisitorSignUpPage = () => {
               { label: "Username", name: "username", type: "text", required: true },
               { label: "Password", name: "password", type: "password", required: true },
               { label: "Email", name: "email", type: "email", required: true },
-              { label: "Relationship", name: "relationship", type: "text", required: true },
             ].map(({ label, name, type, required }) => (
               <div className="mb-3" key={name}>
                 <label htmlFor={name} className="form-label">

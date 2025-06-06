@@ -64,7 +64,7 @@ body {
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
-  color: #858796;
+  color: #3c405b;
   text-align: left;
   background-color: #fff;
 }
@@ -9651,7 +9651,7 @@ a.text-secondary:hover, a.text-secondary:focus {
 }
 
 .text-success {
-  color: #1cc88a !important;
+  color:#1c294e !important;
 }
 
 a.text-success:hover, a.text-success:focus {

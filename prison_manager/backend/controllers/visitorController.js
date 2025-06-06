@@ -68,7 +68,7 @@ const deleteVisitor = async (req, res) => {
 
 const getVisitorProfile = async (req, res) => {
   try {
-    const visitorId = req.user.visitor_ID;
+    const visitorId = req.user.visitorID;
     const visitor = await visitorModel.getVisitorById(visitorId);
     if (!visitor) {
       return res.status(404).json({ message: 'Visitor not found' });
@@ -88,7 +88,6 @@ const signUpVisitor = async (req, res) => {
       username,
       password, 
       email,
-      relationship
     } = req.body;
 
     if (!password || password.length < 6) {
@@ -103,8 +102,6 @@ const signUpVisitor = async (req, res) => {
       username,
       password: hashedPassword,
       email,
-      relationship,
-      visit_request: 0
     };
 
     await visitorModel.createVisitor(visitorData);

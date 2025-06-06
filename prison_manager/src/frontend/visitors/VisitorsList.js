@@ -119,7 +119,6 @@ const VisitorsList = ({ visitors, onDelete }) => {
                     { field: "last_name", label: "Last Name" },
                     { field: "username", label: "Username" },
                     { field: "email", label: "Email" },
-                    { field: "relationship", label: "Relationship" },
                   ].map(({ field, label }) => (
                     <th
                       key={field}
@@ -145,7 +144,6 @@ const VisitorsList = ({ visitors, onDelete }) => {
                       <td>{visitor.last_name}</td>
                       <td>{visitor.username}</td>
                       <td>{visitor.email}</td>
-                      <td>{visitor.relationship}</td>
                       <td>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button
