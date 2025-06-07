@@ -5,7 +5,7 @@ const VisitorDashboard = () => {
   const [visitor, setVisitor] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ prisonerID: '', visit_date: '' ,relationship:''});
+  const [form, setForm] = useState({ prisonerID: '' ,relationship:'', visit_date: ''});
 
   useEffect(() => {
     fetchVisitorProfile();
@@ -22,26 +22,33 @@ const VisitorDashboard = () => {
   };
 
   const handleVisitRequest = async () => {
-    try {
-      if (!form.prisonerID || !form.visit_date) {
-        setError("Please fill in all the fields.");
-        return;
-      }
+  try {
+    if (!form.prisonerID || !form.relationship || !form.visit_date) {
+      setError("Please fill in all the fields.");
+      return;
+    }
+
+
+
 
       await axiosInstance.post('/visit-requests', {
         visitor_ID: visitor.visitor_ID,
         prisonerID: parseInt(form.prisonerID),
-        visit_date: form.visit_date,
-       relationship: form.relationship
+       relationship: form.relationship,
+       visit_date: form.visit_date
 });
 
       setSuccessMessage("Your visit request has been sent. Please wait for approval.");
-      setForm({ prisonerID: '', visit_date: '' ,relationship:''});
-    } catch (err) {
-      console.error('Failed to send visit request:', err);
+    setForm({ prisonerID: '', relationship: '', visit_date: '' });
+  } catch (err) {
+    console.error('Failed to send visit request:', err);
+    if (err.response?.status === 404) {
+      setError("The prisoner ID you entered does not exist.");
+    } else {
       setError('Could not send visit request.');
     }
-  };
+  }
+};
 
   useEffect(() => {
     if (successMessage || error) {

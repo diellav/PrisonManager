@@ -111,6 +111,13 @@ app.use("/api/appointments", verifyToken, appointmentRoutes);
 
 const medicalRecordsRoutes = require("./backend/routes/medicalRecordsRoute");
 app.use("/api/medical_records",verifyToken, medicalRecordsRoutes);
+
+const visitManagerRoute = require("./backend/routes/VisitManager");
+app.use("/api/visit-requests", verifyToken, visitManagerRoute);
+
+const visitsRoute = require('./backend/routes/visitsRoute');
+app.use('/api/visits', visitsRoute);
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
