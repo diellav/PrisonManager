@@ -1,5 +1,5 @@
 
-const db = require("../db");
+const { pool, poolConnect, sql } = require("../database");
 
 const getAllTransport = async () => {
   const result = await db.query("SELECT * FROM transport ORDER BY transport_ID");

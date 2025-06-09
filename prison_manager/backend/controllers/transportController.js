@@ -1,5 +1,5 @@
 
-const transportModel = require("./transportModel");
+const transportModel = require("../models/transportModel");
 
 const getTransport = async (req, res) => {
   try {

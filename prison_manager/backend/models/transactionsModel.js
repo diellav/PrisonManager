@@ -1,64 +1,73 @@
+
 const { pool, poolConnect, sql } = require("../database");
 
-async function getAll() {
-  await poolConnect;
-  const result = await pool.request().query("SELECT * FROM transactions");
-  return result.recordset;
-}
+const getAllTransactions = async () => {
+  const result = await db.query("SELECT * FROM transactions ORDER BY transaction_ID");
+  return result.rows;
+};
 
-async function getById(id) {
-  await poolConnect;
-  const result = await pool
-    .request()
-    .input("id", sql.Int, id)
-    .query("SELECT * FROM transactions WHERE transaction_ID = @id");
-  return result.recordset[0];
-}
+const getTransactionById = async (id) => {
+  const result = await db.query("SELECT * FROM transactions WHERE transaction_ID = $1", [id]);
+  return result.rows[0];
+};
 
-async function create(prisonerID, reference_of_purchase, amount, type_, date_) {
-  await poolConnect;
-  const result = await pool
-    .request()
-    .input("prisonerID", sql.Int, prisonerID)
-    .input("reference_of_purchase", sql.Int, reference_of_purchase)
-    .input("amount", sql.Decimal(10, 2), amount)
-    .input("type_", sql.VarChar(255), type_)
-    .input("date_", sql.Date, date_)
-    .query(
-      "INSERT INTO transactions (prisonerID, reference_of_purchase, amount, type_, date_) VALUES (@prisonerID, @reference_of_purchase, @amount, @type_, @date_)"
-    );
-  return result;
-}
+const createTransaction = async (transaction) => {
+  const {
+    prisonerID,
+    reference_of_purchase,
+    amount,
+    type_,
+    date_,
+  } = transaction;
 
-async function update(id, prisonerID, reference_of_purchase, amount, type_, date_) {
-  await poolConnect;
-  const result = await pool
-    .request()
-    .input("id", sql.Int, id)
-    .input("prisonerID", sql.Int, prisonerID)
-    .input("reference_of_purchase", sql.Int, reference_of_purchase)
-    .input("amount", sql.Decimal(10, 2), amount)
-    .input("type_", sql.VarChar(255), type_)
-    .input("date_", sql.Date, date_)
-    .query(
-      "UPDATE transactions SET prisonerID = @prisonerID, reference_of_purchase = @reference_of_purchase, amount = @amount, type_ = @type_, date_ = @date_ WHERE transaction_ID = @id"
-    );
-  return result;
-}
+  const result = await db.query(
+    `INSERT INTO transactions 
+     (prisonerID, reference_of_purchase, amount, type_, date_)
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [
+      prisonerID,
+      reference_of_purchase,
+      amount,
+      type_,
+      date_,
+    ]
+  );
+  return result.rows[0];
+};
 
-async function deleteTransaction(id) {
-  await poolConnect;
-  const result = await pool
-    .request()
-    .input("id", sql.Int, id)
-    .query("DELETE FROM transactions WHERE transaction_ID = @id");
-  return result;
-}
+const updateTransaction = async (id, transaction) => {
+  const {
+    prisonerID,
+    reference_of_purchase,
+    amount,
+    type_,
+    date_,
+  } = transaction;
+
+  const result = await db.query(
+    `UPDATE transactions SET 
+       prisonerID=$1, reference_of_purchase=$2, amount=$3, type_=$4, date_=$5
+     WHERE transaction_ID=$6 RETURNING *`,
+    [
+      prisonerID,
+      reference_of_purchase,
+      amount,
+      type_,
+      date_,
+      id,
+    ]
+  );
+  return result.rows[0];
+};
+
+const deleteTransaction = async (id) => {
+  await db.query("DELETE FROM transactions WHERE transaction_ID = $1", [id]);
+};
 
 module.exports = {
-  getAll,
-  getById,
-  create,
-  update,
-  delete: deleteTransaction,
+  getAllTransactions,
+  getTransactionById,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
 };

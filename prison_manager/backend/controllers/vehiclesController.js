@@ -1,5 +1,4 @@
-
-const vehiclesModel = require("./vehiclesModel");
+const vehiclesModel = require("../models/vehiclesModel");
 
 const getVehicles = async (req, res) => {
   try {
@@ -55,9 +54,9 @@ const deleteVehicle = async (req, res) => {
 };
 
 module.exports = {
-  getVehicles,
-  getVehicle,
-  createVehicle,
+  getAllVehicles: getVehicles,
+  getVehicleById: getVehicle,
+  addVehicle: createVehicle,
   updateVehicle,
-  deleteVehicle,
+  deleteVehicle
 };

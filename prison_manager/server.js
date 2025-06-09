@@ -97,7 +97,7 @@ app.use("/api/prisoner_accounts", verifyToken, prisonerAccountRoute);
 const prisonPurchasesRoute = require("./backend/routes/prisonPurchasesRoute");
 app.use("/api/prison_purchases", verifyToken, prisonPurchasesRoute);
 
-const transactions = require("./backend/routes/transactionsRoute");
+const transactionsRoute = require("./backend/routes/transactionsRoute");
 app.use("/api/transactions", verifyToken, transactionsRoute);
 
 const incidentsRoutes = require("./backend/routes/incidentsRoute");

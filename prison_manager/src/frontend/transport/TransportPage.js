@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
 import TransportForm from "./TransportForm";
@@ -11,8 +10,10 @@ const hasPermission = (permName) => {
 
 const TransportPage = () => {
   const [transports, setTransports] = useState([]);
+  const [prisoners, setPrisoners] = useState([]);
+  const [guards, setGuards] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [form, setForm] = useState({
-    transport_ID: null,
     prisonerID: "",
     departure_location: "",
     destination_location: "",
@@ -21,100 +22,72 @@ const TransportPage = () => {
     status_: "",
     guard_ID: "",
     vehicle_ID: "",
+    transport_ID: null,
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    if (hasPermission("transport.read")) fetchTransports();
-  }, []);
-
-  const fetchTransports = async () => {
-    try {
-      const res = await axiosInstance.get("/transport");
-      setTransports(res.data);
-    } catch (err) {
-      console.error("Failed to fetch transports:", err.response?.data || err.message);
+    if (hasPermission("transport.read")) {
+      fetchTransports();
+      fetchPrisoners();
+      fetchGuards();
+      fetchVehicles();
+    } else {
+      showAlert("You don't have permission to view transports.", "danger");
+      setLoading(false);
     }
-  };
+  }, []);
 
   const showAlert = (message, type = "warning") => {
     setAlert({ message, type });
     setTimeout(() => setAlert({ message: "", type: "" }), 4000);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchTransports = async () => {
+    setLoading(true);
     try {
-      if (isEditing && hasPermission("transport.edit")) {
-        await axiosInstance.put(`/transport/${form.transport_ID}`, form);
-      } else if (!isEditing && hasPermission("transport.create")) {
-        await axiosInstance.post("/transport", form);
-      } else {
-        return showAlert("You don't have permission to perform this action.", "danger");
-      }
-      setShowForm(false);
-      fetchTransports();
-      resetForm();
-    } catch (error) {
-      showAlert("Failed to save transport record.", "danger");
-      console.error("Failed to save transport:", error.response?.data || error.message);
-    }
-  };
-
-  const handleEdit = async (transport) => {
-    if (!hasPermission("transport.edit")) {
-      alert("No permission to edit transport records.");
-      return;
-    }
-    try {
-      const res = await axiosInstance.get(`/transport/${transport.transport_ID}`);
-      const data = res.data;
-      const formatDate = (dateString) => dateString ? new Date(dateString).toISOString().split("T")[0] : "";
-      setForm({
-        transport_ID: data.transport_ID,
-        prisonerID: data.prisonerID || "",
-        departure_location: data.departure_location || "",
-        destination_location: data.destination_location || "",
-        transport_date: formatDate(data.transport_date),
-        transport_reason: data.transport_reason || "",
-        status_: data.status_ || "",
-        guard_ID: data.guard_ID || "",
-        vehicle_ID: data.vehicle_ID || "",
-      });
-      setIsEditing(true);
-      setShowForm(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const res = await axiosInstance.get("/transport");
+      setTransports(res.data);
     } catch (err) {
-      alert("Failed to fetch transport details.");
-      console.error("Error fetching transport:", err.response?.data || err.message);
+      console.error("Error fetching transports:", err.response?.data || err.message);
+      showAlert("Error fetching transports.", "danger");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!hasPermission("transport.delete")) return showAlert("No permission to delete transport records.", "danger");
-    if (window.confirm("Are you sure you want to delete this transport record?")) {
-      try {
-        await axiosInstance.delete(`/transport/${id}`);
-        fetchTransports();
-      } catch (err) {
-        showAlert("Failed to delete transport record.", "danger");
-        console.error("Error deleting transport:", err.response?.data || err.message);
-      }
+  const fetchPrisoners = async () => {
+    try {
+      const res = await axiosInstance.get("/prisoners");
+      setPrisoners(res.data);
+    } catch (err) {
+      showAlert("Error fetching prisoners.", "danger");
     }
   };
 
-  const handleGoToCreate = () => {
-    if (!hasPermission("transport.create")) return showAlert("No permission to create transport records.", "danger");
-    resetForm();
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const fetchGuards = async () => {
+    try {
+      const res = await axiosInstance.get("/guard_staff");
+      setGuards(res.data);
+    } catch (err) {
+      showAlert("Error fetching guards.", "danger");
+    }
+  };
+
+  const fetchVehicles = async () => {
+    try {
+      const res = await axiosInstance.get("/vehicles");
+      setVehicles(res.data);
+    } catch (err) {
+      showAlert("Error fetching vehicles.", "danger");
+    }
   };
 
   const resetForm = () => {
     setForm({
-      transport_ID: null,
       prisonerID: "",
       departure_location: "",
       destination_location: "",
@@ -123,32 +96,97 @@ const TransportPage = () => {
       status_: "",
       guard_ID: "",
       vehicle_ID: "",
+      transport_ID: null,
     });
     setIsEditing(false);
   };
 
+  const handleFormSuccess = () => {
+    setShowModal(false);
+    resetForm();
+    fetchTransports();
+  };
+
+  const handleFormCancel = () => {
+    setShowModal(false);
+    resetForm();
+  };
+
+  const handleEdit = (transport) => {
+    if (!hasPermission("transport.edit")) {
+      return showAlert("You don't have permission to edit transports.", "danger");
+    }
+
+    setForm({
+      prisonerID: transport.prisonerID,
+      departure_location: transport.departure_location,
+      destination_location: transport.destination_location,
+      transport_date: transport.transport_date?.split("T")[0] || "",
+      transport_reason: transport.transport_reason,
+      status_: transport.status_,
+      guard_ID: transport.guard_ID,
+      vehicle_ID: transport.vehicle_ID,
+      transport_ID: transport.transport_ID,
+    });
+    setIsEditing(true);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!hasPermission("transport.delete")) {
+      return showAlert("You don't have permission to delete transports.", "danger");
+    }
+
+    try {
+      await axiosInstance.delete(`/transport/${id}`);
+      fetchTransports();
+    } catch (err) {
+      console.error("Error deleting transport:", err.response?.data || err.message);
+      showAlert("Failed to delete transport.", "danger");
+    }
+  };
+
+  const handleModalOpen = () => {
+    if (!hasPermission("transport.create")) {
+      return showAlert("You don't have permission to create transports.", "danger");
+    }
+    resetForm();
+    setShowModal(true);
+  };
+
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Transport Management</h2>
+      <h2>Transport Management</h2>
+
       {alert.message && (
-        <div className={`alert alert-${alert.type}`} role="alert">{alert.message}</div>
+        <div className={`alert alert-${alert.type}`} role="alert">
+          {alert.message}
+        </div>
       )}
 
-      {showForm ? (
+      {loading ? (
+        <p>Loading...</p>
+      ) : showModal ? (
         <TransportForm
-          form={form}
-          setForm={setForm}
-          isEditing={isEditing}
-          handleSubmit={handleSubmit}
-          handleClose={() => setShowForm(false)}
+          editingTransport={isEditing ? form : null}
+          onSuccess={handleFormSuccess}
+          onCancel={handleFormCancel}
+          prisoners={prisoners}
+          guards={guards}
+          vehicles={vehicles}
         />
-      ) : (
+      ) : hasPermission("transport.read") ? (
         <TransportList
           transports={transports}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          goToCreate={handleGoToCreate}
+          goToCreate={handleModalOpen}
+          prisoners={prisoners}
+          guards={guards}
+          vehicles={vehicles}
         />
+      ) : (
+        <p>You do not have permission to view transports.</p>
       )}
     </div>
   );

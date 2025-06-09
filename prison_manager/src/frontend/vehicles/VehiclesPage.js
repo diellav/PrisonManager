@@ -1,4 +1,3 @@
-// VehiclesPage.js
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
 import VehiclesForm from "./VehiclesForm";
@@ -11,145 +10,146 @@ const hasPermission = (permName) => {
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
+  const [transportStaff, setTransportStaff] = useState([]);
   const [form, setForm] = useState({
-    vehicle_ID: null,
-    plate_number: "",
-    type_: "",
-    capacity: "",
-    status_: "",
-    transport_staff_ID: "",
+    vehicleID: null,
+    vehicle_type: "",
+    license_plate: "",
+    assigned_staffID: "",
+    status: "",
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    if (hasPermission("vehicles.read")) fetchVehicles();
-  }, []);
-
-  const fetchVehicles = async () => {
-    try {
-      const res = await axiosInstance.get("/vehicles");
-      setVehicles(res.data);
-    } catch (err) {
-      console.error("Error fetching vehicles:", err.response?.data || err.message);
+    if (hasPermission("vehicles.read")) {
+      fetchVehicles();
+      fetchTransportStaff();
+    } else {
+      showAlert("You don't have permission to view vehicles.", "danger");
+      setLoading(false);
     }
-  };
+  }, []);
 
   const showAlert = (message, type = "warning") => {
     setAlert({ message, type });
     setTimeout(() => setAlert({ message: "", type: "" }), 4000);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchVehicles = async () => {
+    setLoading(true);
     try {
-      if (isEditing && hasPermission("vehicles.edit")) {
-        await axiosInstance.put(`/vehicles/${form.vehicle_ID}`, form);
-      } else if (!isEditing && hasPermission("vehicles.create")) {
-        await axiosInstance.post("/vehicles", form);
-      } else {
-        return showAlert("You don't have permission to perform this action.", "danger");
-      }
-      setShowForm(false);
-      fetchVehicles();
-      resetForm();
-    } catch (error) {
-      if (error.response?.status === 403) {
-        showAlert("Access denied: You do not have permission.", "danger");
-      } else if (
-        error.response?.status === 500 &&
-        error.response.data?.includes("duplicate key")
-      ) {
-        showAlert("Plate number already exists.", "danger");
-      } else {
-        showAlert("Failed to save vehicle. Please try again.", "danger");
-      }
-      console.error("Failed to save vehicle:", error.response?.data || error.message);
+      const res = await axiosInstance.get("/vehicles");
+      setVehicles(res.data);
+    } catch (err) {
+      console.error("Error fetching vehicles:", err.response?.data || err.message);
+      showAlert("Error fetching vehicles.", "danger");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEdit = async (vehicle) => {
-    if (!hasPermission("vehicles.edit")) {
-      alert("No permission to edit vehicles.");
-      return;
-    }
+  const fetchTransportStaff = async () => {
     try {
-      const res = await axiosInstance.get(`/vehicles/${vehicle.vehicle_ID}`);
-      const data = res.data;
-      setForm({
-        vehicle_ID: data.vehicle_ID,
-        plate_number: data.plate_number || "",
-        type_: data.type_ || "",
-        capacity: data.capacity || "",
-        status_: data.status_ || "",
-        transport_staff_ID: data.transport_staff_ID || "",
-      });
-      setIsEditing(true);
-      setShowForm(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (error) {
-      alert("Failed to fetch vehicle details.");
-      console.error("Error fetching vehicle:", error.response?.data || error.message);
+      const res = await axiosInstance.get("/transport_staff");
+      setTransportStaff(res.data);
+    } catch (err) {
+      console.error("Error fetching transport staff:", err.response?.data || err.message);
+      showAlert("Error fetching transport staff.", "danger");
     }
-  };
-
-  const handleDelete = async (id) => {
-    if (!hasPermission("vehicles.delete")) return showAlert("No permission to delete vehicles.", "danger");
-    if (window.confirm("Are you sure you want to delete this vehicle?")) {
-      try {
-        await axiosInstance.delete(`/vehicles/${id}`);
-        fetchVehicles();
-      } catch (err) {
-        showAlert("Failed to delete vehicle.", "danger");
-        console.error("Error deleting vehicle:", err.response?.data || err.message);
-      }
-    }
-  };
-
-  const handleGoToCreate = () => {
-    if (!hasPermission("vehicles.create")) return showAlert("No permission to create vehicles.", "danger");
-    resetForm();
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const resetForm = () => {
     setForm({
-      vehicle_ID: null,
-      plate_number: "",
-      type_: "",
-      capacity: "",
-      status_: "",
-      transport_staff_ID: "",
+      vehicleID: null,
+      vehicle_type: "",
+      license_plate: "",
+      assigned_staffID: "",
+      status: "",
     });
     setIsEditing(false);
   };
 
+  const handleFormSuccess = () => {
+    setShowModal(false);
+    resetForm();
+    fetchVehicles();
+  };
+
+  const handleFormCancel = () => {
+    setShowModal(false);
+    resetForm();
+  };
+
+  const handleEdit = (vehicle) => {
+    if (!hasPermission("vehicles.edit")) {
+      return showAlert("You don't have permission to edit vehicles.", "danger");
+    }
+
+    setForm({
+      vehicleID: vehicle.vehicleID,
+      vehicle_type: vehicle.vehicle_type,
+      license_plate: vehicle.license_plate,
+      assigned_staffID: vehicle.assigned_staffID,
+      status: vehicle.status,
+    });
+    setIsEditing(true);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!hasPermission("vehicles.delete")) {
+      return showAlert("You don't have permission to delete vehicles.", "danger");
+    }
+
+    try {
+      await axiosInstance.delete(`/vehicles/${id}`);
+      fetchVehicles();
+    } catch (err) {
+      console.error("Error deleting vehicle:", err.response?.data || err.message);
+      showAlert("Failed to delete vehicle.", "danger");
+    }
+  };
+
+  const handleModalOpen = () => {
+    if (!hasPermission("vehicles.create")) {
+      return showAlert("You don't have permission to create vehicles.", "danger");
+    }
+    resetForm();
+    setShowModal(true);
+  };
+
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">Vehicles Management</h2>
+      <h2>Vehicles Management</h2>
+
       {alert.message && (
         <div className={`alert alert-${alert.type}`} role="alert">
           {alert.message}
         </div>
       )}
-      {showForm && (
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : showModal ? (
         <VehiclesForm
-          form={form}
-          setForm={setForm}
-          isEditing={isEditing}
-          handleSubmit={handleSubmit}
-          handleClose={() => setShowForm(false)}
+          editingVehicle={isEditing ? form : null}
+          onSuccess={handleFormSuccess}
+          onCancel={handleFormCancel}
+          transportStaff={transportStaff}
         />
-      )}
-      {!showForm && (
+      ) : hasPermission("vehicles.read") ? (
         <VehiclesList
           vehicles={vehicles}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          goToCreate={handleGoToCreate}
+          goToCreate={handleModalOpen}
+          transportStaff={transportStaff}
         />
+      ) : (
+        <p>You do not have permission to view vehicles.</p>
       )}
     </div>
   );

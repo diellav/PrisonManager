@@ -20,18 +20,15 @@ import LoginPage from './frontend/LoginPage';
 import ProfilePage from './frontend/ProfilePage';
 import BlockPage from './frontend/blocks/BlockPage';
 import JudgePage from './frontend/judges/judgePage';
-import JudgePage from './frontend/judges/judgePage';
 import OperationalExpensesPage from './frontend/operational_expenses/OperationalExpensePage';
 import SalaryPage from './frontend/staff_salary/StaffSalaryPage';
 import AssetPage from './frontend/assets/AssetsPage';
 import PrisonersPage from './frontend/prisoners/prisonersPage';
 import ParolePage from './frontend/parole/parolePage';
-import ParolePage from './frontend/parole/parolePage';
 import ResetPasswordPage from './frontend/ResetPasswordPage';
 import ForgotPasswordPage from './frontend/ForgotPasswordPage';
 import StaffSchedulePage from './frontend/schedule/SchedulePage';
 import UserScheduleList from './frontend/UserScheduleList';
-import CasesPage from './frontend/cases/casePage';
 import CasesPage from './frontend/cases/casePage';
 import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
 import CourtHearingPage from './frontend/court_hearings/court_hearingPage';
@@ -51,12 +48,12 @@ import AppointmentsPage from './frontend/appointments/appointmentsPage';
 import MedicalRecordsPage from './frontend/medicalRecords/medicalRecordsPage';
 import VisitRequestsPage from './frontend/visitors/VisitRequestPage';
 import VisitsPage from "./frontend/visits/visitsPage"; 
-import './Bootstrap/css/sb-admin-2.css';
-import TransactionsPage from './frontend/transactions/transactionsPage';
 import PrisonPurchasesPage from './frontend/prison_purchases/prisonPurchasesPage';
 import StoreItemsPage from './frontend/store_items/StoreItemsPage';
 import VehiclesPage from './frontend/vehicles/VehiclesPage';
 import TransportPage from './frontend/transport/TransportPage';
+import PrisonerAccountsPage from './frontend/prisoner_account/PrisonerAccountsPage';
+import TransactionsPage from './frontend/transactions/transactionsPage';
 
 
 import './Bootstrap/css/sb-admin-2.css';
@@ -212,6 +209,12 @@ function AppContent() {
             <Route path="/visitor-dashboard" element={isAuthenticated && userType === 'visitor' ? <VisitorDashboard /> : <Navigate to="/login" replace />} />
             <Route path="/visit-requests" element={isAuthenticated ? ( <VisitRequestsPage />) : (  <Navigate to="/login" replace />)}/>
             <Route path="/visits" element={isAuthenticated ? ( <VisitsPage />) : (  <Navigate to="/login" replace />)}/>
+            <Route path="/transactions" element={isAuthenticated ? <TransactionsPage /> : <Navigate to="/login" replace />} />
+             <Route path="/prison_purchases" element={isAuthenticated ? <PrisonPurchasesPage /> : <Navigate to="/login" replace />} />
+            <Route path="/store_items" element={isAuthenticated ? ( <StoreItemsPage />) : (  <Navigate to="/login" replace />)}/>
+            <Route path="/vehicles" element={isAuthenticated ? ( <VehiclesPage />) : (  <Navigate to="/login" replace />)}/>
+            <Route path="/transport" element={isAuthenticated ? ( <TransportPage />) : (  <Navigate to="/login" replace />)}/>
+            <Route path="/prisoner_accounts" element={isAuthenticated ? ( <PrisonerAccountsPage />) : (  <Navigate to="/login" replace />)}/>
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>

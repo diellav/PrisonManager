@@ -4,10 +4,10 @@ const prisonPurchasesController = require("../controllers/prisonPurchasesControl
 const checkPermission = require("../checkPermission");
 const { verifyToken } = require("../authMiddleware");
 
-router.get("/", checkPermission("prisonpurchases.read"), prisonPurchasesController.getPurchases);
-router.get("/:id", checkPermission("prisonpurchases.read"), prisonPurchasesController.getPurchase);
-router.post("/", checkPermission("prisonpurchases.create"), prisonPurchasesController.addPurchase);
-router.put("/:id", checkPermission("prisonpurchases.edit"), prisonPurchasesController.updatePurchase);
-router.delete("/:id", checkPermission("prisonpurchases.delete"), prisonPurchasesController.deletePurchase);
+router.get("/", checkPermission("prison_purchases.read"), prisonPurchasesController.getPurchases);
+router.get("/:id", checkPermission("prison_purchases.read"), prisonPurchasesController.getPurchase);
+router.post("/", checkPermission("prison_purchases.create"), prisonPurchasesController.addPurchase);
+router.put("/:id", checkPermission("prison_purchases.edit"), prisonPurchasesController.updatePurchase);
+router.delete("/:id", checkPermission("prison_purchases.delete"), prisonPurchasesController.deletePurchase);
 
 module.exports = router;

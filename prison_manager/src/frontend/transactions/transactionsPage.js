@@ -10,159 +10,141 @@ const hasPermission = (permName) => {
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
-  const [purchases, setPurchases] = useState([]);
-  const [prisoners, setPrisoners] = useState([]);
+
   const [form, setForm] = useState({
+    transaction_ID: null,
     prisonerID: "",
     reference_of_purchase: "",
     amount: "",
     type_: "",
     date_: "",
-    transaction_ID: null,
+
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    if (hasPermission("transactions.read")) {
-      fetchTransactions();
-      fetchPurchases();
-      fetchPrisoners();
-    } else {
-      showAlert("You don't have permission to view transactions.", "danger");
-      setLoading(false);
-    }
+    if (hasPermission("transactions.read")) fetchTransactions();
   }, []);
+
+  
+
+  const fetchTransactions = async () => {
+
+    try {
+      const res = await axiosInstance.get("/transactions");
+      setTransactions(res.data);
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err.response?.data || err.message);
+    }
+  };
 
   const showAlert = (message, type = "warning") => {
     setAlert({ message, type });
     setTimeout(() => setAlert({ message: "", type: "" }), 4000);
   };
 
-  const fetchTransactions = async () => {
-    setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const res = await axiosInstance.get("/transactions");
-      setTransactions(res.data);
-    } catch (err) {
-      showAlert("Error fetching transactions.", "danger");
-    } finally {
-      setLoading(false);
+      if (isEditing && hasPermission("transactions.edit")) {
+        await axiosInstance.put(`/transactions/${form.transaction_ID}`, form);
+      } else if (!isEditing && hasPermission("transactions.create")) {
+        await axiosInstance.post("/transactions", form);
+      } else {
+        return showAlert("You don't have permission to perform this action.", "danger");
+      }
+      setShowForm(false);
+      fetchTransactions();
+      resetForm();
+    } catch (error) {
+      showAlert("Failed to save transaction record.", "danger");
+      console.error("Failed to save transaction:", error.response?.data || error.message);
     }
   };
 
-  const fetchPurchases = async () => {
+  const handleEdit = async (transaction) => {
+    if (!hasPermission("transactions.edit")) {
+      alert("No permission to edit transaction records.");
+      return;
+    }
     try {
-      const res = await axiosInstance.get("/prison_purchases");
-      setPurchases(res.data);
+      const res = await axiosInstance.get(`/transactions/${transaction.transaction_ID}`);
+      const data = res.data;
+      const formatDate = (dateString) => dateString ? new Date(dateString).toISOString().split("T")[0] : "";
+      setForm({
+        transaction_ID: data.transaction_ID,
+        prisonerID: data.prisonerID || "",
+        reference_of_purchase: data.reference_of_purchase || "",
+        amount: data.amount || "",
+        type_: data.type_ || "",
+        date_: formatDate(data.date_) || "",
+      });
+      setIsEditing(true);
+      setShowForm(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      showAlert("Error fetching prison purchases.", "danger");
+      alert("Failed to fetch transaction details.");
+      console.error("Error fetching transaction:", err.response?.data || err.message);
     }
   };
 
-  const fetchPrisoners = async () => {
-    try {
-      const res = await axiosInstance.get("/prisoners");
-      setPrisoners(res.data);
-    } catch (err) {
-      showAlert("Error fetching prisoners.", "danger");
+  const handleDelete = async (id) => {
+    if (!hasPermission("transactions.delete")) return showAlert("No permission to delete transaction records.", "danger");
+    if (window.confirm("Are you sure you want to delete this transaction record?")) {
+      try {
+        await axiosInstance.delete(`/transactions/${id}`);
+        fetchTransactions();
+      } catch (err) {
+        showAlert("Failed to delete transaction record.", "danger");
+        console.error("Error deleting transaction:", err.response?.data || err.message);
+      }
     }
+  };
+
+  const handleGoToCreate = () => {
+    if (!hasPermission("transactions.create")) return showAlert("No permission to create transaction records.", "danger");
+    resetForm();
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const resetForm = () => {
     setForm({
+      transaction_ID: null,
       prisonerID: "",
       reference_of_purchase: "",
       amount: "",
       type_: "",
       date_: "",
-      transaction_ID: null,
     });
     setIsEditing(false);
   };
 
-  const handleFormSuccess = () => {
-    setShowModal(false);
-    resetForm();
-    fetchTransactions();
-  };
-
-  const handleFormCancel = () => {
-    setShowModal(false);
-    resetForm();
-  };
-
-  const handleEdit = (transaction) => {
-    if (!hasPermission("transactions.edit")) {
-      return showAlert("You don't have permission to edit transactions.", "danger");
-    }
-
-    setForm({
-      prisonerID: transaction.prisonerID,
-      reference_of_purchase: transaction.reference_of_purchase,
-      amount: transaction.amount,
-      type_: transaction.type_,
-      date_: transaction.date_?.split("T")[0] || "",
-      transaction_ID: transaction.transaction_ID,
-    });
-    setIsEditing(true);
-    setShowModal(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!hasPermission("transactions.delete")) {
-      return showAlert("You don't have permission to delete transactions.", "danger");
-    }
-
-    try {
-      await axiosInstance.delete(`/transactions/${id}`);
-      fetchTransactions();
-    } catch (err) {
-      showAlert("Failed to delete transaction.", "danger");
-    }
-  };
-
-  const handleModalOpen = () => {
-    if (!hasPermission("transactions.create")) {
-      return showAlert("You don't have permission to create transactions.", "danger");
-    }
-    resetForm();
-    setShowModal(true);
-  };
-
   return (
     <div className="container mt-4">
-      <h2>Transaction Management</h2>
-
+      <h2 className="mb-4">Transaction Management</h2>
       {alert.message && (
-        <div className={`alert alert-${alert.type}`} role="alert">
-          {alert.message}
-        </div>
+        <div className={`alert alert-${alert.type}`} role="alert">{alert.message}</div>
       )}
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : showModal ? (
+      {showForm ? (
         <TransactionsForm
-          editingTransaction={isEditing ? form : null}
-          onSuccess={handleFormSuccess}
-          onCancel={handleFormCancel}
-          prisoners={prisoners}
-          purchases={purchases}
+          form={form}
+          setForm={setForm}
+          isEditing={isEditing}
+          handleSubmit={handleSubmit}
+          handleClose={() => setShowForm(false)}
         />
-      ) : hasPermission("transactions.read") ? (
+      ) : (
         <TransactionsList
           transactions={transactions}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          goToCreate={handleModalOpen}
-          prisoners={prisoners}
-          purchases={purchases}
+          goToCreate={handleGoToCreate}
         />
-      ) : (
-        <p>You do not have permission to view transactions.</p>
+
       )}
     </div>
   );
