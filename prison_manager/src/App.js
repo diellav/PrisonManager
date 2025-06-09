@@ -19,28 +19,34 @@ import BudgetPage from './frontend/budget/budgetPage';
 import LoginPage from './frontend/LoginPage';
 import ProfilePage from './frontend/ProfilePage';
 import BlockPage from './frontend/blocks/BlockPage';
-import JudgePage from './frontend/judges/judgePage'; 
+import JudgePage from './frontend/judges/judgePage';
 import OperationalExpensesPage from './frontend/operational_expenses/OperationalExpensePage';
 import SalaryPage from './frontend/staff_salary/StaffSalaryPage';
 import AssetPage from './frontend/assets/AssetsPage';
 import PrisonersPage from './frontend/prisoners/prisonersPage';
-import ParolePage from './frontend/parole/parolePage'; 
+import ParolePage from './frontend/parole/parolePage';
 import ResetPasswordPage from './frontend/ResetPasswordPage';
 import ForgotPasswordPage from './frontend/ForgotPasswordPage';
 import StaffSchedulePage from './frontend/schedule/SchedulePage';
 import UserScheduleList from './frontend/UserScheduleList';
-import CasesPage from './frontend/cases/casePage'; 
+import CasesPage from './frontend/cases/casePage';
 import TransportStaffPage from './frontend/transport_staff/TransportStaffPage';
 import CourtHearingPage from './frontend/court_hearings/court_hearingPage';
 import PrisonerCallPage from './frontend/prisoner_calls/prisoner_callPage';
-import './Bootstrap/css/sb-admin-2.css';
 import PrisonerMovementsPage from './frontend/prisonerMovements/prisonerMovementsPage';
 import PrisonerWorkPage from './frontend/prisoner_work/PrisonerWorkPage';
 import KitchenStaffPage from './frontend/kitchen_staff/KitchenStaffPage';
 import MaintenanceStaffPage from './frontend/maintenance_staff/maintenance_staffPage';
-
-
+import PrisonerAccountsPage from './frontend/prisoner_account/PrisonerAccountsPage';
 import IncidentsPage from './frontend/incidents/IncidentsPage';
+import TransactionsPage from './frontend/transactions/transactionsPage';
+import PrisonPurchasesPage from './frontend/prison_purchases/prisonPurchasesPage';
+import StoreItemsPage from './frontend/store_items/StoreItemsPage';
+import VehiclesPage from './frontend/vehicles/VehiclesPage';
+import TransportPage from './frontend/transport/TransportPage';
+
+
+import './Bootstrap/css/sb-admin-2.css';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -80,7 +86,7 @@ function AppContent() {
           } else {
             throw new Error('Invalid or expired token');
           }
-        } catch (err) {
+        } catch {
           localStorage.removeItem('token');
           localStorage.removeItem('permissions');
           setIsAuthenticated(false);
@@ -167,16 +173,22 @@ function AppContent() {
             <Route path="/transport_staff" element={isAuthenticated ? <TransportStaffPage /> : <Navigate to="/login" replace />} />
             <Route path="/paroles" element={isAuthenticated ? <ParolePage /> : <Navigate to="/login" replace />} />
             <Route path="/cases" element={isAuthenticated ? <CasesPage /> : <Navigate to="/login" replace />} />
-            <Route path="/prisoner_movements" element={isAuthenticated ? <PrisonerMovementsPage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/prisoner_movements" element={isAuthenticated ? <PrisonerMovementsPage /> : <Navigate to="/login" replace />} />
             <Route path="/court_hearings" element={isAuthenticated ? <CourtHearingPage /> : <Navigate to="/login" replace />} />
             <Route path="/kitchen_staff" element={isAuthenticated ? <KitchenStaffPage /> : <Navigate to="/login" replace />} />
-            <Route path="/incidents" element={isAuthenticated ? <IncidentsPage /> : <Navigate to="/login" replace />} /> 
+            <Route path="/incidents" element={isAuthenticated ? <IncidentsPage /> : <Navigate to="/login" replace />} />
+            <Route path="/transactions" element={isAuthenticated ? <TransactionsPage /> : <Navigate to="/login" replace />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/staff_schedule/users/:userID" element={isAuthenticated ? <UserScheduleList /> : <Navigate to="/login" replace />} />
             <Route path="/prisoner_calls" element={isAuthenticated ? <PrisonerCallPage /> : <Navigate to="/login" replace />} />
-            <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />            <Route path="/reset-password" element={<ResetPasswordPage />} />
-
+            <Route path="/maintenance_staff" element={isAuthenticated ? <MaintenanceStaffPage /> : <Navigate to="/login" replace />} />
+            <Route path="/prisoner_accounts" element={isAuthenticated ? <PrisonerAccountsPage /> : <Navigate to="/login" replace />} />
+            <Route path="/transactions" element={isAuthenticated ? <transactionsPage /> : <Navigate to="/login" replace />} />
+            <Route path="/prison_purchases" element={isAuthenticated ? <PrisonPurchasesPage /> : <Navigate to="/login" replace />} />
+            <Route path="/store_items" element={isAuthenticated ? <StoreItemsPage /> : <Navigate to="/login" replace />} />
+            <Route path="/vehicles" element={isAuthenticated ? <VehiclesPage /> : <Navigate to="/login" replace />} />
+            <Route path="/transport" element={isAuthenticated ? <TransportPage /> : <Navigate to="/login" replace />} />            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
           </Routes>
         </div>

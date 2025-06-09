@@ -67,17 +67,14 @@ app.use("/api/staff_schedule", verifyToken, scheduleRoute);
 const paroleRoutes = require("./backend/routes/paroleRoute");
 app.use("/api/paroles", verifyToken, paroleRoutes);
 
-
 const casesRoutes = require("./backend/routes/casesRoute"); 
 app.use("/api/cases", verifyToken, casesRoutes); 
 
 const courtHearingRoute = require("./backend/routes/court_hearingRoute");
-app.use("/api/court_hearings",verifyToken, courtHearingRoute);
-
+app.use("/api/court_hearings", verifyToken, courtHearingRoute);
 
 const transportStaffRoute = require("./backend/routes/transport_staffRoute");
 app.use("/api/transport_staff", verifyToken, transportStaffRoute);
-
 
 const prisonerMovementsRoutes = require("./backend/routes/prisonerMovementsRoute");
 app.use("/api/prisoner_movements", verifyToken, prisonerMovementsRoutes);
@@ -94,11 +91,27 @@ app.use("/api/prisoner_calls", verifyToken, prisonerCallRoute);
 const maintenanceStaffRoute = require("./backend/routes/maintenance_staffRoute");
 app.use("/api/maintenance_staff", verifyToken, maintenanceStaffRoute);
 
+const prisonerAccountRoute = require("./backend/routes/prisonerAccountsRoute");
+app.use("/api/prisoner_accounts", verifyToken, prisonerAccountRoute);
 
+const prisonPurchasesRoute = require("./backend/routes/prisonPurchasesRoute");
+app.use("/api/prison_purchases", verifyToken, prisonPurchasesRoute);
 
+const transactions = require("./backend/routes/transactionsRoute");
+app.use("/api/transactions", verifyToken, transactionsRoute);
 
 const incidentsRoutes = require("./backend/routes/incidentsRoute");
 app.use("/api/incidents", verifyToken, incidentsRoutes);
+
+const storeItemsRoute = require("./backend/routes/storeItemsRoute");
+app.use("/api/store_items", verifyToken, storeItemsRoute);
+
+const vehiclesRoute = require("./backend/routes/vehiclesRoute");
+app.use("/api/vehicles", verifyToken, vehiclesRoute);
+
+const transportRoute = require("./backend/routes/transportRoute");
+app.use("/api/transport", verifyToken, transportRoute);
+
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
