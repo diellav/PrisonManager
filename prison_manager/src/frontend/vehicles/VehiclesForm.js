@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
 
-const VehiclesForm = ({ editingVehicle, onSuccess, onCancel }) => {
+const VehiclesForm = ({ editingVehicle, onSuccess, onCancel, transportStaff }) => {
   const [form, setForm] = useState({
     plate_number: "",
     type_: "",
@@ -9,13 +9,7 @@ const VehiclesForm = ({ editingVehicle, onSuccess, onCancel }) => {
     status_: "",
     transport_staff_ID: "",
   });
-
-  const [transportStaff, setTransportStaff] = useState([]);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetchTransportStaff();
-  }, []);
 
   useEffect(() => {
     if (editingVehicle) {
@@ -24,20 +18,20 @@ const VehiclesForm = ({ editingVehicle, onSuccess, onCancel }) => {
         type_: editingVehicle.type_ || "",
         capacity: editingVehicle.capacity ? editingVehicle.capacity.toString() : "",
         status_: editingVehicle.status_ || "",
-        transport_staff_ID: editingVehicle.transport_staff_ID || "",
+        transport_staff_ID: editingVehicle.transport_staff_ID
+          ? editingVehicle.transport_staff_ID.toString()
+          : "",
+      });
+    } else {
+      setForm({
+        plate_number: "",
+        type_: "",
+        capacity: "",
+        status_: "",
+        transport_staff_ID: "",
       });
     }
   }, [editingVehicle]);
-
-  const fetchTransportStaff = async () => {
-    try {
-      const res = await axiosInstance.get("/transport_staff");
-      setTransportStaff(res.data);
-    } catch (err) {
-      console.error("Error fetching transport staff:", err);
-      setTransportStaff([]);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -97,7 +91,6 @@ const VehiclesForm = ({ editingVehicle, onSuccess, onCancel }) => {
         {error && <div className="alert alert-danger">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="row">
-
             <div className="col-md-6 mb-3">
               <label className="form-label">Plate Number</label>
               <input
@@ -164,15 +157,10 @@ const VehiclesForm = ({ editingVehicle, onSuccess, onCancel }) => {
                 ))}
               </select>
             </div>
-
           </div>
 
           <div className="d-flex justify-content-end">
-            <button
-              type="button"
-              className="btn btn-secondary me-2"
-              onClick={onCancel}
-            >
+            <button type="button" className="btn btn-secondary me-2" onClick={onCancel}>
               Cancel
             </button>
             <button type="submit" className="btn btn-primary">

@@ -5,7 +5,7 @@ const StoreItemsList = ({ items, onEdit, onDelete, goToCreate }) => {
   const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState("item_ID");
+  const [sortField, setSortField] = useState("store_item_ID");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -70,11 +70,9 @@ const StoreItemsList = ({ items, onEdit, onDelete, goToCreate }) => {
   return (
     <div>
       <div className="card shadow-sm mb-4 border-0">
-        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: "#4E73DF" }}>
+        <div className="card-header bg-white py-3 d-flex justify-content-between" style={{ backgroundColor: "#4E73DF" }}>
           <h4 className="m-0 text-primary fw-bold">Store Items List</h4>
-          {hasPermission("store_items.create") && (
-            <button className="btn btn-primary" onClick={goToCreate}>+ Add Item</button>
-          )}
+          <button className="btn btn-primary" onClick={goToCreate}>+ Add Item</button>
         </div>
 
         <div className="card-body">
@@ -112,7 +110,7 @@ const StoreItemsList = ({ items, onEdit, onDelete, goToCreate }) => {
               <thead className="table-light">
                 <tr>
                   {[
-                    { field: "item_ID", label: "ID" },
+                    { field: "store_item_ID", label: "ID" },
                     { field: "name_", label: "Name" },
                     { field: "price", label: "Price" },
                     { field: "category", label: "Category" },
@@ -135,13 +133,13 @@ const StoreItemsList = ({ items, onEdit, onDelete, goToCreate }) => {
               <tbody>
                 {currentItems.length > 0 ? (
                   currentItems.map((item) => (
-                    <tr key={item.item_ID}>
-                      <td>{item.item_ID}</td>
+                    <tr key={item.store_item_ID}>
+                      <td>{item.store_item_ID}</td>
                       <td>{item.name_}</td>
                       <td>{item.price}</td>
                       <td>{item.category}</td>
                       <td>{item.stock_quantity}</td>
-                      <td>{item.last_restocked}</td>
+                      <td>{item.last_restocked.split('T')[0]}</td>
                       {(hasPermission("store_items.edit") || hasPermission("store_items.delete")) && (
                         <td>
                           <div style={{ display: "flex", gap: "6px" }}>
@@ -149,7 +147,7 @@ const StoreItemsList = ({ items, onEdit, onDelete, goToCreate }) => {
                               <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(item)}>Edit</button>
                             )}
                             {hasPermission("store_items.delete") && (
-                              <button className="btn btn-sm btn-outline-danger" onClick={() => { setDeleteId(item.item_ID); setShowConfirm(true); }}>Delete</button>
+                              <button className="btn btn-sm btn-outline-danger" onClick={() => { setDeleteId(item.store_item_ID); setShowConfirm(true); }}>Delete</button>
                             )}
                           </div>
                         </td>

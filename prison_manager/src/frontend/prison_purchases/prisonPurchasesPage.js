@@ -10,6 +10,10 @@ const hasPermission = (permName) => {
 
 const PrisonPurchasesPage = () => {
   const [purchases, setPurchases] = useState([]);
+  const [prisonersData, setPrisonersData] = useState([]);
+  const [guardsData, setGuardsData] = useState([]);
+  const [storeItemsData, setStoreItemsData] = useState([]);
+const [prisonerAccountsData, setPrisonerAccountsData] = useState([]);
   const [form, setForm] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -17,8 +21,12 @@ const PrisonPurchasesPage = () => {
   const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    if (hasPermission("prisonpurchase.read")) {
+    if (hasPermission("prison_purchases.read")) {
+      fetchPrisoners();
+      fetchGuards();
+      fetchStoreItems();
       fetchPurchases();
+      fetchPrisonerAccounts();
     } else {
       showAlert("You don't have permission to view prison purchases.", "danger");
       setLoading(false);
@@ -28,6 +36,36 @@ const PrisonPurchasesPage = () => {
   const showAlert = (message, type = "warning") => {
     setAlert({ message, type });
     setTimeout(() => setAlert({ message: "", type: "" }), 4000);
+  };
+
+  const fetchPrisoners = async () => {
+    try {
+      const res = await axiosInstance.get("/prisoners");
+      setPrisonersData(res.data);
+    } catch (err) {
+      console.error("Error fetching prisoners:", err.response?.data || err.message);
+      showAlert("Failed to fetch prisoners.", "danger");
+    }
+  };
+
+  const fetchGuards = async () => {
+    try {
+      const res = await axiosInstance.get("/guard_staff");
+      setGuardsData(res.data);
+    } catch (err) {
+      console.error("Error fetching guards:", err.response?.data || err.message);
+      showAlert("Failed to fetch guards.", "danger");
+    }
+  };
+
+  const fetchStoreItems = async () => {
+    try {
+      const res = await axiosInstance.get("/store_items");
+      setStoreItemsData(res.data);
+    } catch (err) {
+      console.error("Error fetching store items:", err.response?.data || err.message);
+      showAlert("Failed to fetch store items.", "danger");
+    }
   };
 
   const fetchPurchases = async () => {
@@ -44,8 +82,17 @@ const PrisonPurchasesPage = () => {
     }
   };
 
+  const fetchPrisonerAccounts = async () => {
+  try {
+    const res = await axiosInstance.get("/prisoner_accounts");
+    setPrisonerAccountsData(res.data);
+  } catch (err) {
+    console.error("Error fetching prisoner accounts:", err);
+    showAlert("Failed to fetch prisoner accounts.", "danger");
+  }
+};
   const handleEdit = (purchase) => {
-    if (!hasPermission("prisonpurchase.edit")) {
+    if (!hasPermission("prison_purchases.edit")) {
       return showAlert("You don't have permission to edit prison purchases.", "danger");
     }
     setForm(purchase);
@@ -54,7 +101,7 @@ const PrisonPurchasesPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!hasPermission("prisonpurchase.delete")) {
+    if (!hasPermission("prison_purchases.delete")) {
       return showAlert("You don't have permission to delete prison purchases.", "danger");
     }
     try {
@@ -67,7 +114,7 @@ const PrisonPurchasesPage = () => {
   };
 
   const handleModalOpen = () => {
-    if (!hasPermission("prisonpurchase.create")) {
+    if (!hasPermission("prison_purchases.create")) {
       return showAlert("You don't have permission to create prison purchases.", "danger");
     }
     setForm(null);
@@ -104,9 +151,13 @@ const PrisonPurchasesPage = () => {
           }}
           onCancel={handleModalClose}
         />
-      ) : hasPermission("prisonpurchase.read") ? (
+      ) : hasPermission("prison_purchases.read") ? (
         <PrisonPurchasesList
-          purchases={purchases}
+          prisonPurchases={purchases}
+          prisoners={prisonersData}
+          guards={guardsData}
+          storeItems={storeItemsData}
+          prisonerAccounts={prisonerAccountsData}
           onEdit={handleEdit}
           onDelete={handleDelete}
           goToCreate={handleModalOpen}

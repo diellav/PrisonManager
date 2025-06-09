@@ -49,16 +49,18 @@ const PrisonerAccountsPage = () => {
     setShowForm(true);
   };
 
-  const onDelete = async (id) => {
-    if (!hasPermission("prisoner_accounts.delete")) return;
-    try {
-      await axiosInstance.delete(`/prisoner_accounts/${id}`);
-      setAccounts(accounts.filter((a) => a.account_ID !== id));
-    } catch (err) {
-      console.error("Error deleting account:", err);
-      setError("Failed to delete account.");
-    }
-  };
+const onDelete = async (id) => {
+  if (!hasPermission("prisoner_accounts.delete")) return;
+  try {
+    await axiosInstance.delete(`/prisoner_accounts/${id}`);
+    setAccounts((prevAccounts) =>
+      prevAccounts.filter((a) => a.prisoner_account_ID !== id)
+    );
+  } catch {
+    setError("Failed to delete account.");
+  }
+};
+
 
   const onSuccess = () => {
     setShowForm(false);
@@ -78,10 +80,11 @@ const PrisonerAccountsPage = () => {
         <div className="alert alert-danger">{error}</div>
       ) : showForm && (hasPermission("prisoner_accounts.create") || hasPermission("prisoner_accounts.edit")) ? (
         <PrisonerAccountForm
-          editingAccount={editingAccount}
-          onSuccess={onSuccess}
-          onCancel={onCancel}
-        />
+  selectedAccount={editingAccount}
+  onSuccess={onSuccess}
+  onCancel={onCancel}
+/>
+
       ) : (
         hasPermission("prisoner_accounts.read") && (
           <PrisonerAccountsList

@@ -11,13 +11,7 @@ const hasPermission = (permName) => {
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [transportStaff, setTransportStaff] = useState([]);
-  const [form, setForm] = useState({
-    vehicleID: null,
-    vehicle_type: "",
-    license_plate: "",
-    assigned_staffID: "",
-    status: "",
-  });
+  const [form, setForm] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -62,13 +56,7 @@ const VehiclesPage = () => {
   };
 
   const resetForm = () => {
-    setForm({
-      vehicleID: null,
-      vehicle_type: "",
-      license_plate: "",
-      assigned_staffID: "",
-      status: "",
-    });
+    setForm(null);
     setIsEditing(false);
   };
 
@@ -88,13 +76,7 @@ const VehiclesPage = () => {
       return showAlert("You don't have permission to edit vehicles.", "danger");
     }
 
-    setForm({
-      vehicleID: vehicle.vehicleID,
-      vehicle_type: vehicle.vehicle_type,
-      license_plate: vehicle.license_plate,
-      assigned_staffID: vehicle.assigned_staffID,
-      status: vehicle.status,
-    });
+    setForm(vehicle);
     setIsEditing(true);
     setShowModal(true);
   };

@@ -5,7 +5,7 @@ const PrisonerAccountsList = ({ accounts, onEdit, onDelete, goToCreate }) => {
   const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState("account_ID");
+  const [sortField, setSortField] = useState("prisoner_account_ID");
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -104,10 +104,10 @@ const PrisonerAccountsList = ({ accounts, onEdit, onDelete, goToCreate }) => {
             <thead className="table-light">
               <tr>
                 {[
-                  { field: "account_ID", label: "ID" },
-                  { field: "prisoner_ID", label: "Prisoner ID" },
+                  { field: "prisoner_account_ID", label: "ID" },
+                  { field: "prisonerID", label: "Prisoner ID" },
                   { field: "balance", label: "Balance" },
-                  { field: "status", label: "Status" },
+                  { field: "status_", label: "Status" },
                 ].map(({ field, label }) => (
                   <th
                     key={field}
@@ -132,11 +132,11 @@ const PrisonerAccountsList = ({ accounts, onEdit, onDelete, goToCreate }) => {
             <tbody>
               {currentAccounts.length > 0 ? (
                 currentAccounts.map((acc) => (
-                  <tr key={acc.account_ID}>
-                    <td>{acc.account_ID}</td>
-                    <td>{acc.prisoner_ID}</td>
+                  <tr key={acc.prisoner_account_ID}>
+                    <td>{acc.prisoner_account_ID}</td>
+                    <td>{acc.prisonerID}</td>
                     <td>{acc.balance}</td>
-                    <td>{acc.status}</td>
+                    <td>{acc.status_}</td>
                     {(hasPermission("prisoner_accounts.edit") || hasPermission("prisoner_accounts.delete")) && (
                       <td>
                         <div style={{ display: "flex", gap: "6px" }}>
@@ -149,7 +149,7 @@ const PrisonerAccountsList = ({ accounts, onEdit, onDelete, goToCreate }) => {
                             <button
                               className="btn btn-sm btn-outline-danger"
                               onClick={() => {
-                                setDeleteId(acc.account_ID);
+                                setDeleteId(acc.prisoner_account_ID);
                                 setShowConfirm(true);
                               }}
                             >

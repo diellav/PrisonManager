@@ -1,84 +1,102 @@
-import React, { useEffect, useState } from "react";
-import axiosInstance from "../axios";
+import React, { useState, useEffect } from "react";
+  import { Card, Form, Button } from "react-bootstrap";
+  import axiosInstance from "../axios";
 
-const PrisonerAccountForm = ({ editingAccount, onSuccess, onCancel }) => {
-  const [form, setForm] = useState({
-    prisoner_ID: "",
-    balance: "",
-    status: "",
-  });
+  const PrisonerAccountForm = ({ selectedAccount, onSuccess, onCancel }) => {
+    const [form, setForm] = useState({
+      prisonerID: "",
+      balance: "",
+      status_: "",
+    });
 
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (editingAccount) {
-      setForm({
-        prisoner_ID: editingAccount.prisoner_ID || "",
-        balance: editingAccount.balance || "",
-        status: editingAccount.status || "",
-      });
-    }
-  }, [editingAccount]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingAccount) {
-        await axiosInstance.put(`/prisoner_accounts/${editingAccount.account_ID}`, form);
-      } else {
-        await axiosInstance.post("/prisoner_accounts", form);
+    useEffect(() => {
+      if (selectedAccount) {
+        setForm({
+          prisonerID: selectedAccount.prisonerID || "",
+          balance: selectedAccount.balance || "",
+          status_: selectedAccount.status_ || "",
+        });
       }
-      onSuccess();
-    } catch (err) {
-      console.error("Error saving account:", err);
-      setError("Failed to save prisoner account.");
-    }
+    }, [selectedAccount]);
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        if (selectedAccount) {
+          await axiosInstance.put(`/prisoner_accounts/${selectedAccount.prisoner_account_ID}`, form);
+        } else {
+          await axiosInstance.post("/prisoner_accounts", form);
+        }
+        onSuccess();
+        setForm({
+          prisonerID: "",
+          balance: "",
+          status_: "",
+        });
+      } catch (err) {
+        console.error("Error saving prisoner account:", err);
+      }
+    };
+
+    return (
+      <Card className="mb-4 shadow-sm">
+        <Card.Body>
+          <Card.Title>{selectedAccount ? "Edit Prisoner Account" : "Create Prisoner Account"}</Card.Title>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group controlId="prisonerID" className="mb-3">
+              <Form.Label>Prisoner ID</Form.Label>
+              <Form.Control
+                type="number"
+                name="prisonerID"
+                value={form.prisonerID}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group controlId="balance" className="mb-3">
+              <Form.Label>Balance</Form.Label>
+              <Form.Control
+                type="number"
+                name="balance"
+                value={form.balance}
+                onChange={handleChange}
+                step="0.01"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group controlId="status_" className="mb-3">
+              <Form.Label>Status</Form.Label>
+              <Form.Control
+                type="text"
+                name="status_"
+                value={form.status_}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="secondary" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit">
+                {selectedAccount ? "Update" : "Create"}
+              </Button>
+            </div>
+          </Form>
+        </Card.Body>
+      </Card>
+    );
   };
 
-  return (
-    <div className="card shadow mb-4">
-      <div className="card-header py-3">
-        <h4 className="m-0 font-weight-bold text-primary">
-          {editingAccount ? "Edit Account" : "Create Account"}
-        </h4>
-      </div>
-      <div className="card-body">
-        {error && <div className="alert alert-danger">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="row">
-            {["prisoner_ID", "balance", "status"].map((field) => (
-              <div className="col-md-6 mb-3" key={field}>
-                <label className="form-label">
-                  {field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                </label>
-                <input
-                  type={field === "balance" ? "number" : "text"}
-                  className="form-control"
-                  name={field}
-                  value={form[field]}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            ))}
-          </div>
-          <div className="d-flex justify-content-end">
-            <button type="button" className="btn btn-secondary me-2" onClick={onCancel}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {editingAccount ? "Update" : "Create"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-export default PrisonerAccountForm;
+  export default PrisonerAccountForm;

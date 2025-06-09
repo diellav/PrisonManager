@@ -1,17 +1,28 @@
-
 const { pool, poolConnect, sql } = require("../database");
 
-const getAllTransport = async () => {
-  const result = await db.query("SELECT * FROM transport ORDER BY transport_ID");
-  return result.rows;
-};
+async function getAllTransport() {
+  await poolConnect;
+  const result = await pool.request().query(`
+    SELECT *
+    FROM transport
+    ORDER BY transport_ID
+  `);
+  return result.recordset;
+}
 
-const getTransportById = async (id) => {
-  const result = await db.query("SELECT * FROM transport WHERE transport_ID = $1", [id]);
-  return result.rows[0];
-};
+async function getTransportById(id) {
+  await poolConnect;
+  const result = await pool.request()
+    .input("id", sql.Int, id)
+    .query(`
+      SELECT *
+      FROM transport
+      WHERE transport_ID = @id
+    `);
+  return result.recordset[0];
+}
 
-const createTransport = async (transport) => {
+async function createTransport(transport) {
   const {
     prisonerID,
     departure_location,
@@ -20,28 +31,33 @@ const createTransport = async (transport) => {
     transport_reason,
     status_,
     guard_ID,
-    vehicle_ID,
+    vehicle_ID
   } = transport;
 
-  const result = await db.query(
-    `INSERT INTO transport 
-     (prisonerID, departure_location, destination_location, transport_date, transport_reason, status_, guard_ID, vehicle_ID)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-    [
-      prisonerID,
-      departure_location,
-      destination_location,
-      transport_date,
-      transport_reason,
-      status_,
-      guard_ID,
-      vehicle_ID,
-    ]
-  );
-  return result.rows[0];
-};
+  await poolConnect;
+  const result = await pool.request()
+    .input("prisonerID", sql.Int, prisonerID)
+    .input("departure_location", sql.VarChar(255), departure_location)
+    .input("destination_location", sql.VarChar(255), destination_location)
+    .input("transport_date",sql.DateTime, transport_date)
+    .input("transport_reason",sql.Text,transport_reason)
+    .input("status_", sql.VarChar(255), status_)
+    .input("guard_ID",sql.Int,guard_ID)
+    .input("vehicle_ID", sql.Int, vehicle_ID)
+    .query(`
+      INSERT INTO transport
+        (prisonerID, departure_location, destination_location,
+         transport_date, transport_reason, status_, guard_ID, vehicle_ID)
+      OUTPUT INSERTED.transport_ID
+      VALUES
+        (@prisonerID, @departure_location, @destination_location,
+         @transport_date, @transport_reason, @status_, @guard_ID, @vehicle_ID)
+    `);
 
-const updateTransport = async (id, transport) => {
+  return { transport_ID: result.recordset[0].transport_ID };
+}
+
+async function updateTransport(id, transport) {
   const {
     prisonerID,
     departure_location,
@@ -50,37 +66,52 @@ const updateTransport = async (id, transport) => {
     transport_reason,
     status_,
     guard_ID,
-    vehicle_ID,
+    vehicle_ID
   } = transport;
 
-  const result = await db.query(
-    `UPDATE transport SET 
-       prisonerID=$1, departure_location=$2, destination_location=$3, transport_date=$4, transport_reason=$5, 
-       status_=$6, guard_ID=$7, vehicle_ID=$8
-     WHERE transport_ID=$9 RETURNING *`,
-    [
-      prisonerID,
-      departure_location,
-      destination_location,
-      transport_date,
-      transport_reason,
-      status_,
-      guard_ID,
-      vehicle_ID,
-      id,
-    ]
-  );
-  return result.rows[0];
-};
+  await poolConnect;
+  await pool.request()
+    .input("id", sql.Int,id)
+    .input("prisonerID", sql.Int, prisonerID)
+    .input("departure_location", sql.VarChar(255), departure_location)
+    .input("destination_location", sql.VarChar(255), destination_location)
+    .input("transport_date",  sql.DateTime, transport_date)
+    .input("transport_reason", sql.Text,  transport_reason)
+    .input("status_", sql.VarChar(255), status_)
+    .input("guard_ID", sql.Int, guard_ID)
+    .input("vehicle_ID", sql.Int,vehicle_ID)
+    .query(`
+      UPDATE transport SET
+        prisonerID = @prisonerID,
+        departure_location = @departure_location,
+        destination_location = @destination_location,
+        transport_date = @transport_date,
+        transport_reason = @transport_reason,
+        status_ = @status_,
+        guard_ID = @guard_ID,
+        vehicle_ID = @vehicle_ID
+      WHERE transport_ID = @id
+    `);
 
-const deleteTransport = async (id) => {
-  await db.query("DELETE FROM transport WHERE transport_ID = $1", [id]);
-};
+  return { transport_ID: id };
+}
+
+async function deleteTransport(id) {
+  await poolConnect;
+  await pool.request()
+    .input("id", sql.Int, id)
+    .query(`
+      DELETE FROM transport
+      WHERE transport_ID = @id
+    `);
+
+  return { transport_ID: id };
+}
 
 module.exports = {
   getAllTransport,
   getTransportById,
   createTransport,
   updateTransport,
-  deleteTransport,
+  deleteTransport
 };
