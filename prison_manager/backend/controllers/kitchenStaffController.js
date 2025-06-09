@@ -31,18 +31,11 @@ const updateKitchenStaff = async (req, res) => {
   }
 };
 
-const deleteKitchenStaff = async (req, res) => {
-  try {
-    await kitchenModel.deleteKitchenStaff(req.params.id);
-    res.send("Kitchen staff deleted");
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
+
 
 module.exports = {
   getKitchenStaff,
   getOneKitchenStaff,
   updateKitchenStaff,
-  deleteKitchenStaff,
+
 };

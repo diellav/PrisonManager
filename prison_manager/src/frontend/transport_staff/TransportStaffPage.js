@@ -10,7 +10,6 @@ const TransportStaffPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
 
   function initialFormState() {
     return {
@@ -80,19 +79,6 @@ const TransportStaffPage = () => {
     setShowModal(true);
   };
 
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/transport_staff/${id}`);
-      fetchStaff();
-    } catch (err) {
-      console.error("Error deleting transport staff:", err.response?.data || err.message);
-    }
-  };
 
   const handleModalOpen = () => {
     resetForm();
@@ -119,15 +105,8 @@ const TransportStaffPage = () => {
           staff={staff}
           users={users}
           onEdit={handleEdit}
-          onDelete={confirmDelete}  
           goToCreate={handleModalOpen}
           showConfirm={showConfirm} 
-          deleteId={deleteId}
-          onConfirmDelete={() => {
-            handleDelete(deleteId);
-            setShowConfirm(false);
-          }}
-          onCancelDelete={() => setShowConfirm(false)}
         />
       )}
     </div>

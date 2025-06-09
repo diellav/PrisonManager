@@ -32,18 +32,11 @@ const updateTransportStaff = async (req, res) => {
   }
 };
 
-const deleteTransportStaff = async (req, res) => {
-  try {
-    await transportModel.deleteTransportStaff(req.params.id);
-    res.send("Transport staff deleted");
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
+
 
 module.exports = {
   getTransportStaff,
   getOneTransportStaff,
   updateTransportStaff,
-  deleteTransportStaff,
+
 };

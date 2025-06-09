@@ -3,8 +3,6 @@ import React, { useState } from "react";
 const KitchenStaffList = ({
   staff,
   onEdit,
-  onDelete,
-  goToCreate,
   users = [],
 }) => {
   const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
@@ -15,8 +13,6 @@ const KitchenStaffList = ({
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -54,30 +50,38 @@ const KitchenStaffList = ({
     );
   };
 
-  const filteredStaff = [...staff]
-    .filter((s) =>
-      [s.kitchen_staff_ID, s.userID, s.kitchen_role]
-        .some((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    .sort((a, b) => {
-      let aVal = a[sortField];
-      let bVal = b[sortField];
+const filteredStaff = [...staff]
+  .filter((s) => {
+    const user = users.find((u) => u.userID === s.userID);
+    const fullName = user ? `${user.first_name} ${user.last_name}`.toLowerCase() : "";
+    const term = searchTerm.toLowerCase();
 
-      if (sortField === "user_name") {
-        const aUser = users.find((u) => u.userID === a.userID);
-        const bUser = users.find((u) => u.userID === b.userID);
+    return (
+      String(s.kitchen_staff_ID).includes(term) ||
+      String(s.kitchen_role).toLowerCase().includes(term) ||
+      fullName.includes(term)
+    );
+  })
+  .sort((a, b) => {
+    let aVal = a[sortField];
+    let bVal = b[sortField];
 
-        aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
-        bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
-      }
+    if (sortField === "user_name") {
+      const aUser = users.find((u) => u.userID === a.userID);
+      const bUser = users.find((u) => u.userID === b.userID);
 
-      if (typeof aVal === "string") aVal = aVal.toLowerCase();
-      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+      aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
+      bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
+    }
 
-      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
+    if (typeof aVal === "string") aVal = aVal.toLowerCase();
+    if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
@@ -85,15 +89,6 @@ const KitchenStaffList = ({
   const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  const openConfirm = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
-  };
-
-  const closeConfirm = () => {
-    setDeleteId(null);
-    setShowConfirm(false);
-  };
 
   return (
     <div className="card shadow-sm mb-4 border-0">
@@ -180,14 +175,7 @@ const KitchenStaffList = ({
                                 Edit
                               </button>
                             )}
-                            {hasPermission("kitchen_staff.delete") && (
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => openConfirm(s.kitchen_staff_ID)}
-                              >
-                                Delete
-                              </button>
-                            )}
+                            
                           </div>
                         </td>
                       )}
@@ -246,47 +234,6 @@ const KitchenStaffList = ({
           </ul>
         </div>
       </div>
-
-      {showConfirm && (
-        <>
-          <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-          <div
-            className="modal show d-block"
-            tabIndex="-1"
-            style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}
-          >
-            <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Confirm Deletion</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={closeConfirm}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <p>Are you sure you want to delete kitchen staff ID {deleteId}?</p>
-                </div>
-                <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={closeConfirm}>
-                    Cancel
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => {
-                      onDelete(deleteId);
-                      closeConfirm();
-                    }}
-                  >
-                    Yes, I'm sure
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 };

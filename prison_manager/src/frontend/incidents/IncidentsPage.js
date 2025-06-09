@@ -26,16 +26,22 @@ const IncidentsPage = () => {
 
   useEffect(() => {
     const init = async () => {
-      if (hasPermission("incidents.create") || hasPermission("incidents.edit") || hasPermission("incidents.read")) {
+      if (
+        hasPermission("incidents.create") ||
+        hasPermission("incidents.edit") ||
+        hasPermission("incidents.read")
+      ) {
         await fetchPrisoners();
-      }
-      if (hasPermission("incidents.read")) {
-        fetchIncidents();
       }
     };
     init();
   }, []);
-  
+
+  useEffect(() => {
+    if (prisoners.length > 0 && hasPermission("incidents.read")) {
+      fetchIncidents();
+    }
+  }, [prisoners]);
 
   const fetchPrisoners = async () => {
     try {
@@ -45,7 +51,27 @@ const IncidentsPage = () => {
       console.error("Error fetching prisoners:", err.response?.data || err.message);
     }
   };
-  
+
+  const enrichWithPrisonerNames = (incidents, allPrisoners) => {
+    return incidents.map((incident) => {
+      const enrichedPrisoners = (incident.prisonerIDs || [])
+        .map((id) => {
+          const prisoner = allPrisoners.find((p) => p.prisonerID === id);
+          if (!prisoner) return null;
+          return {
+            prisonerID: prisoner.prisonerID,
+            first_name: prisoner.first_name,
+            last_name: prisoner.last_name,
+          };
+        })
+        .filter(Boolean);
+
+      return {
+        ...incident,
+        prisoners: enrichedPrisoners,
+      };
+    });
+  };
 
   const fetchIncidents = async () => {
     try {
@@ -61,21 +87,6 @@ const IncidentsPage = () => {
       console.error("Error fetching incidents:", err.response?.data || err.message);
     }
   };
-  
-
-  const enrichWithPrisonerNames = (incidents, allPrisoners) => {
-    return incidents.map((incident) => {
-      const enrichedPrisoners = (incident.prisonerIDs || []).map((id) =>
-        allPrisoners.find((p) => p.prisoner_ID === id)
-      ).filter(Boolean);
-      return {
-        ...incident,
-        prisoners: enrichedPrisoners,
-      };
-    });
-  };
-  
-
 
   const showAlert = (message, type = "warning") => {
     setAlertMessage({ message, type });
@@ -118,22 +129,22 @@ const IncidentsPage = () => {
     if (!hasPermission("incidents.edit")) {
       return showAlert("No permission to edit incidents.", "danger");
     }
-  
+
     try {
       const res = await axiosInstance.get(`/incidents/${incident.incident_ID || incident.incidentID}`);
       const incidentData = res.data;
-  
+
       const formattedDate = incidentData.date_reported?.split("T")[0] || "";
-  
+
       setForm({
         incidentID: incidentData.incident_ID,
         date_reported: formattedDate,
         severity: incidentData.severity || "",
         resolved: incidentData.resolved || "",
         follow_up_actions: incidentData.follow_up_actions || "",
-        prisonerIDs: incidentData.prisonerIDs || incidentData.prisoners?.map(p => p.prisoner_ID) || [],
+        prisonerIDs: incidentData.prisonerIDs || [],
       });
-  
+
       setIsEditing(true);
       setShowForm(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -146,8 +157,6 @@ const IncidentsPage = () => {
       }
     }
   };
-  
-  
 
   const handleDelete = async (id) => {
     if (!hasPermission("incidents.delete")) {

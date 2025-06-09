@@ -40,17 +40,10 @@ async function updateKitchenStaff(id, data) {
     `);
 }
 
-async function deleteKitchenStaff(id) {
-  await poolConnect;
-  await pool
-    .request()
-    .input("id", sql.Int, id)
-    .query("DELETE FROM kitchen_staff WHERE kitchen_staff_ID = @id");
-}
+
 
 module.exports = {
   getAllKitchenStaff,
   getKitchenStaffById,
   updateKitchenStaff,
-  deleteKitchenStaff,
 };

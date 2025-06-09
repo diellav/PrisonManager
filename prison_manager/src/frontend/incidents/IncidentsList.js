@@ -1,43 +1,8 @@
-import React, { useState, useMemo } from "react";
-
-const groupIncidents = (rawData) => {
-  const incidentsMap = {};
-
-  rawData.forEach(row => {
-    if (!incidentsMap[row.incident_ID]) {
-      incidentsMap[row.incident_ID] = {
-        incidentID: row.incident_ID,
-        date_reported: row.date_reported,
-        severity: row.severity,
-        resolved: row.resolved,
-        follow_up_actions: row.follow_up_actions,
-        prisoners: []
-      };
-    }
-
-    if (row.prisoner_ID) {
-      incidentsMap[row.incident_ID].prisoners.push({
-        prisonerID: row.prisoner_ID,
-        first_name: row.first_name,
-        last_name: row.last_name
-      });
-    }
-  });
-
-  return Object.values(incidentsMap);
-};
+import React, { useState } from "react";
 
 const IncidentsList = ({ incidents, onEdit, onDelete, goToCreate }) => {
-  console.log("Raw Incidents Data:", incidents);
-
   const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
   const hasPermission = (perm) => permissions.includes(perm.toLowerCase());
-
-  const groupedIncidents = useMemo(() => {
-    const grouped = groupIncidents(incidents);
-    console.log("Grouped Incidents:", grouped);
-    return grouped;
-  }, [incidents]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("incidentID");
@@ -61,16 +26,11 @@ const IncidentsList = ({ incidents, onEdit, onDelete, goToCreate }) => {
     }
   };
 
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(parseInt(e.target.value));
-    setCurrentPage(1);
-  };
-
   const renderSortIcons = (field) => {
     const active = sortField === field;
-    const color = active ? "white" : "#343a40";
     const activeAsc = active && sortDirection === "asc";
     const activeDesc = active && sortDirection === "desc";
+    const color = active ? "white" : "#343a40";
 
     return (
       <span
@@ -87,7 +47,7 @@ const IncidentsList = ({ incidents, onEdit, onDelete, goToCreate }) => {
     );
   };
 
-  const filteredIncidents = [...groupedIncidents]
+  const filteredIncidents = incidents
     .filter((inc) =>
       [inc.incidentID, inc.date_reported, inc.severity, inc.resolved, inc.follow_up_actions]
         .some((val) =>
@@ -131,7 +91,10 @@ const IncidentsList = ({ incidents, onEdit, onDelete, goToCreate }) => {
                 className="form-select form-select-sm"
                 style={{ width: "80px" }}
                 value={itemsPerPage}
-                onChange={handleItemsPerPageChange}
+                onChange={(e) => {
+                  setItemsPerPage(parseInt(e.target.value));
+                  setCurrentPage(1);
+                }}
               >
                 {[10, 25, 50, 100].map((num) => (
                   <option key={num} value={num}>
@@ -158,21 +121,22 @@ const IncidentsList = ({ incidents, onEdit, onDelete, goToCreate }) => {
           <table className="table align-middle">
             <thead className="table-light">
               <tr>
-                {[
-                  { field: "incidentID", label: "ID" },
-                  { field: "date_reported", label: "Date Reported" },
-                  { field: "severity", label: "Severity" },
-                  { field: "resolved", label: "Resolved" },
-                  { field: "follow_up_actions", label: "Follow-up Actions" },
-                ].map(({ field, label }) => (
-                  <th
-                    key={field}
-                    style={{ cursor: "pointer", backgroundColor: "#4E73DF", color: "white" }}
-                    onClick={() => handleSort(field)}
-                  >
-                    {label} {renderSortIcons(field)}
-                  </th>
-                ))}
+                  {[ 
+                    { label: "ID", field: "incidentID" },
+                    { label: "Date Reported", field: "date_reported"},
+                    { label: "Severity", field: "severity"},
+                    { label: "Resolved", field: "resolved"},
+                    { label: "Follow Up Actions", field:"follow_up_actions"},
+                  ].map(({ label, field }) => (
+                    <th
+                      key={field}
+                      style={{ cursor: "pointer", backgroundColor: "#4E73DF", color: "white" }}
+                      onClick={() => handleSort(field)}
+                    >
+                      {label} {renderSortIcons(field)}
+
+                    </th>
+                  ))}
                 <th style={{ backgroundColor: "#4E73DF", color: "white" }}>Prisoners Involved</th>
                 {(hasPermission("incidents.edit") || hasPermission("incidents.delete")) && (
                   <th style={{ backgroundColor: "#4E73DF", color: "white" }}>Actions</th>
@@ -189,17 +153,18 @@ const IncidentsList = ({ incidents, onEdit, onDelete, goToCreate }) => {
                     <td>{inc.resolved}</td>
                     <td>{inc.follow_up_actions}</td>
                     <td>
-                      {inc.prisoners && inc.prisoners.length > 0 ? (
-                        inc.prisoners.map(p => `${p.first_name} ${p.last_name}`).join(", ")
-                      ) : (
-                        <span>No prisoners</span>
-                      )}
+                      {inc.prisoners && inc.prisoners.length > 0
+                        ? inc.prisoners.map((p) => `${p.first_name} ${p.last_name}`).join(", ")
+                        : "No prisoners"}
                     </td>
                     {(hasPermission("incidents.edit") || hasPermission("incidents.delete")) && (
                       <td>
                         <div style={{ display: "flex", gap: "6px" }}>
                           {hasPermission("incidents.edit") && (
-                            <button className="btn btn-sm btn-outline-info" onClick={() => onEdit(inc)}>
+                            <button
+                              className="btn btn-sm btn-outline-info"
+                              onClick={() => onEdit(inc)}
+                            >
                               Edit
                             </button>
                           )}
@@ -272,7 +237,7 @@ const IncidentsList = ({ incidents, onEdit, onDelete, goToCreate }) => {
                   <button type="button" className="btn-close" onClick={() => setShowConfirm(false)}></button>
                 </div>
                 <div className="modal-body">
-                <p>Are you sure you want to delete incident #{deleteId}?</p>
+                  <p>Are you sure you want to delete incident #{deleteId}?</p>
                 </div>
                 <div className="modal-footer">
                   <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>

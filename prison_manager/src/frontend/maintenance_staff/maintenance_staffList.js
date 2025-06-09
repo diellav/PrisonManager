@@ -9,8 +9,7 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -45,30 +44,35 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
     );
   };
 
-  const filteredStaff = [...staff]
-    .filter((s) =>
-      [s.maintenance_staff_ID, s.userID, s.maintenance_role]
-        .some((val) => String(val).toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    .sort((a, b) => {
-      let aVal = a[sortField];
-      let bVal = b[sortField];
+const filteredStaff = [...staff]
+  .filter((s) => {
+    const user = users.find((u) => u.userID === s.userID);
+    const fullName = user ? `${user.first_name} ${user.last_name}`.toLowerCase() : "";
+    return (
+      String(s.maintenance_staff_ID).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(s.maintenance_role).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fullName.includes(searchTerm.toLowerCase())
+    );
+  })
+  .sort((a, b) => {
+    let aVal = a[sortField];
+    let bVal = b[sortField];
 
-      if (sortField === "user_name") {
-        const aUser = users.find((u) => u.userID === a.userID);
-        const bUser = users.find((u) => u.userID === b.userID);
+    if (sortField === "user_name" || sortField === "first_name") {
+      const aUser = users.find((u) => u.userID === a.userID);
+      const bUser = users.find((u) => u.userID === b.userID);
 
-        aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
-        bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
-      }
+      aVal = aUser ? `${aUser.first_name} ${aUser.last_name}`.toLowerCase() : "";
+      bVal = bUser ? `${bUser.first_name} ${bUser.last_name}`.toLowerCase() : "";
+    }
 
-      if (typeof aVal === "string") aVal = aVal.toLowerCase();
-      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+    if (typeof aVal === "string") aVal = aVal.toLowerCase();
+    if (typeof bVal === "string") bVal = bVal.toLowerCase();
 
-      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
@@ -76,15 +80,7 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
   const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  const openConfirm = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
-  };
 
-  const closeConfirm = () => {
-    setDeleteId(null);
-    setShowConfirm(false);
-  };
 
   return (
     <div className="card shadow-sm mb-4 border-0">
@@ -156,11 +152,6 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
                                 Edit
                               </button>
                             )}
-                            {hasPermission("maintenance_staff.delete") && (
-                              <button className="btn btn-sm btn-outline-danger" onClick={() => openConfirm(s.maintenance_staff_ID)}>
-                                Delete
-                              </button>
-                            )}
                           </div>
                         </td>
                       )}
@@ -197,31 +188,6 @@ const MaintenanceStaffList = ({ staff, onEdit, onDelete, goToCreate, users = [] 
           </ul>
         </div>
       </div>
-
-      {showConfirm && (
-        <>
-          <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}>
-            <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Confirm Deletion</h5>
-                  <button type="button" className="btn-close" onClick={closeConfirm}></button>
-                </div>
-                <div className="modal-body">
-                  <p>Are you sure you want to delete maintenance staff ID {deleteId}?</p>
-                </div>
-                <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={closeConfirm}>Cancel</button>
-                  <button className="btn btn-danger" onClick={() => { onDelete(deleteId); closeConfirm(); }}>
-                    Yes, I'm sure
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 };

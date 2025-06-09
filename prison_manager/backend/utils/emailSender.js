@@ -29,4 +29,54 @@ const sendResetEmail = async (to, resetLink) => {
   }
 };
 
-module.exports = sendResetEmail;
+
+const sendVisitRequestConfirmation = async (to, fullName) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject: 'Visit Request Received',
+      html: `<p>Dear ${fullName},<br>Your visit request has been received. You will be notified once it is approved.</p>`,
+    });
+    console.log(`Visit request confirmation sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending visit request email:', error);
+    throw error;
+  }
+};
+
+const sendVisitApprovedEmail = async (to, fullName, prisonerName, visitDate) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject: 'Visit Request Approved',
+      html: `<p>Dear ${fullName},<br>Your visit request to see ${prisonerName} on ${visitDate} has been <b>approved</b>.</p>`,
+    });
+    console.log(`Approval email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending approval email:', error);
+    throw error;
+  }
+};
+
+const sendVisitRejectedEmail = async (to, fullName, prisonerName, visitDate) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject: 'Visit Request Rejected',
+      html: `<p>Dear ${fullName},<br>Your visit request to see ${prisonerName} on ${visitDate} has been <b>rejected</b>.</p>`,
+    });
+    console.log(`Rejection email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending rejection email:', error);
+    throw error;
+  }
+};
+
+module.exports = {sendResetEmail,
+                  sendVisitRequestConfirmation,
+                  sendVisitApprovedEmail,
+                  sendVisitRejectedEmail,
+    };

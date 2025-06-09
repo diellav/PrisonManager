@@ -10,7 +10,6 @@ const KitchenStaffPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
 
   function initialFormState() {
     return {
@@ -80,20 +79,6 @@ const KitchenStaffPage = () => {
     setShowModal(true);
   };
 
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/kitchen_staff/${id}`);
-      fetchStaff();
-    } catch (err) {
-      console.error("Error deleting kitchen staff:", err.response?.data || err.message);
-    }
-  };
-
   const handleModalOpen = () => {
     resetForm();
     setShowModal(true);
@@ -119,15 +104,8 @@ const KitchenStaffPage = () => {
           staff={staff}
           users={users}
           onEdit={handleEdit}
-          onDelete={confirmDelete}
           goToCreate={handleModalOpen}
           showConfirm={showConfirm}
-          deleteId={deleteId}
-          onConfirmDelete={() => {
-            handleDelete(deleteId);
-            setShowConfirm(false);
-          }}
-          onCancelDelete={() => setShowConfirm(false)}
         />
       )}
     </div>

@@ -6,6 +6,5 @@ const checkPermission = require("../checkPermission");
 router.get("/", checkPermission("transport_staff.read"), controller.getTransportStaff);
 router.get("/:id", checkPermission("transport_staff.read"), controller.getOneTransportStaff);
 router.put("/:id", checkPermission("transport_staff.edit"), controller.updateTransportStaff);
-router.delete("/:id", checkPermission("transport_staff.delete"), controller.deleteTransportStaff);
 
 module.exports = router;

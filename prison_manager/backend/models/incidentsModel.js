@@ -3,8 +3,8 @@ const { pool, poolConnect, sql } = require("../database");
 async function getAllIncidents() {
   await poolConnect;
   const result = await pool.request().query(`
-    SELECT 
-      i.*, 
+    SELECT
+      i.*,
       (
         SELECT p.prisonerID, p.first_name, p.last_name
         FROM incident_prisoners ip
@@ -15,10 +15,14 @@ async function getAllIncidents() {
     FROM incidents i
   `);
 
-  const incidents = result.recordset.map(row => ({
-    ...row,
-    prisoners: row.prisoners ? JSON.parse(row.prisoners) : []
-  }));
+  const incidents = result.recordset.map(row => {
+    const prisoners = row.prisoners ? JSON.parse(row.prisoners) : [];
+    return {
+      ...row,
+      prisoners,
+      prisonerIDs: prisoners.map(p => p.prisonerID),
+    };
+  });
 
   return incidents;
 }

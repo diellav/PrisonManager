@@ -31,18 +31,10 @@ const updateMaintenanceStaff = async (req, res) => {
   }
 };
 
-const deleteMaintenanceStaff = async (req, res) => {
-  try {
-    await maintenanceModel.deleteMaintenanceStaff(req.params.id);
-    res.send("Maintenance staff deleted");
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
+
 
 module.exports = {
   getMaintenanceStaff,
   getOneMaintenanceStaff,
   updateMaintenanceStaff,
-  deleteMaintenanceStaff,
 };

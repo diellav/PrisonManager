@@ -80,19 +80,6 @@ const MaintenanceStaffPage = () => {
     setShowModal(true);
   };
 
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/maintenance_staff/${id}`);
-      fetchStaff();
-    } catch (err) {
-      console.error("Error deleting maintenance staff:", err.response?.data || err.message);
-    }
-  };
 
   const handleModalOpen = () => {
     resetForm();
@@ -119,15 +106,8 @@ const MaintenanceStaffPage = () => {
           staff={staff}
           users={users}
           onEdit={handleEdit}
-          onDelete={confirmDelete}
           goToCreate={handleModalOpen}
           showConfirm={showConfirm}
-          deleteId={deleteId}
-          onConfirmDelete={() => {
-            handleDelete(deleteId);
-            setShowConfirm(false);
-          }}
-          onCancelDelete={() => setShowConfirm(false)}
         />
       )}
     </div>
