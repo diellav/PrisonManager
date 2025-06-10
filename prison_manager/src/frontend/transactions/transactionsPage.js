@@ -1,153 +1,159 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../axios";
-import TransactionsForm from "./transactionsForm";
-import TransactionsList from "./transactionsList";
+import TransactionList from "./transactionsList";
+import TransactionForm from "./transactionsForm";
 
 const hasPermission = (permName) => {
   const perms = JSON.parse(localStorage.getItem("permissions") || "[]");
   return perms.includes(permName.toLowerCase());
 };
 
-const TransactionsPage = () => {
+const TransactionPage = () => {
   const [transactions, setTransactions] = useState([]);
+  const [prisoners, setPrisoners] = useState([]);
+  const [prisonPurchases, setPrisonPurchases] = useState([]);
+  const [users, setUsers] = useState([]);
 
-  const [form, setForm] = useState({
-    transaction_ID: null,
-    prisonerID: "",
-    reference_of_purchase: "",
-    amount: "",
-    type_: "",
-    date_: "",
-
-  });
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [alert, setAlert] = useState({ message: "", type: "" });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (hasPermission("transactions.read")) fetchTransactions();
+    const fetchData = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const transRes = await axiosInstance.get("/transactions");
+        setTransactions(transRes.data);
+      } catch (err) {
+        console.error("Failed to fetch transactions:", err);
+        setError("Failed to fetch transactions.");
+      }
+
+      try {
+        const prisonersRes = await axiosInstance.get("/prisoners");
+        setPrisoners(prisonersRes.data);
+      } catch (err) {
+        console.error("Failed to fetch prisoners:", err);
+        setError((prev) =>
+          prev ? prev + " Failed to fetch prisoners." : "Failed to fetch prisoners."
+        );
+      }
+
+      try {
+        const purchasesRes = await axiosInstance.get("/prison_purchases");
+        setPrisonPurchases(purchasesRes.data);
+      } catch (err) {
+        console.error("Failed to fetch prison purchases:", err);
+        setError((prev) =>
+          prev ? prev + " Failed to fetch prison purchases." : "Failed to fetch prison purchases."
+        );
+      }
+
+      try {
+        const usersRes = await axiosInstance.get("/users");
+        setUsers(usersRes.data);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        setError((prev) => (prev ? prev + " Failed to fetch users." : "Failed to fetch users."));
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
   }, []);
 
-  
-
   const fetchTransactions = async () => {
-
+    setLoading(true);
     try {
       const res = await axiosInstance.get("/transactions");
       setTransactions(res.data);
+      setError("");
     } catch (err) {
-      console.error("Failed to fetch transactions:", err.response?.data || err.message);
+      console.error(err);
+      setError("Failed to fetch transactions.");
     }
-  };
-
-  const showAlert = (message, type = "warning") => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert({ message: "", type: "" }), 4000);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (isEditing && hasPermission("transactions.edit")) {
-        await axiosInstance.put(`/transactions/${form.transaction_ID}`, form);
-      } else if (!isEditing && hasPermission("transactions.create")) {
-        await axiosInstance.post("/transactions", form);
-      } else {
-        return showAlert("You don't have permission to perform this action.", "danger");
-      }
-      setShowForm(false);
-      fetchTransactions();
-      resetForm();
-    } catch (error) {
-      showAlert("Failed to save transaction record.", "danger");
-      console.error("Failed to save transaction:", error.response?.data || error.message);
-    }
-  };
-
-  const handleEdit = async (transaction) => {
-    if (!hasPermission("transactions.edit")) {
-      alert("No permission to edit transaction records.");
-      return;
-    }
-    try {
-      const res = await axiosInstance.get(`/transactions/${transaction.transaction_ID}`);
-      const data = res.data;
-      const formatDate = (dateString) => dateString ? new Date(dateString).toISOString().split("T")[0] : "";
-      setForm({
-        transaction_ID: data.transaction_ID,
-        prisonerID: data.prisonerID || "",
-        reference_of_purchase: data.reference_of_purchase || "",
-        amount: data.amount || "",
-        type_: data.type_ || "",
-        date_: formatDate(data.date_) || "",
-      });
-      setIsEditing(true);
-      setShowForm(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err) {
-      alert("Failed to fetch transaction details.");
-      console.error("Error fetching transaction:", err.response?.data || err.message);
-    }
+    setLoading(false);
   };
 
   const handleDelete = async (id) => {
-    if (!hasPermission("transactions.delete")) return showAlert("No permission to delete transaction records.", "danger");
-    if (window.confirm("Are you sure you want to delete this transaction record?")) {
-      try {
-        await axiosInstance.delete(`/transactions/${id}`);
-        fetchTransactions();
-      } catch (err) {
-        showAlert("Failed to delete transaction record.", "danger");
-        console.error("Error deleting transaction:", err.response?.data || err.message);
-      }
+    if (!hasPermission("transactions.delete")) {
+      alert("You don't have permission to delete.");
+      return;
+    }
+    try {
+      await axiosInstance.delete(`/transactions/${id}`);
+      fetchTransactions();
+    } catch (err) {
+      alert("Delete failed.");
     }
   };
 
-  const handleGoToCreate = () => {
-    if (!hasPermission("transactions.create")) return showAlert("No permission to create transaction records.", "danger");
-    resetForm();
+  const handleEdit = (transaction) => {
+    if (!hasPermission("transactions.edit")) {
+      alert("You don't have permission to edit.");
+      return;
+    }
+    setEditingTransaction(transaction);
     setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const resetForm = () => {
-    setForm({
-      transaction_ID: null,
-      prisonerID: "",
-      reference_of_purchase: "",
-      amount: "",
-      type_: "",
-      date_: "",
-    });
-    setIsEditing(false);
+  const handleCreate = () => {
+    if (!hasPermission("transactions.create")) {
+      alert("You don't have permission to create.");
+      return;
+    }
+    setEditingTransaction(null);
+    setShowForm(true);
   };
+
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setEditingTransaction(null);
+    fetchTransactions();
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingTransaction(null);
+  };
+  const transactionsWithDetails = transactions.map((t) => {
+    const prisoner = prisoners.find((p) => p.prisonerID === t.prisonerID);
+    const purchase = prisonPurchases.find((p) => p.prison_purchase_ID === t.prison_purchase_ID);
+    return {
+      ...t,
+      prisonerName: prisoner ? `${prisoner.first_name} ${prisoner.last_name}` : "Unknown",
+      purchaseItemName: purchase ? purchase.item_name : "",
+    };
+  });
 
   return (
-    <div className="container mt-4">
-      <h2 className="mb-4">Transaction Management</h2>
-      {alert.message && (
-        <div className={`alert alert-${alert.type}`} role="alert">{alert.message}</div>
-      )}
-
+    <div>
+      <h2>Transactions</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+    
       {showForm ? (
-        <TransactionsForm
-          form={form}
-          setForm={setForm}
-          isEditing={isEditing}
-          handleSubmit={handleSubmit}
-          handleClose={() => setShowForm(false)}
+        <TransactionForm
+          editingTransaction={editingTransaction}
+          onSuccess={handleFormSuccess}
+          onCancel={handleCancel}
         />
       ) : (
-        <TransactionsList
-          transactions={transactions}
+        <TransactionList
+          transactions={transactionsWithDetails}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          goToCreate={handleGoToCreate}
+            prisoners={prisoners} 
+          loading={loading}
+            goToCreate={handleCreate}
         />
-
       )}
     </div>
   );
 };
 
-export default TransactionsPage;
+export default TransactionPage;

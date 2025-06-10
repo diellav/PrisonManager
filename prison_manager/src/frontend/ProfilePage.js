@@ -9,7 +9,7 @@ const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
+const [currentPassword, setCurrentPassword] = useState('');
   useEffect(() => {
     fetchUser();
     fetchRoles();
@@ -51,6 +51,7 @@ const ProfilePage = () => {
 
     try {
       await axiosInstance.post('/auth/change-password', {
+        currentPassword,
         newPassword
       });
       setSuccess('Password changed successfully');
@@ -179,6 +180,10 @@ const ProfilePage = () => {
               <div className="modal-body">
                 {error && <div className="alert alert-danger">{error}</div>}
                 {success && <div className="alert alert-success">{success}</div>}
+                   <div className="form-group">
+                  <label>Old Password</label>
+                  <input type="password"placeholder="Current Password" className="form-control" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+                </div>
                 <div className="form-group">
                   <label>New Password</label>
                   <input type="password" className="form-control" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />

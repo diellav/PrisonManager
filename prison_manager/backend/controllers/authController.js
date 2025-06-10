@@ -5,7 +5,7 @@ require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET;
 const { v4: uuidv4 } = require('uuid');
 const sql = require('mssql');
-const sendResetEmail = require('../utils/emailSender');
+const {sendResetEmail} = require('../utils/emailSender');
 
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
@@ -290,6 +290,10 @@ const resetPasswordDirect = async (req, res) => {
 const changePassword = async (req, res) => {
   const userID = req.user.userID;
   const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Both current and new password are required' });
+  }
   try {
     await poolConnect;
     const userResult = await pool.request()
